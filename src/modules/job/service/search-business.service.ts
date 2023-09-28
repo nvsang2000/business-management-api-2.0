@@ -67,9 +67,8 @@ export class SearchBusinessService {
 
       console.log('searchBusiness', payload);
       while (true) {
-        const response = await fetch(
-          `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${payload.zipCode}&geo_location_terms=${payload?.keyword}&page=${page}`,
-        );
+        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${payload?.keyword}&geo_location_terms=${payload?.zipCode}&page=${page}`;
+        const response = await fetch(url);
         if (!response.ok) return null;
         const body = await response.text();
         const $ = cheerio.load(body);
@@ -190,9 +189,6 @@ export class SearchBusinessService {
             totalUpdate++;
           }
         }
-        await this.webhooks.sendEvent({
-          data: { zipCode: payload.keyword, totalCreate, totalUpdate },
-        });
         console.log(`${payload.keyword}: `, page);
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');

@@ -22,6 +22,7 @@ export class BullService {
     currentUser: UserEntity,
   ) {
     try {
+      console.log('create job');
       const newPayload = {
         ...payload,
         county: payload?.county && [].concat(payload?.county).flat(Infinity),
@@ -38,6 +39,8 @@ export class BullService {
       };
       await this.scrapingQueue.add('processing-scratch', dataQueue, {
         removeOnComplete: true,
+        attempts: 10,
+        backoff: 100,
       });
 
       return result;
@@ -56,7 +59,7 @@ export class BullService {
       await this.scrapingQueue.add('re-processing-scratch', dataQueue, {
         removeOnComplete: true,
         attempts: 10,
-        backoff: 100,
+        backoff: 2000,
       });
       return result;
     } catch (e) {
@@ -66,15 +69,9 @@ export class BullService {
 
   async getJobList() {
     try {
-      const jobs = await this.scrapingQueue.getJobs(['active']);
+      const jobs = await this.scrapingQueue.getJobs(['failed']);
       return jobs.map((job) => {
-        return {
-          id: job.id,
-          name: job.name,
-          data: job.data,
-          stacktrace: job.stacktrace,
-          failedReason: job.failedReason,
-        };
+        return job;
       });
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

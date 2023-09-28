@@ -1,4 +1,11 @@
-import { Process, Processor } from '@nestjs/bull';
+import {
+  OnGlobalQueueError,
+  OnGlobalQueueFailed,
+  OnQueueActive,
+  OnQueueCompleted,
+  Process,
+  Processor,
+} from '@nestjs/bull';
 import { Job } from 'bull';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { JobAutoScratch } from 'src/interface';
@@ -16,5 +23,25 @@ export class BullSearchBusiness {
       console.log(e);
       throw new UnprocessableEntityException(e?.message);
     }
+  }
+
+  @OnQueueActive()
+  onActive(job) {
+    console.log(`Run job ${job.id}`);
+  }
+
+  @OnQueueCompleted()
+  onCompleted(job) {
+    console.log(`Completed job ${job.id}`);
+  }
+
+  @OnGlobalQueueFailed()
+  onFailed(job) {
+    console.log(`Failed job ${job.id}`);
+  }
+
+  @OnGlobalQueueError()
+  onError(job) {
+    console.log(`Error job ${job.id}`);
   }
 }
