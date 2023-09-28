@@ -1,0 +1,28 @@
+# .gitlab-ci.yml
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:1.1
+  LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+  STABLE_TAG: $CI_REGISTRY_IMAGE:stable
+  # Tell 'docker:dind' to enable TLS (recommended)
+  # and generate certificates in the specified directory.
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  FF_NETWORK_PER_BUILD: "true"
+
+build-push-docker-image-job:
+  # Specify a Docker image to run the job in.
+  image: docker:latest
+  # Specify an additional image 'docker:dind' ("Docker-in-Docker") that
+  # will start up the Docker daemon when it is brought up by a runner.
+  services:
+    - name: docker:dind
+      command: ["--tls=false", "--mtu=1460"]
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build --network host -t $IMAGE_TAG -t $LATEST_TAG .
+    - docker push $IMAGE_TAG
+    - docker push $LATEST_TAG
+  tags:
+    - linux

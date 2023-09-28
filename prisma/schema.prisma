@@ -1,0 +1,116 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Policy {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique @db.VarChar(128)
+  createdAt   DateTime? @default(now()) @db.Timestamptz()
+  updatedAt   DateTime? @updatedAt @db.Timestamptz()
+  isActive    Boolean   @default(true)
+  permissions Json?
+  users       User[]
+
+  @@map("policies")
+}
+
+model User {
+  id                String     @id @default(uuid()) @db.Uuid
+  email             String?    @unique(map: "user_email_key") @db.VarChar(128)
+  username          String     @unique(map: "user_username_key") @db.VarChar(128)
+  password          String     @db.VarChar(255)
+  displayName       String?    @db.VarChar(128)
+  phone             String?    @unique @db.VarChar(24)
+  isActive          Boolean    @default(true)
+  role              String     @default("user") @db.VarChar(24)
+  thumbnail         String?    @db.VarChar(400)
+  policyId          String?    @db.Uuid
+  lastSeen          DateTime?  @default(now()) @db.Timestamptz()
+  updatedAt         DateTime?  @default(now()) @db.Timestamptz()
+  createdAt         DateTime?  @updatedAt @db.Timestamptz()
+  updatedByBusiness Business[] @relation("updatedByBusiness")
+  creatorBusiness   Business[] @relation("creatorBusiness")
+  creatorScratch    Job[]      @relation("creatorJob")
+  updatedByScratch  Job[]      @relation("updatedByJob")
+  creatorCategory   Category[] @relation("creatorCategory")
+  policy            Policy?    @relation(fields: [policyId], references: [id])
+
+  @@map("users")
+}
+
+model Category {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @unique(map: "category_name_key") @db.VarChar(128)
+  slug      String     @unique(map: "category_slug_key") @db.VarChar(128)
+  creatorId String?    @db.Uuid
+  createAt  DateTime?  @default(now()) @db.Timestamptz()
+  updateAt  DateTime?  @updatedAt @db.Timestamptz()
+  creator   User?      @relation("creatorCategory", fields: [creatorId], references: [id])
+  business  Business[] @relation("businesseToCategory")
+
+  @@map("category")
+}
+
+model Business {
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(400)
+  phone        String?    @db.VarChar(24)
+  email        String?    @db.VarChar(64)
+  website      String?    @db.VarChar(800)
+  address      String     @db.VarChar(128)
+  scratchLink  String?    @db.VarChar(400)
+  zipCode      String?    @db.VarChar(16)
+  state        String?    @db.VarChar(8)
+  city         String?    @db.VarChar(128)
+  categories   String[]   @db.VarChar(128)
+  thumbnailUrl String?    @db.VarChar(400)
+  cityId       String?    @db.Uuid
+  creatorId    String?    @db.Uuid
+  updatedById  String?    @db.Uuid
+  createdAt    DateTime?  @default(now()) @db.Timestamptz()
+  updatedAt    DateTime?  @updatedAt @db.Timestamptz()
+  category     Category[] @relation("businesseToCategory")
+  creator      User?      @relation("creatorBusiness", fields: [creatorId], references: [id])
+  updatedBy    User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
+
+  @@unique([scratchLink])
+  @@unique([address, zipCode, state], name: "address_zipcode_state")
+  @@index([categories, state, zipCode, cityId])
+  @@map("business")
+}
+
+model Job {
+  id          String    @id @default(uuid()) @db.Uuid
+  keyword     String?   @db.VarChar(128)
+  state       String?   @db.VarChar(8)
+  county      String[]  @db.VarChar(128)
+  zipCode     String[]  @db.VarChar(16)
+  status      Int       @default(1)
+  statusData  Json?
+  creatorId   String?   @db.Uuid
+  updatedById String?   @db.Uuid
+  duration    Int?
+  createdAt   DateTime? @default(now()) @db.Timestamptz()
+  updatedAt   DateTime? @updatedAt @db.Timestamptz()
+  creator     User?     @relation("creatorJob", fields: [creatorId], references: [id])
+  updatedBy   User?     @relation("updatedByJob", fields: [updatedById], references: [id])
+
+  @@map("job")
+}
+
+model City {
+  id       String     @id @default(uuid()) @db.Uuid
+  name     String     @db.VarChar(128)
+  state    String     @db.VarChar(8)
+  county   String     @db.VarChar(128)
+  zipCode  String[]   @db.VarChar(16)
+
+  @@index([name, state, zipCode])
+  @@map("city")
+}
