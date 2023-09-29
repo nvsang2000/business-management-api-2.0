@@ -1,10 +1,8 @@
 import { UserEntity } from 'src/entities';
-import { ScratchEntity } from 'src/entities/scratch.entity';
-import { CreateJobSearchBusinessDto } from 'src/modules/job/dto';
+import { JobEntity } from 'src/entities/job.entity';
 
 export interface JobAutoScratch {
-  scratch: ScratchEntity;
-  payload: CreateJobSearchBusinessDto;
+  job: JobEntity;
   currentUser: UserEntity;
 }
 

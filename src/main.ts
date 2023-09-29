@@ -5,7 +5,7 @@ import { setupSwagger } from './utils/swagger';
 import * as bodyParser from 'body-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerErrorInterceptor } from 'nestjs-pino';
-import { PrismaClientExceptionFilter, PrismaService } from 'nestjs-prisma';
+import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

@@ -13,34 +13,34 @@ import { JobService } from '../job.service';
 export class BullService {
   constructor(
     private jobService: JobService,
-    @InjectQueue('scratch-queue')
+    @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
 
-  async createJobProcessingScratch(
-    payload: CreateJobSearchBusinessDto,
+  async createJob(
+    createJob: CreateJobSearchBusinessDto,
     currentUser: UserEntity,
   ) {
     try {
-      console.log('create job');
-      const newPayload = {
-        ...payload,
-        county: payload?.county && [].concat(payload?.county).flat(Infinity),
-        zipCode: [].concat(payload?.zipCode).flat(Infinity),
+      const values = {
+        ...createJob,
+        county:
+          createJob?.county && [].concat(createJob?.county).flat(Infinity),
+        zipCode: [].concat(createJob?.zipCode).flat(Infinity),
       };
+      const statusData = values?.zipCode?.reduce((acc, item) => {
+        acc[item] = { zipCode: item, isFinish: false, page: 1 };
+        return acc;
+      }, {});
+
       const result = await this.jobService.create(
-        { ...newPayload },
+        { ...values, statusData },
         currentUser,
       );
-      const dataQueue = {
-        scratch: result,
-        payload: newPayload,
-        currentUser,
-      };
-      await this.scrapingQueue.add('processing-scratch', dataQueue, {
+      await this.scrapingQueue.add('search-business', result, {
         removeOnComplete: true,
         attempts: 10,
-        backoff: 100,
+        backoff: 1000,
       });
 
       return result;
@@ -49,9 +49,9 @@ export class BullService {
     }
   }
 
-  async createJobReProcessingScratch(id: string, currentUser: UserEntity) {
+  async createReJob(id: string, currentUser: UserEntity) {
     try {
-      const result = await this.jobService.findUniqueBy(id);
+      const result = await this.jobService.findById(id);
       const zipCodeUnfinished = result?.zipCodeScratch?.filter(
         (i: any) => !i?.isFinish,
       );
@@ -69,7 +69,8 @@ export class BullService {
 
   async getJobList() {
     try {
-      const jobs = await this.scrapingQueue.getJobs(['failed']);
+      const jobs = await this.scrapingQueue.getJobs(['active']);
+
       return jobs.map((job) => {
         return job;
       });

@@ -5,7 +5,6 @@ https://docs.nestjs.com/providers#services
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { JOB_STATUS, REG_IS_STATE, WEBSITE } from 'src/constants';
 import { Job } from 'bull';
-import { JobAutoScratch, Payload } from 'src/interface';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
   formatPhoneNumber,
@@ -17,11 +16,16 @@ import {
 import { CategoryService } from 'src/modules/category/category.service';
 import { UpsertScratchBusinessDto } from 'src/modules/business/dto';
 import { WebhooksService } from './webhooks.service';
-import { UserEntity } from 'src/entities';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
 import { JobService } from '../job.service';
+import { JobEntity } from 'src/entities/job.entity';
 
+interface PayloadSearchBusiness {
+  keyword: string;
+  zipCode: string;
+  page: number;
+}
 @Injectable()
 export class SearchBusinessService {
   private limitPage: 30;
@@ -33,41 +37,44 @@ export class SearchBusinessService {
     private webhooks: WebhooksService,
   ) {}
 
-  async runJob(job: Job<JobAutoScratch>) {
-    const { payload, scratch, currentUser } = job.data;
+  async runJob(bull: Job<JobEntity>) {
     try {
-      const promises = payload?.zipCode?.map((zipCode, index) => {
+      const job = await this.jobService.findById(bull.data.id);
+      const { statusData, keyword, createdAt, id } = job;
+      const promises = Object?.values(statusData)?.map((data: any, index) => {
         return async () => {
           await setDelay(index * 1000);
-          const newPayload = { keyword: payload.keyword, zipCode };
-          return this.searchBusiness(currentUser, newPayload);
+          const newPayload = {
+            keyword,
+            zipCode: data?.zipCode,
+            page: data?.page,
+          };
+          return this.searchBusiness(job, newPayload);
         };
       });
 
       await promisesSequentially(promises, this.limitPage);
-      const duration = dayjs().diff(dayjs(scratch?.createdAt));
+      const duration = dayjs().diff(dayjs(createdAt));
 
-      return await this.jobService.update(
-        scratch?.id,
-        { duration, status: JOB_STATUS.COMPLETE },
-        currentUser,
-      );
+      return await this.jobService.update(id, {
+        duration,
+        status: JOB_STATUS.COMPLETE,
+      });
     } catch (e) {
+      await bull.remove();
       throw new UnprocessableEntityException(e.message);
     }
   }
   async searchBusiness(
-    currentUser: UserEntity,
-    payload: Payload,
+    job: JobEntity,
+    payload: PayloadSearchBusiness,
   ): Promise<any> {
+    const { id, statusData } = job;
+    const { keyword, zipCode } = payload;
     try {
-      let page = 1,
-        totalCreate = 0,
-        totalUpdate = 0;
-
-      console.log('searchBusiness', payload);
+      let page = payload?.page;
       while (true) {
-        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${payload?.keyword}&geo_location_terms=${payload?.zipCode}&page=${page}`;
+        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await fetch(url);
         if (!response.ok) return null;
         const body = await response.text();
@@ -175,38 +182,22 @@ export class SearchBusinessService {
           });
 
           if (!checkBusiness) {
-            await this.businessService.createScratchBusiness(
-              newBusiness,
-              currentUser,
-            );
-            totalCreate++;
+            await this.businessService.createScratchBusiness(newBusiness);
           } else {
-            await this.businessService.update(
-              checkBusiness?.id,
-              newBusiness,
-              currentUser,
-            );
-            totalUpdate++;
+            await this.businessService.update(checkBusiness?.id, newBusiness);
           }
         }
-        console.log(`${payload.keyword}: `, page);
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
         page++;
+
+        statusData[zipCode].page = page;
+        console.log(`${payload.keyword}: `, statusData);
+        await this.jobService.update(id, { statusData });
       }
-      return {
-        zipCode: payload.keyword,
-        totalCreate,
-        totalUpdate,
-        isFinish: true,
-      };
     } catch (e) {
       console.log(e);
-      return {
-        zipCode: payload.keyword,
-        isFinish: false,
-      };
     }
   }
 }

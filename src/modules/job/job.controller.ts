@@ -34,11 +34,11 @@ export class JobController {
   ) {}
 
   @Post('search-business')
-  async process(
+  async createJob(
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.bullService.createJobProcessingScratch(payload, currentUser);
+    return this.bullService.createJob(payload, currentUser);
   }
 
   @Get('job-list')
@@ -62,7 +62,7 @@ export class JobController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.jobService.findUniqueBy(id);
+    return this.jobService.findById(id);
   }
 
   @Delete(':id')

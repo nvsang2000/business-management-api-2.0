@@ -1,26 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ScratchEntity {
+export class JobEntity {
   @ApiProperty()
   id: string;
 
   @ApiProperty()
-  isActive?: boolean;
+  keyword: string;
 
   @ApiProperty()
-  term: string;
+  state: string;
 
   @ApiProperty()
-  addressState: string;
+  county: string[];
 
   @ApiProperty()
-  addressCountry: string;
+  zipCode: string[];
 
   @ApiProperty()
-  addressZipCode: string;
+  status: number;
 
   @ApiProperty()
-  zipCodeScratchIds: string;
+  statusData: any;
+
+  @ApiProperty()
+  duration: number;
 
   @ApiProperty()
   creatorId: string;
@@ -34,7 +37,7 @@ export class ScratchEntity {
   @ApiProperty()
   updatedAt: Date;
 
-  constructor(partial: Partial<ScratchEntity>) {
+  constructor(partial: Partial<JobEntity>) {
     Object.assign(this, partial);
   }
 }

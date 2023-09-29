@@ -7,17 +7,14 @@ import { CategoryService } from '../category/category.service';
 import { JobService } from './job.service';
 import { BullService } from './service/bull.service';
 import { SearchBusinessService } from './service/search-business.service';
-import { BullSearchBusiness } from './bull/bull-search-business';
+import { BullJobQueue } from './bull/bull-job-queue';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: 'scratch-queue' }),
-    BusinessModule,
-  ],
+  imports: [BullModule.registerQueue({ name: 'job-queue' }), BusinessModule],
   controllers: [JobController],
   providers: [
     JobService,
-    BullSearchBusiness,
+    BullJobQueue,
     BullService,
     SearchBusinessService,
     CategoryService,

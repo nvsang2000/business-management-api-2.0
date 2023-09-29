@@ -71,7 +71,7 @@ export class JobService {
     }
   }
 
-  async findUniqueBy(id: string): Promise<any> {
+  async findById(id: string): Promise<any> {
     try {
       const result = await this.prisma.job.findUnique({
         where: { id },
@@ -82,6 +82,8 @@ export class JobService {
           state: true,
           county: true,
           zipCode: true,
+          status: true,
+          statusData: true,
           duration: true,
           createdAt: true,
         },
@@ -93,7 +95,7 @@ export class JobService {
   }
 
   async create(
-    createScatch: CreateJobSearchBusinessDto,
+    createScatch: CreateJobSearchBusinessDto | any,
     currentUser: UserEntity = null,
   ): Promise<any> {
     try {
@@ -131,7 +133,7 @@ export class JobService {
 
   async delete(id: string) {
     try {
-      const job = await this.findUniqueBy(id);
+      const job = await this.findById(id);
       if (!job) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const result = await this.prisma.job.delete({ where: { id } });
       return result;

@@ -8,17 +8,17 @@ import {
 } from '@nestjs/bull';
 import { Job } from 'bull';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { JobAutoScratch } from 'src/interface';
 import { SearchBusinessService } from '../service/search-business.service';
+import { JobEntity } from 'src/entities/job.entity';
 
-@Processor('scratch-queue')
-export class BullSearchBusiness {
+@Processor('job-queue')
+export class BullJobQueue {
   constructor(private searchBusiness: SearchBusinessService) {}
 
-  @Process('processing-scratch')
-  async processScratch(job: Job<JobAutoScratch>) {
+  @Process('search-business')
+  async runBull(bull: Job<JobEntity>) {
     try {
-      return await this.searchBusiness.runJob(job);
+      return await this.searchBusiness.runJob(bull);
     } catch (e) {
       console.log(e);
       throw new UnprocessableEntityException(e?.message);
@@ -26,22 +26,22 @@ export class BullSearchBusiness {
   }
 
   @OnQueueActive()
-  onActive(job) {
-    console.log(`Run job ${job.id}`);
+  onActive(bull) {
+    console.log(`Run job ${bull.id}`);
   }
 
   @OnQueueCompleted()
-  onCompleted(job) {
-    console.log(`Completed job ${job.id}`);
+  onCompleted(bull) {
+    console.log(`Completed job ${bull.id}`);
   }
 
   @OnGlobalQueueFailed()
-  onFailed(job) {
-    console.log(`Failed job ${job.id}`);
+  onFailed(bull) {
+    console.log(`Failed job ${bull.id}`);
   }
 
   @OnGlobalQueueError()
-  onError(job) {
-    console.log(`Error job ${job.id}`);
+  onError(bull) {
+    console.log(`Error job ${bull.id}`);
   }
 }
