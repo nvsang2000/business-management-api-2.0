@@ -1,12 +1,7 @@
 import { UserEntity } from 'src/entities';
-import { JobEntity } from 'src/entities/job.entity';
 
-export interface JobAutoScratch {
-  job: JobEntity;
-  currentUser: UserEntity;
-}
-
-export interface JobReAutoScratch {
+export interface BullJob {
+  jobId: string;
   currentUser: UserEntity;
 }
 

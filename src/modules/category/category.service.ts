@@ -24,7 +24,18 @@ export class CategoryService {
     }
   }
 
-  async findOne(id: string): Promise<any> {
+  async findByName(name: string): Promise<any> {
+    try {
+      const result = await this.prisma.category.findUnique({
+        where: { name },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async findById(id: string): Promise<any> {
     try {
       const result = await this.prisma.category.findUnique({
         where: { id },
@@ -47,6 +58,23 @@ export class CategoryService {
           creatorId: currentUser?.id,
         },
         update: upsertCategories,
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async create(
+    createCategory: CreateCategoryDto,
+    currentUser: UserEntity = null,
+  ) {
+    try {
+      const result = await this.prisma.category.create({
+        data: {
+          ...createCategory,
+          creatorId: currentUser?.id,
+        },
       });
       return result;
     } catch (e) {

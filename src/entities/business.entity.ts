@@ -5,49 +5,46 @@ export class BusinessEntity {
   id?: string;
 
   @ApiProperty()
-  displayName?: string;
+  name?: string;
 
   @ApiProperty()
-  anotherName?: string;
+  phone?: string;
 
   @ApiProperty()
-  phoneNumber?: string;
+  email?: string;
 
   @ApiProperty()
   website?: string;
 
   @ApiProperty()
-  address?: string;
-
-  @ApiProperty()
   scratchLink?: string;
-
-  @ApiProperty()
-  isNew?: boolean;
-
-  @ApiProperty()
-  isActive?: boolean;
-
-  @ApiProperty()
-  isAcceptMail?: boolean;
 
   @ApiProperty()
   addressZipCode?: string;
 
   @ApiProperty()
-  addressState?: string;
+  state?: string;
 
   @ApiProperty()
-  addressCity?: string;
+  zipCode?: string;
 
   @ApiProperty()
-  isVerify?: any;
+  city?: string;
+
+  @ApiProperty()
+  address?: string;
+
+  @ApiProperty()
+  status?: string[];
 
   @ApiProperty()
   categories?: string[];
 
   @ApiProperty()
   thumbnailUrl?: string;
+
+  @ApiProperty()
+  cityId?: string;
 
   @ApiProperty()
   createdAt?: Date;

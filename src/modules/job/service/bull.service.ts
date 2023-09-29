@@ -37,11 +37,16 @@ export class BullService {
         { ...values, statusData },
         currentUser,
       );
-      await this.scrapingQueue.add('search-business', result, {
-        removeOnComplete: true,
-        attempts: 10,
-        backoff: 1000,
-      });
+      await this.scrapingQueue.add(
+        'search-business',
+        { jobId: result?.id, currentUser },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 20,
+          backoff: 1000,
+        },
+      );
 
       return result;
     } catch (e) {

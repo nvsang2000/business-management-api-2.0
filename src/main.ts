@@ -6,6 +6,7 @@ import * as bodyParser from 'body-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerErrorInterceptor } from 'nestjs-pino';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
+import { WorkerService } from './worker.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -33,6 +34,10 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
+
+  //Run Worker Service
+  const workerService = app.get(WorkerService);
+  await workerService.processUnfinishedJobs();
 
   await app.listen(80);
 

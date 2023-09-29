@@ -116,7 +116,12 @@ export class UsersService {
     }
   }
 
-  async findOne({ email, username, id, phone }: FindOneOption): Promise<any> {
+  async findFirstOne({
+    email,
+    username,
+    id,
+    phone,
+  }: FindOneOption): Promise<any> {
     try {
       const result = await this.prisma.user.findFirst({
         where: {
@@ -132,7 +137,7 @@ export class UsersService {
   async create(createUser: CreateUserDto): Promise<any> {
     try {
       const { email, username, phone, password } = createUser;
-      const user = await this.findOne({ email, username, phone });
+      const user = await this.findFirstOne({ email, username, phone });
       const hashedPassword = await bcrypt.hash(password, 10);
       if (user)
         throw new BadRequestException(MESSAGE_ERROR.USER_ALREADY_EXISTS);
@@ -151,7 +156,7 @@ export class UsersService {
 
   async update(updateUser: UpdateUserDto, id: string): Promise<any> {
     try {
-      const user = await this.findOne({ id });
+      const user = await this.findFirstOne({ id });
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const result = await this.prisma.user.update({
         data: updateUser,
@@ -165,7 +170,7 @@ export class UsersService {
 
   async delete(id: string) {
     try {
-      const user = await this.findOne({ id });
+      const user = await this.findFirstOne({ id });
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const result = await this.prisma.user.delete({ where: { id } });
       return result;

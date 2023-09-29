@@ -41,11 +41,6 @@ export class JobController {
     return this.bullService.createJob(payload, currentUser);
   }
 
-  @Get('job-list')
-  async getJobList() {
-    return this.bullService.getJobList();
-  }
-
   @Get('/webhooks')
   @Sse('/webhooks')
   async getEvents(): Promise<any> {

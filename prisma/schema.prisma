@@ -58,16 +58,17 @@ model Category {
 }
 
 model Business {
-  id           String     @id @default(uuid()) @db.Uuid
-  name         String     @db.VarChar(400)
-  phone        String?    @db.VarChar(24)
-  email        String?    @db.VarChar(64)
-  website      String?    @db.VarChar(800)
-  address      String     @db.VarChar(128)
-  scratchLink  String?    @db.VarChar(400)
-  zipCode      String?    @db.VarChar(16)
-  state        String?    @db.VarChar(8)
+  id      String  @id @default(uuid()) @db.Uuid
+  name    String  @db.VarChar(400)
+  phone   String? @db.VarChar(24)
+  email   String? @db.VarChar(64)
+  website String? @db.VarChar(800)
+  scratchLink String? @db.VarChar(400)
+  state       String? @db.VarChar(8)
+  zipCode     String? @db.VarChar(16)
   city         String?    @db.VarChar(128)
+  address      String     @db.VarChar(128)
+  status       String[]   @db.VarChar(24)
   categories   String[]   @db.VarChar(128)
   thumbnailUrl String?    @db.VarChar(400)
   cityId       String?    @db.Uuid
@@ -105,11 +106,11 @@ model Job {
 }
 
 model City {
-  id       String     @id @default(uuid()) @db.Uuid
-  name     String     @db.VarChar(128)
-  state    String     @db.VarChar(8)
-  county   String     @db.VarChar(128)
-  zipCode  String[]   @db.VarChar(16)
+  id      String   @id @default(uuid()) @db.Uuid
+  name    String   @db.VarChar(128)
+  state   String   @db.VarChar(8)
+  county  String   @db.VarChar(128)
+  zipCode String[] @db.VarChar(16)
 
   @@index([name, state, zipCode])
   @@map("city")

@@ -14,7 +14,7 @@ import {
   UpdateScratchBusinessDto,
   ExportBusinessDto,
 } from './dto';
-import { MESSAGE_ERROR } from 'src/constants';
+import { BUSINESS_STATUS, MESSAGE_ERROR } from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { isBoolean } from 'lodash';
@@ -157,10 +157,25 @@ export class BusinessService {
     }
   }
 
-  async findUniqueBy({ address, state, zipCode }) {
+  async findByAddressStateZipCode(
+    address: string,
+    state: string,
+    zipCode: string,
+  ) {
     try {
       const result = await this.prisma.business.findUnique({
         where: { address_zipcode_state: { address, state, zipCode } },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async findByScratchLink(scratchLink: string) {
+    try {
+      const result = await this.prisma.business.findUnique({
+        where: { scratchLink },
       });
       return result;
     } catch (e) {
@@ -238,7 +253,7 @@ export class BusinessService {
   }
 
   async createScratchBusiness(
-    createBusiness: CreateScratchBusinessDto | any,
+    createBusiness: CreateScratchBusinessDto,
     currentUser: UserEntity = null,
   ): Promise<any> {
     try {
@@ -247,6 +262,7 @@ export class BusinessService {
         data: {
           ...createBusiness,
           creatorId: currentUser?.id,
+          status: [BUSINESS_STATUS.NEW],
           category: {
             connect:
               categories && categories?.map((name: string) => ({ name })),
@@ -266,8 +282,8 @@ export class BusinessService {
 
       const headerRow = [
         'Id',
-        'Display Name',
-        'Phone Number',
+        'Name',
+        'Number',
         'Website',
         'Address',
         'ZipCode',

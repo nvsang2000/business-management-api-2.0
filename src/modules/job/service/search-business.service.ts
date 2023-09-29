@@ -3,85 +3,88 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { JOB_STATUS, REG_IS_STATE, WEBSITE } from 'src/constants';
+import { BUSINESS_STATUS, JOB_STATUS, WEBSITE } from 'src/constants';
 import { Job } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
   formatPhoneNumber,
   generateSlug,
+  parseUSAddress,
   promisesSequentially,
-  removeDuplicates,
   setDelay,
 } from 'src/helper';
 import { CategoryService } from 'src/modules/category/category.service';
-import { UpsertScratchBusinessDto } from 'src/modules/business/dto';
-import { WebhooksService } from './webhooks.service';
+import { UpdateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
 import { JobService } from '../job.service';
 import { JobEntity } from 'src/entities/job.entity';
+import { BullJob } from 'src/interface';
+import { UserEntity } from 'src/entities';
 
 interface PayloadSearchBusiness {
   keyword: string;
   zipCode: string;
   page: number;
 }
+interface StatusDataItem {
+  zipCode: string;
+  isFinish: boolean;
+  page: number;
+  messageError?: any;
+}
 @Injectable()
 export class SearchBusinessService {
-  private limitPage: 30;
-
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
     private categoryService: CategoryService,
-    private webhooks: WebhooksService,
   ) {}
 
-  async runJob(bull: Job<JobEntity>) {
+  async runJob(bull: Job<BullJob>) {
+    const { jobId, currentUser } = bull.data;
     try {
-      const job = await this.jobService.findById(bull.data.id);
+      const job = await this.jobService.findById(jobId);
       const { statusData, keyword, createdAt, id } = job;
-      const promises = Object?.values(statusData)?.map((data: any, index) => {
-        return async () => {
-          await setDelay(index * 1000);
-          const newPayload = {
-            keyword,
-            zipCode: data?.zipCode,
-            page: data?.page,
+      const promises = Object?.values(statusData)?.map(
+        (data: StatusDataItem, index) => {
+          return async () => {
+            if (data?.isFinish) return;
+            await setDelay(index * 1000);
+            const newPayload = {
+              keyword,
+              zipCode: data?.zipCode,
+              page: data?.page,
+            };
+            return this.searchBusiness(job, newPayload, currentUser);
           };
-          return this.searchBusiness(job, newPayload);
-        };
-      });
+        },
+      );
+      await promisesSequentially(promises, 2);
 
-      await promisesSequentially(promises, this.limitPage);
       const duration = dayjs().diff(dayjs(createdAt));
-
-      return await this.jobService.update(id, {
-        duration,
-        status: JOB_STATUS.COMPLETE,
-      });
+      const values = { duration, status: JOB_STATUS.COMPLETE };
+      return await this.jobService.update(id, values, currentUser);
     } catch (e) {
-      await bull.remove();
       throw new UnprocessableEntityException(e.message);
     }
   }
   async searchBusiness(
     job: JobEntity,
     payload: PayloadSearchBusiness,
+    currentUser: UserEntity,
   ): Promise<any> {
     const { id, statusData } = job;
     const { keyword, zipCode } = payload;
+    let page = payload?.page;
     try {
-      let page = payload?.page;
       while (true) {
-        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
-        const response = await fetch(url);
-        if (!response.ok) return null;
+        const response = await this.connectPage(keyword, zipCode, page);
         const body = await response.text();
         const $ = cheerio.load(body);
         const businessListForPage = [];
         $('[class="search-results organic"] .result')?.map((i, el) => {
-          let addressStreet = $(el)
+          const addressStreet = $(el)
             .find('.info-secondary .adr .street-address')
             .text();
           const addressLocality = $(el)
@@ -101,46 +104,10 @@ export class SearchBusinessService {
             ?.find('.info-primary .links a[target="_blank"]')
             ?.attr('href');
 
-          let zipCode: string, state: string, city: string;
-          if (addressLocality) {
-            const addressParts = addressLocality.trim().split(',');
-            const stateAndZip = addressParts[1]?.trim()?.split(' ') ?? [
-              null,
-              null,
-            ];
-
-            city = addressParts[0];
-            state = stateAndZip[0];
-            zipCode = stateAndZip[1];
-          } else if (addressStreet) {
-            const addressParts = addressLocality.split(',');
-            if (addressParts.length > 1) {
-              const lastParts = addressParts[addressParts.length - 1];
-              const stateAndZip = lastParts.trim().split(' ');
-              if (
-                stateAndZip.length == 2 &&
-                stateAndZip[1].match(REG_IS_STATE)
-              ) {
-                state = stateAndZip[0];
-                zipCode = stateAndZip[1];
-                if (addressParts.length > 2) {
-                  // phần trước đó của state zip có thể là city
-                  city = addressParts[addressParts.length - 2];
-                  addressStreet = addressStreet
-                    .slice(
-                      0,
-                      addressStreet.length - lastParts.length - city.length,
-                    )
-                    .trim();
-                  city = city.trim();
-                } else
-                  addressStreet = addressStreet.slice(
-                    0,
-                    addressStreet.length - lastParts.length,
-                  );
-              } else city = lastParts;
-            }
-          }
+          const { address, city, state, zipCode } = parseUSAddress(
+            addressLocality,
+            addressStreet,
+          );
           const item = {
             website,
             scratchLink,
@@ -151,15 +118,16 @@ export class SearchBusinessService {
             zipCode,
             state,
             city,
-            address: addressStreet,
+            address,
           };
           businessListForPage.push(item);
         });
+        if (businessListForPage?.length === 0) break;
         const categorieEl = businessListForPage
           ?.map((i: any) => i.categories)
           ?.flat(Infinity);
 
-        const categories = removeDuplicates(categorieEl)?.map(
+        const categories = Array.from(new Set(categorieEl))?.map(
           (name: string) => ({
             name,
             slug: generateSlug(name),
@@ -167,37 +135,88 @@ export class SearchBusinessService {
         );
         await this.categoryService.createMany(categories);
         for (const business of businessListForPage) {
-          if (!business?.phone || !business?.address) continue;
+          if (!business?.name || !business?.phone || !business?.address)
+            continue;
 
-          const newBusiness: UpsertScratchBusinessDto = {
+          const newBusiness: UpdateScratchBusinessDto = {
             ...business,
             scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
             phone: formatPhoneNumber(business.phone),
           };
 
-          const checkBusiness = await this.businessService.findUniqueBy({
-            address: business?.address,
-            state: business?.state,
-            zipCode: business?.zipCode,
-          });
+          const checkScatchLink = await this.businessService.findByScratchLink(
+            newBusiness?.scratchLink,
+          );
 
-          if (!checkBusiness) {
-            await this.businessService.createScratchBusiness(newBusiness);
-          } else {
-            await this.businessService.update(checkBusiness?.id, newBusiness);
+          const checkBusiness =
+            await this.businessService.findByAddressStateZipCode(
+              business?.address,
+              business?.state,
+              business?.zipCode,
+            );
+
+          if (!checkScatchLink && !checkBusiness)
+            await this.businessService.createScratchBusiness(
+              newBusiness,
+              currentUser,
+            );
+          else if (checkScatchLink) {
+            if (checkBusiness) {
+              const status = checkScatchLink?.status;
+              if (status?.includes(BUSINESS_STATUS.ADDRESS_VERIFY))
+                delete newBusiness?.address;
+
+              if (status?.includes(BUSINESS_STATUS.PHONE_VERIFY))
+                delete newBusiness?.phone;
+
+              if (status?.includes(BUSINESS_STATUS.NAME_VERIFY))
+                delete newBusiness?.name;
+            }
+            await this.businessService.update(
+              checkScatchLink?.id,
+              newBusiness,
+              currentUser,
+            );
           }
         }
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
         page++;
-
         statusData[zipCode].page = page;
-        console.log(`${payload.keyword}: `, statusData);
+        console.log(statusData[zipCode]);
         await this.jobService.update(id, { statusData });
       }
+      statusData[zipCode].isFinish = true;
+      return await this.jobService.update(id, { statusData });
     } catch (e) {
       console.log(e);
+      statusData[zipCode].page = page;
+      statusData[zipCode].messageError = e?.message;
+      return await this.jobService.update(id, { statusData });
+    }
+  }
+
+  async connectPage(keyword: string, zipCode: string, page: number) {
+    let tryCount = 0;
+    while (tryCount < 10) {
+      try {
+        tryCount > 0 && console.log('tryCount', tryCount);
+        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+          },
+        });
+        if (response.ok) return response;
+        tryCount++;
+      } catch {
+        tryCount++;
+        await setDelay(2000);
+        continue;
+      }
     }
   }
 }

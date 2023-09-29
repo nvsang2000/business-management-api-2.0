@@ -1,6 +1,6 @@
 import slugify from 'slugify';
 import * as fs from 'fs-extra';
-import { LINK_PROFILE } from './constants';
+import { LINK_PROFILE, REG_IS_STATE } from './constants';
 
 export const parseSafe = (s) => {
   try {
@@ -52,24 +52,42 @@ export const formatPhoneNumber = (phone: string) => {
   return phone?.replace(/\D/g, '')?.slice(-10);
 };
 
-export const parseUSAddress = (address: string) => {
-  const parts = address?.split(',').map((part) => part.trim());
+export const parseUSAddress = (
+  addressLocality: string,
+  addressStreet: string,
+) => {
+  let zipCode: string, state: string, city: string;
+  if (addressLocality) {
+    const addressParts = addressLocality.trim().split(',');
+    const stateAndZip = addressParts[1]?.trim()?.split(' ') ?? [null, null];
 
-  const country = parts?.[3] ? parts?.pop() : undefined;
-  const zipCodeAndState = parts?.[2] ? parts?.pop() : undefined;
-  const city = parts?.[1] ? parts?.pop() : undefined;
-  const street = parts?.[0] ? parts?.join(',') : undefined;
-  const parseZipCodeAndState = zipCodeAndState
-    ? zipCodeAndState?.split(' ')?.map((part) => part.trim())
-    : undefined;
+    city = addressParts[0];
+    state = stateAndZip[0];
+    zipCode = stateAndZip[1];
+  } else if (addressStreet) {
+    const addressParts = addressLocality.split(',');
+    if (addressParts.length > 1) {
+      const lastParts = addressParts[addressParts.length - 1];
+      const stateAndZip = lastParts.trim().split(' ');
+      if (stateAndZip.length == 2 && stateAndZip[1].match(REG_IS_STATE)) {
+        state = stateAndZip[0];
+        zipCode = stateAndZip[1];
+        if (addressParts.length > 2) {
+          city = addressParts[addressParts.length - 2];
+          addressStreet = addressStreet
+            .slice(0, addressStreet.length - lastParts.length - city.length)
+            .trim();
+          city = city.trim();
+        } else
+          addressStreet = addressStreet.slice(
+            0,
+            addressStreet.length - lastParts.length,
+          );
+      } else city = lastParts;
+    }
+  }
 
-  return {
-    country,
-    zip: parseZipCodeAndState?.[1],
-    state: parseZipCodeAndState?.[0],
-    city,
-    street,
-  };
+  return { state, zipCode, city, address: addressStreet };
 };
 
 export const parseWebsite = (links: string[]) => {

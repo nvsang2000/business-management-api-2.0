@@ -82,12 +82,12 @@ export class AuthService {
 
   async register(createUser: RegisterDto) {
     const { username, password, email, phone } = createUser;
-    const user = await this.userService.findOne({ username });
+    const user = await this.userService.findFirstOne({ username });
     if (user) throw new BadRequestException(MESSAGE_ERROR.USERNAME_EXISTS);
     try {
-      if (email && (await this.userService.findOne({ email })))
+      if (email && (await this.userService.findFirstOne({ email })))
         throw new BadRequestException(MESSAGE_ERROR.EMAIL_EXISTS);
-      if (phone && (await this.userService.findOne({ phone })))
+      if (phone && (await this.userService.findFirstOne({ phone })))
         throw new BadRequestException(MESSAGE_ERROR.PHONE_EXISTS);
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = {

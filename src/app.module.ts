@@ -1,3 +1,4 @@
+import { WorkerService } from './worker.service';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { CategoryModule } from './modules/category/category.module';
 import { PolicyModule } from './modules/policy/policy.module';
@@ -38,6 +39,7 @@ import { JobModule } from './modules/job/job.module';
         },
       }),
     }),
+    BullModule.registerQueue({ name: 'job-queue' }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -75,6 +77,7 @@ import { JobModule } from './modules/job/job.module';
     ExportModule,
   ],
   providers: [
+    WorkerService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
