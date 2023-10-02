@@ -1,3 +1,4 @@
+import { WebhookModule } from './modules/webhook/webhook.module';
 import { WorkerService } from './worker.service';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { CategoryModule } from './modules/category/category.module';
@@ -25,6 +26,7 @@ import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
 @Module({
   imports: [
+    WebhookModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'assets'),
       serveRoot: '/assets',
@@ -75,6 +77,7 @@ import { JobModule } from './modules/job/job.module';
     JobModule,
     MarketingModule,
     ExportModule,
+    WebhookModule,
   ],
   providers: [
     WorkerService,
@@ -91,7 +94,6 @@ import { JobModule } from './modules/job/job.module';
       useClass: RolesGuard,
     },
   ],
-  controllers: [],
   exports: [AppModule],
 })
 export class AppModule implements NestModule {

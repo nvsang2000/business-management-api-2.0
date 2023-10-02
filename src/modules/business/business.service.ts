@@ -14,20 +14,30 @@ import {
   UpdateScratchBusinessDto,
   ExportBusinessDto,
 } from './dto';
-import { BUSINESS_STATUS, MESSAGE_ERROR } from 'src/constants';
-import { UserEntity } from 'src/entities';
+import {
+  BUSINESS_STATUS,
+  HEADER_ROW_BUSINESS,
+  MESSAGE_ERROR,
+} from 'src/constants';
+import { BusinessEntity, UserEntity } from 'src/entities';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
-import { isBoolean } from 'lodash';
 import { Response } from 'express';
 import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { ExportService } from 'src/shared/export/export.service';
+import { generateSlug } from 'src/helper';
+import { ZipCodeService } from '../zipCode/zip-code.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
 
 @Injectable()
 export class BusinessService {
   constructor(
     private prisma: PrismaService,
     private exportService: ExportService,
+    private zipCodeService: ZipCodeService,
+    @InjectQueue('job-export-business')
+    private exportQueue: Queue,
   ) {}
 
   private readonly include = {
@@ -69,10 +79,6 @@ export class BusinessService {
   createQuery(fetchDto: FetchBusinessDto) {
     const { search, address, categories, city, state, zipCode } = fetchDto;
 
-    const isActive = !!fetchDto?.isActive
-      ? fetchDto.isActive === 'true'
-      : undefined;
-
     return {
       ...(address && {
         address: { in: address },
@@ -109,14 +115,12 @@ export class BusinessService {
               },
         ],
       }),
-      ...(isBoolean(isActive) && { isActive }),
     };
   }
 
   async paginate(
     fetchDto: FetchBusinessDto,
     response: Response,
-    isFindAll?: boolean,
   ): Promise<any[]> {
     try {
       const { limit, page, sortBy, sortDirection } = fetchDto;
@@ -132,16 +136,14 @@ export class BusinessService {
             },
           },
         },
-        ...(!isFindAll && {
-          take: +limit,
-          skip: (+page - 1) * +limit,
-        }),
+        take: +limit,
+        skip: (+page - 1) * +limit,
         orderBy: { [sortBy]: sortDirection },
       });
 
       const totalDocs = await this.prisma.business.count({ where });
 
-      if (response.set) {
+      if (response && response.set) {
         response.set(
           'meta',
           JSON.stringify({
@@ -195,48 +197,18 @@ export class BusinessService {
   }
 
   async create(
-    createBusiness: CreateBusinessDto | any,
+    createBusiness: CreateBusinessDto,
     currentUser: UserEntity = null,
   ): Promise<any> {
     try {
-      const { categories } = createBusiness;
-
       const result = await this.prisma.business.create({
         data: {
           ...createBusiness,
-          creatorId: currentUser?.id,
-          category: {
-            connect: categories && categories?.map((id: string) => ({ id })),
-          },
+          creator: { connect: { id: currentUser?.id } },
         },
       });
       return result;
     } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
-  async update(
-    id: string,
-    updateBusiness: UpdateScratchBusinessDto,
-    currentUser: UserEntity = null,
-  ) {
-    try {
-      const { categories } = updateBusiness;
-      const result = await this.prisma.business.update({
-        where: { id },
-        data: {
-          ...updateBusiness,
-          updatedAt: new Date(),
-          updatedById: currentUser?.id,
-          category: {
-            connect: categories?.map((name: string) => ({ name })),
-          },
-        },
-      });
-      return result;
-    } catch (e) {
-      console.log(e);
       throw new UnprocessableEntityException(e.message);
     }
   }
@@ -252,21 +224,34 @@ export class BusinessService {
     }
   }
 
-  async createScratchBusiness(
-    createBusiness: CreateScratchBusinessDto,
+  async updateScratchBusiness(
+    id: string,
+    updateBusiness: UpdateScratchBusinessDto,
     currentUser: UserEntity = null,
-  ): Promise<any> {
+  ) {
     try {
-      const { categories } = createBusiness;
-      const result = await this.prisma.business.create({
+      const { categories, city, state, zipCode } = updateBusiness;
+      const findZipCode = await this.zipCodeService.getCity(
+        city,
+        state,
+        zipCode,
+      );
+      const result = await this.prisma.business.update({
+        where: { id },
         data: {
-          ...createBusiness,
-          creatorId: currentUser?.id,
-          status: [BUSINESS_STATUS.NEW],
-          category: {
-            connect:
-              categories && categories?.map((name: string) => ({ name })),
-          },
+          ...updateBusiness,
+          updatedBy: { connect: { id: currentUser?.id } },
+          ...(findZipCode && {
+            cityName: { connect: { id: findZipCode?.id } },
+          }),
+          ...(categories?.length > 0 && {
+            category: {
+              connectOrCreate: categories?.map((name) => ({
+                where: { name },
+                create: { name, slug: generateSlug(name) },
+              })),
+            },
+          }),
         },
       });
       return result;
@@ -275,45 +260,145 @@ export class BusinessService {
     }
   }
 
-  async getExport(fetchDto: ExportBusinessDto, response: Response) {
+  async createScratchBusiness(
+    createBusiness: CreateScratchBusinessDto,
+    currentUser: UserEntity = null,
+  ): Promise<any> {
     try {
-      const { isFindAll } = fetchDto;
-      const business = await this.paginate(fetchDto, response, isFindAll);
+      const { categories, city, state, zipCode } = createBusiness;
+      const findZipCode = await this.zipCodeService.getCity(
+        city,
+        state,
+        zipCode,
+      );
+      const result = await this.prisma.business.create({
+        data: {
+          ...createBusiness,
+          status: [BUSINESS_STATUS.NEW],
+          creator: { connect: { id: currentUser?.id } },
+          ...(findZipCode && {
+            cityName: { connect: { id: findZipCode?.id } },
+          }),
+          ...(categories?.length > 0 && {
+            category: {
+              connectOrCreate: categories?.map((name) => ({
+                where: { name },
+                create: { name, slug: generateSlug(name) },
+              })),
+            },
+          }),
+        },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
 
-      const headerRow = [
-        'Id',
-        'Name',
-        'Number',
-        'Website',
-        'Address',
-        'ZipCode',
-        'State',
-        'City',
-        'Categories',
-      ];
-
-      const bodyRow = business?.map((i: any) => {
-        const categories = i?.category?.map((i: any) => i?.name);
-        return [
-          i?.id,
-          i?.name,
-          i?.phone,
-          i?.website,
-          i?.address,
-          i?.zipCode,
-          i?.state,
-          i?.city,
-          categories,
-        ];
+  async findAllExport(fetchDto: FetchBusinessDto, lastId?: string) {
+    try {
+      const { page, limit } = fetchDto;
+      const where = this.createQuery(fetchDto);
+      const result = await this.prisma.business.findMany({
+        where,
+        include: {
+          ...this.include,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        take: +limit,
+        skip: (+page - 1) * +limit,
+        ...(lastId && {
+          cursor: { id: lastId },
+        }),
+        orderBy: { createdAt: 'desc' },
       });
 
-      const result = await this.exportService.exportExcel([
-        headerRow,
-        ...bodyRow,
-      ]);
+      return result;
+    } catch (e) {
+      console.log(e);
+      throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async createExport(fetchDto: ExportBusinessDto) {
+    try {
+      if (fetchDto?.isFindAll === true) {
+        await this.exportQueue.add(
+          'export-business',
+          {
+            fetchDto,
+          },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+            attempts: 0,
+            backoff: 1000,
+          },
+        );
+        return {
+          isFindAll: true,
+          message: 'Exporting all data, please wait!',
+        };
+      }
+      const business = await this.findAllExport(fetchDto);
+      const result = await this.createFileExcel(business);
+      return {
+        result,
+        isFindAll: false,
+      };
+    } catch (e) {
+      console.log(e);
+      throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async runExport(job: Job<any>) {
+    try {
+      let businessList = [];
+      let hasMore = true;
+      let cursor = null;
+      const fetchDto = { ...job.data.fetchDto, limit: '10000' };
+      while (hasMore) {
+        const business = await this.findAllExport(fetchDto, cursor);
+        if (business.length === 1) hasMore = false;
+        else {
+          businessList = businessList.concat(business);
+          cursor = business[business.length - 1].id;
+        }
+      }
+      const result = await this.createFileExcel(businessList);
+      console.log('business', result);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.response);
     }
+  }
+
+  async createFileExcel(businessList: BusinessEntity[]) {
+    const bodyRow = businessList?.map((i: any) => {
+      const categories = i?.category?.map((i: any) => i?.name);
+      return [
+        i?.id,
+        i?.name,
+        i?.phone,
+        i?.website,
+        i?.address,
+        i?.zipCode,
+        i?.state,
+        i?.city,
+        categories,
+      ];
+    });
+
+    const result = await this.exportService.exportExcel([
+      HEADER_ROW_BUSINESS,
+      ...bodyRow,
+    ]);
+    return result;
   }
 }

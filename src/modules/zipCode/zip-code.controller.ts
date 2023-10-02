@@ -6,6 +6,8 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ZipCodeService } from './zip-code.service';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchZipCodeDto } from './dto/fetch-zip-code.dto';
+import { Roles } from 'src/decorators';
+import { ROLE } from 'src/constants';
 
 @ApiTags('Zip Code ')
 @Controller('zipCode')
@@ -20,16 +22,19 @@ export class ZipCodeController {
   }
 
   @Get('cover-tree')
+  @Roles([ROLE.admin])
   coverZipCodeJson() {
     return this.zipCodeService.coverZipCodeTree();
   }
 
   @Get('create-city')
+  @Roles([ROLE.admin])
   createCity() {
     return this.zipCodeService.createCity();
   }
 
   @Get('cover-city')
+  @Roles([ROLE.admin])
   cover() {
     return this.zipCodeService.coverZipCodeCity();
   }

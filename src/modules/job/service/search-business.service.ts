@@ -4,16 +4,14 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { BUSINESS_STATUS, JOB_STATUS, WEBSITE } from 'src/constants';
-import { Job } from 'bull';
+import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
   formatPhoneNumber,
-  generateSlug,
   parseUSAddress,
   promisesSequentially,
   setDelay,
 } from 'src/helper';
-import { CategoryService } from 'src/modules/category/category.service';
 import { UpdateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
@@ -21,6 +19,8 @@ import { JobService } from '../job.service';
 import { JobEntity } from 'src/entities/job.entity';
 import { BullJob } from 'src/interface';
 import { UserEntity } from 'src/entities';
+import { InjectQueue } from '@nestjs/bull';
+import { CreateJobSearchBusinessDto } from '../dto';
 
 interface PayloadSearchBusiness {
   keyword: string;
@@ -38,8 +38,46 @@ export class SearchBusinessService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    private categoryService: CategoryService,
+    @InjectQueue('job-queue')
+    private scrapingQueue: Queue,
   ) {}
+
+  async createJob(
+    createJob: CreateJobSearchBusinessDto,
+    currentUser: UserEntity,
+  ) {
+    try {
+      const values = {
+        ...createJob,
+        county:
+          createJob?.county && [].concat(createJob?.county).flat(Infinity),
+        zipCode: [].concat(createJob?.zipCode).flat(Infinity),
+      };
+      const statusData = values?.zipCode?.reduce((acc, item) => {
+        acc[item] = { zipCode: item, isFinish: false, page: 1 };
+        return acc;
+      }, {});
+
+      const result = await this.jobService.create(
+        { ...values, statusData },
+        currentUser,
+      );
+      await this.scrapingQueue.add(
+        'search-business',
+        { jobId: result?.id, currentUser },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 20,
+          backoff: 1000,
+        },
+      );
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
 
   async runJob(bull: Job<BullJob>) {
     const { jobId, currentUser } = bull.data;
@@ -60,7 +98,7 @@ export class SearchBusinessService {
           };
         },
       );
-      await promisesSequentially(promises, 2);
+      await promisesSequentially(promises, 20);
 
       const duration = dayjs().diff(dayjs(createdAt));
       const values = { duration, status: JOB_STATUS.COMPLETE };
@@ -69,6 +107,7 @@ export class SearchBusinessService {
       throw new UnprocessableEntityException(e.message);
     }
   }
+
   async searchBusiness(
     job: JobEntity,
     payload: PayloadSearchBusiness,
@@ -123,17 +162,7 @@ export class SearchBusinessService {
           businessListForPage.push(item);
         });
         if (businessListForPage?.length === 0) break;
-        const categorieEl = businessListForPage
-          ?.map((i: any) => i.categories)
-          ?.flat(Infinity);
 
-        const categories = Array.from(new Set(categorieEl))?.map(
-          (name: string) => ({
-            name,
-            slug: generateSlug(name),
-          }),
-        );
-        await this.categoryService.createMany(categories);
         for (const business of businessListForPage) {
           if (!business?.name || !business?.phone || !business?.address)
             continue;
@@ -172,7 +201,7 @@ export class SearchBusinessService {
               if (status?.includes(BUSINESS_STATUS.NAME_VERIFY))
                 delete newBusiness?.name;
             }
-            await this.businessService.update(
+            await this.businessService.updateScratchBusiness(
               checkScatchLink?.id,
               newBusiness,
               currentUser,

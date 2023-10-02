@@ -34,11 +34,8 @@ export class BusinessController {
   }
 
   @Get('export')
-  getExport(
-    @Query() fetchDto: ExportBusinessDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.businessService.getExport(fetchDto, res);
+  getExport(@Query() fetchDto: ExportBusinessDto) {
+    return this.businessService.createExport(fetchDto);
   }
 
   @Get(':id')

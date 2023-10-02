@@ -58,14 +58,14 @@ model Category {
 }
 
 model Business {
-  id      String  @id @default(uuid()) @db.Uuid
-  name    String  @db.VarChar(400)
-  phone   String? @db.VarChar(24)
-  email   String? @db.VarChar(64)
-  website String? @db.VarChar(800)
-  scratchLink String? @db.VarChar(400)
-  state       String? @db.VarChar(8)
-  zipCode     String? @db.VarChar(16)
+  id           String     @id @default(uuid()) @db.Uuid
+  name         String     @db.VarChar(400)
+  phone        String?    @db.VarChar(24)
+  email        String?    @db.VarChar(64)
+  website      String?    @db.VarChar(800)
+  scratchLink  String?    @db.VarChar(400)
+  state        String?    @db.VarChar(8)
+  zipCode      String?    @db.VarChar(16)
   city         String?    @db.VarChar(128)
   address      String     @db.VarChar(128)
   status       String[]   @db.VarChar(24)
@@ -77,6 +77,7 @@ model Business {
   createdAt    DateTime?  @default(now()) @db.Timestamptz()
   updatedAt    DateTime?  @updatedAt @db.Timestamptz()
   category     Category[] @relation("businesseToCategory")
+  cityName     City?      @relation("cityToBusiness", fields: [cityId], references: [id])
   creator      User?      @relation("creatorBusiness", fields: [creatorId], references: [id])
   updatedBy    User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
 
@@ -106,12 +107,14 @@ model Job {
 }
 
 model City {
-  id      String   @id @default(uuid()) @db.Uuid
-  name    String   @db.VarChar(128)
-  state   String   @db.VarChar(8)
-  county  String   @db.VarChar(128)
-  zipCode String[] @db.VarChar(16)
+  id         String     @id @default(uuid()) @db.Uuid
+  cityName   String     @db.VarChar(128)
+  stateCode  String     @db.VarChar(8)
+  stateName  String     @db.VarChar(128)
+  countyName String     @db.VarChar(128)
+  zipCode    String     @db.VarChar(16)
+  Business   Business[] @relation("cityToBusiness")
 
-  @@index([name, state, zipCode])
+  @@unique([cityName, stateCode, zipCode])
   @@map("city")
 }

@@ -89,7 +89,7 @@ CREATE TABLE "city" (
     "name" VARCHAR(128) NOT NULL,
     "state" VARCHAR(8) NOT NULL,
     "county" VARCHAR(128) NOT NULL,
-    "zipCode" VARCHAR(16)[],
+    "zipCode" VARCHAR(16) NOT NULL,
 
     CONSTRAINT "city_pkey" PRIMARY KEY ("id")
 );
@@ -128,7 +128,7 @@ CREATE UNIQUE INDEX "business_scratchLink_key" ON "business"("scratchLink");
 CREATE UNIQUE INDEX "business_address_zipCode_state_key" ON "business"("address", "zipCode", "state");
 
 -- CreateIndex
-CREATE INDEX "city_name_state_zipCode_idx" ON "city"("name", "state", "zipCode");
+CREATE UNIQUE INDEX "city_name_state_zipCode_key" ON "city"("name", "state", "zipCode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_businesseToCategory_AB_unique" ON "_businesseToCategory"("A", "B");
@@ -141,6 +141,9 @@ ALTER TABLE "users" ADD CONSTRAINT "users_policyId_fkey" FOREIGN KEY ("policyId"
 
 -- AddForeignKey
 ALTER TABLE "category" ADD CONSTRAINT "category_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "business" ADD CONSTRAINT "business_cityId_fkey" FOREIGN KEY ("cityId") REFERENCES "city"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "business" ADD CONSTRAINT "business_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

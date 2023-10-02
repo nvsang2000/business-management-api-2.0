@@ -7,7 +7,7 @@ import { Subject, Observable } from 'rxjs';
 import { EventDataProps } from 'src/interface';
 
 @Injectable()
-export class WebhooksService {
+export class WebhookService {
   public eventWebhook = new Subject<EventDataProps>();
 
   sendEvent(eventData: EventDataProps) {

@@ -8,7 +8,6 @@ import {
   Res,
   Query,
   Param,
-  Sse,
   Post,
   Body,
   Delete,
@@ -19,9 +18,8 @@ import { CreateJobSearchBusinessDto } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
-import { WebhooksService } from './service/webhooks.service';
 import { JobService } from './job.service';
-import { BullService } from './service/bull.service';
+import { SearchBusinessService } from './service/search-business.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -29,8 +27,7 @@ import { BullService } from './service/bull.service';
 export class JobController {
   constructor(
     private jobService: JobService,
-    private bullService: BullService,
-    private webhooksService: WebhooksService,
+    private searchBusinessService: SearchBusinessService,
   ) {}
 
   @Post('search-business')
@@ -38,13 +35,7 @@ export class JobController {
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.bullService.createJob(payload, currentUser);
-  }
-
-  @Get('/webhooks')
-  @Sse('/webhooks')
-  async getEvents(): Promise<any> {
-    return this.webhooksService.getEvents();
+    return this.searchBusinessService.createJob(payload, currentUser);
   }
 
   @Get()

@@ -86,7 +86,6 @@ export const WEBSITE = {
     NEXT_PAGE: '.pagination ul li a[class="next ajax-page"]',
   },
 };
-export const REG_IS_STATE = /^\d+$/;
 
 export const LINK_PROFILE = {
   google: 'https://www.google.com',
@@ -157,22 +156,19 @@ export enum TABLES {
   Setting = 'Setting',
 }
 
-export const OPTION_DEFAULT_PUPPETEER = {
-  args: [
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--disable-setuid-sandbox',
-    '--no-first-run',
-    '--no-sandbox',
-    '--no-zygote',
-    '--deterministic-fetch',
-    '--disable-features=IsolateOrigins',
-    '--disable-site-isolation-trials',
-  ],
-  ignoreDefaultArgs: ['--disable-extensions'],
-};
-
+export const HEADER_ROW_BUSINESS = [
+  'Id',
+  'Name',
+  'Number',
+  'Website',
+  'Address',
+  'ZipCode',
+  'State',
+  'City',
+  'Categories',
+];
 //regex
+export const REG_IS_STATE = /^\d+$/;
 export const LETTER_AZ = 'abcdefghijklmnopqrstuvwxyz';
 export const REGEX_PHONE_NUMBER =
   /(?:\+\d{1,2}\s*)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?:\s?[xX]\d+)?/g;

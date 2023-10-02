@@ -55,7 +55,7 @@ export class CategoryService {
         where: { name: upsertCategories.name },
         create: {
           ...upsertCategories,
-          creatorId: currentUser?.id,
+          creator: { connect: { id: currentUser?.id } },
         },
         update: upsertCategories,
       });
@@ -73,25 +73,8 @@ export class CategoryService {
       const result = await this.prisma.category.create({
         data: {
           ...createCategory,
-          creatorId: currentUser?.id,
+          creator: { connect: { id: currentUser?.id } },
         },
-      });
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
-  async createMany(
-    createCategories: CreateCategoryDto[],
-    currentUser: UserEntity = null,
-  ) {
-    try {
-      const result = await this.prisma.category.createMany({
-        data: createCategories?.map((category) => {
-          return { ...category, creatorId: currentUser?.id };
-        }),
-        skipDuplicates: true,
       });
       return result;
     } catch (e) {
