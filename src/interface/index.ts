@@ -17,12 +17,3 @@ export interface Payload {
   keyword: string;
   zipCode: string;
 }
-
-export interface EventDataProps {
-  data?: {
-    zipCode: string;
-    totalCreate?: number;
-    totalUpdate?: number;
-  };
-  errorMessage?: string;
-}

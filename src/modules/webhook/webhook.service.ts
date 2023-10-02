@@ -4,17 +4,16 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable } from '@nestjs/common';
 import { Subject, Observable } from 'rxjs';
-import { EventDataProps } from 'src/interface';
 
 @Injectable()
 export class WebhookService {
-  public eventWebhook = new Subject<EventDataProps>();
+  public eventWebhook = new Subject<any>();
 
-  sendEvent(eventData: EventDataProps) {
+  sendEvent(eventData: any) {
     return this.eventWebhook.next(eventData);
   }
 
-  getEvents(): Observable<EventDataProps> {
+  getEvents(): Observable<any> {
     return this.eventWebhook.asObservable();
   }
 }
