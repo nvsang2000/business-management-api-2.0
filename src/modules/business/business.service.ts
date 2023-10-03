@@ -29,7 +29,7 @@ import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import { WebhookService } from '../webhook/webhook.service';
+import { WebhookService } from '../../webhook.service';
 
 @Injectable()
 export class BusinessService {
@@ -293,7 +293,7 @@ export class BusinessService {
       });
       return result;
     } catch (e) {
-      throw new UnprocessableEntityException(e.message);
+      throw new UnprocessableEntityException(e?.response);
     }
   }
 
@@ -374,7 +374,6 @@ export class BusinessService {
         }
       }
       const result = await this.createFileExcel(businessList);
-      console.log('export: ', result);
       return this.webHookService.sendEvent({
         type: 'EXPORT',
         data: { result },

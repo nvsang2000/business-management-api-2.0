@@ -54,7 +54,7 @@ model Category {
   creator   User?      @relation("creatorCategory", fields: [creatorId], references: [id])
   business  Business[] @relation("businesseToCategory")
 
-  @@map("category")
+  @@map("categories")
 }
 
 model Business {
@@ -103,7 +103,7 @@ model Job {
   creator     User?     @relation("creatorJob", fields: [creatorId], references: [id])
   updatedBy   User?     @relation("updatedByJob", fields: [updatedById], references: [id])
 
-  @@map("job")
+  @@map("jobs")
 }
 
 model City {
@@ -116,5 +116,5 @@ model City {
   Business   Business[] @relation("cityToBusiness")
 
   @@unique([cityName, stateCode, zipCode])
-  @@map("city")
+  @@map("cities")
 }

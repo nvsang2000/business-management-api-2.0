@@ -98,7 +98,7 @@ export class SearchBusinessService {
           };
         },
       );
-      await promisesSequentially(promises, 20);
+      await promisesSequentially(promises, 5);
 
       const duration = dayjs().diff(dayjs(createdAt));
       const values = { duration, status: JOB_STATUS.COMPLETE };
@@ -119,22 +119,22 @@ export class SearchBusinessService {
     try {
       while (true) {
         const response = await this.connectPage(keyword, zipCode, page);
-        const body = await response.text();
+        const body = await response?.text();
         const $ = cheerio.load(body);
         const businessListForPage = [];
         $('[class="search-results organic"] .result')?.map((i, el) => {
           const addressStreet = $(el)
-            .find('.info-secondary .adr .street-address')
-            .text();
+            ?.find('.info-secondary .adr .street-address')
+            ?.text();
           const addressLocality = $(el)
-            .find('.info-secondary .adr .locality')
-            .text();
-          const name = $(el).find('.info-primary h2 .business-name').text();
+            ?.find('.info-secondary .adr .locality')
+            ?.text();
+          const name = $(el)?.find('.info-primary h2 .business-name')?.text();
           const categories = [];
           $(el)
-            .find('.info-primary .categories a')
-            .map((i, el) => categories.push($(el).text()));
-          const phone = $(el).find('.info-secondary .phone').text();
+            ?.find('.info-primary .categories a')
+            ?.map((i, el) => categories.push($(el)?.text()));
+          const phone = $(el).find('.info-secondary .phone')?.text();
           const thumbnailUrl = $(el)
             ?.find('.media-thumbnail-wrapper img')
             ?.attr('src');
@@ -173,25 +173,25 @@ export class SearchBusinessService {
             phone: formatPhoneNumber(business.phone),
           };
 
-          const checkScatchLink = await this.businessService.findByScratchLink(
+          const checkScratch = await this.businessService.findByScratchLink(
             newBusiness?.scratchLink,
           );
 
-          const checkBusiness =
+          const checkAddress =
             await this.businessService.findByAddressStateZipCode(
               business?.address,
               business?.state,
               business?.zipCode,
             );
 
-          if (!checkScatchLink && !checkBusiness)
+          if (!checkScratch && !checkAddress)
             await this.businessService.createScratchBusiness(
               newBusiness,
               currentUser,
             );
-          else if (checkScatchLink) {
-            if (checkBusiness) {
-              const status = checkScatchLink?.status;
+          else if (checkScratch) {
+            if (checkAddress) {
+              const status = checkScratch?.status;
               if (status?.includes(BUSINESS_STATUS.ADDRESS_VERIFY))
                 delete newBusiness?.address;
 
@@ -202,7 +202,7 @@ export class SearchBusinessService {
                 delete newBusiness?.name;
             }
             await this.businessService.updateScratchBusiness(
-              checkScatchLink?.id,
+              checkScratch?.id,
               newBusiness,
               currentUser,
             );

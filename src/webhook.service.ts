@@ -10,6 +10,7 @@ export class WebhookService {
   public eventWebhook = new Subject<any>();
 
   sendEvent(eventData: any) {
+    console.log('eventData', eventData);
     return this.eventWebhook.next(eventData);
   }
 

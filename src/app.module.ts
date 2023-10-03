@@ -1,4 +1,3 @@
-import { WebhookModule } from './modules/webhook/webhook.module';
 import { WorkerService } from './worker.service';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { CategoryModule } from './modules/category/category.module';
@@ -24,9 +23,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { ExportModule } from './shared/export/export.module';
 import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
+import { WebhookService } from './webhook.service';
 @Module({
   imports: [
-    WebhookModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'assets'),
       serveRoot: '/assets',
@@ -77,10 +76,10 @@ import { JobModule } from './modules/job/job.module';
     JobModule,
     MarketingModule,
     ExportModule,
-    WebhookModule,
   ],
   providers: [
     WorkerService,
+    WebhookService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

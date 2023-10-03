@@ -9,7 +9,7 @@ import { Module } from '@nestjs/common';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { BullModule } from '@nestjs/bull';
 import { BullJobExportBuisness } from './bull/job-export.bull';
-import { WebhookService } from '../webhook/webhook.service';
+import { WebhookService } from '../../webhook.service';
 
 @Module({
   imports: [BullModule.registerQueue({ name: 'job-export-business' })],
