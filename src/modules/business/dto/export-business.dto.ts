@@ -1,7 +1,7 @@
-import { BooleanFieldOptional } from 'src/decorators';
+import { NumberFieldOptional } from 'src/decorators';
 import { FetchBusinessDto } from './fetch-business.dto';
 
 export class ExportBusinessDto extends FetchBusinessDto {
-  @BooleanFieldOptional({})
-  isFindAll?: boolean;
+  @NumberFieldOptional({ each: true })
+  isFinsh?: number = 0;
 }

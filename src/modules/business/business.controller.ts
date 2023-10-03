@@ -25,6 +25,14 @@ import { Response } from 'express';
 export class BusinessController {
   constructor(private businessService: BusinessService) {}
 
+  @Post()
+  create(
+    @Body() payload: CreateBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.businessService.create(payload, currentUser);
+  }
+
   @Get()
   paginate(
     @Query() fetchDto: FetchBusinessDto,
@@ -41,14 +49,6 @@ export class BusinessController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.businessService.findById(id);
-  }
-
-  @Post()
-  create(
-    @Body() payload: CreateBusinessDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.businessService.create(payload, currentUser);
   }
 
   // @Put(':id')

@@ -328,8 +328,8 @@ export class BusinessService {
   async createExport(fetchDto: ExportBusinessDto) {
     try {
       let businessList = [];
-      const { isFindAll } = fetchDto;
-      if (isFindAll) {
+      const { isFinsh } = fetchDto;
+      if (isFinsh) {
         let hasMore = true;
         let cursor = null;
         fetchDto.limit = '10000';
