@@ -124,6 +124,7 @@ export const promisesSequentially = async (promises: any[], limit: number) => {
     if (executing.length >= limit) await Promise.race(executing);
     executing.push(p.then(() => executing.splice(executing.indexOf(p), 1)));
   }
+  console.log('results', results?.length, executing?.length);
   return Promise.all(results);
 };
 

@@ -159,12 +159,12 @@ export enum TABLES {
 export const HEADER_ROW_BUSINESS = [
   'Id',
   'Name',
-  'Number',
+  'Phone',
   'Website',
   'Address',
-  'ZipCode',
-  'State',
   'City',
+  'State',
+  'Zip Code',
   'Categories',
 ];
 //regex

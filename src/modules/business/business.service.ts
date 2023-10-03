@@ -341,12 +341,10 @@ export class BusinessService {
             cursor = businessMore[businessMore.length - 1].id;
           }
         }
-      }
-      businessList = await this.findAllExport(fetchDto);
-      const result = await this.createFileExcel(businessList);
-      return result;
+      } else businessList = await this.findAllExport(fetchDto);
+
+      return await this.createFileExcel(businessList);
     } catch (e) {
-      console.log(e);
       throw new UnprocessableEntityException(e?.response);
     }
   }
@@ -360,9 +358,9 @@ export class BusinessService {
         i?.phone,
         i?.website,
         i?.address,
-        i?.zipCode,
-        i?.state,
         i?.city,
+        i?.state,
+        i?.zipCode,
         categories,
       ];
     });
