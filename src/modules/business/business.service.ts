@@ -28,8 +28,7 @@ import { ExportService } from 'src/shared/export/export.service';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { InjectQueue } from '@nestjs/bull';
-import { Job, Queue } from 'bull';
-import { WebhookService } from '../../webhook.service';
+import { Queue } from 'bull';
 
 @Injectable()
 export class BusinessService {
@@ -39,7 +38,6 @@ export class BusinessService {
     private zipCodeService: ZipCodeService,
     @InjectQueue('job-export-business')
     private exportQueue: Queue,
-    private webHookService: WebhookService,
   ) {}
 
   private readonly include = {
@@ -329,56 +327,26 @@ export class BusinessService {
 
   async createExport(fetchDto: ExportBusinessDto) {
     try {
-      if (fetchDto?.isFindAll === true) {
-        await this.exportQueue.add(
-          'export-business',
-          {
-            fetchDto,
-          },
-          {
-            removeOnComplete: true,
-            removeOnFail: true,
-            attempts: 0,
-            backoff: 1000,
-          },
-        );
-        return {
-          isFindAll: true,
-          message: 'Exporting all data, please wait!',
-        };
-      }
-      const business = await this.findAllExport(fetchDto);
-      const result = await this.createFileExcel(business);
-      return {
-        result,
-        isFindAll: false,
-      };
-    } catch (e) {
-      console.log(e);
-      throw new UnprocessableEntityException(e?.response);
-    }
-  }
-
-  async runExport(job: Job<any>) {
-    try {
       let businessList = [];
-      let hasMore = true;
-      let cursor = null;
-      const fetchDto = { ...job.data.fetchDto, limit: '10000' };
-      while (hasMore) {
-        const business = await this.findAllExport(fetchDto, cursor);
-        if (business.length === 1) hasMore = false;
-        else {
-          businessList = businessList.concat(business);
-          cursor = business[business.length - 1].id;
+      const { isFindAll } = fetchDto;
+      if (isFindAll) {
+        let hasMore = true;
+        let cursor = null;
+        fetchDto.limit = '10000';
+        while (hasMore) {
+          const businessMore = await this.findAllExport(fetchDto, cursor);
+          if (businessMore.length === 1) hasMore = false;
+          else {
+            businessList = businessList.concat(businessMore);
+            cursor = businessMore[businessMore.length - 1].id;
+          }
         }
       }
+      businessList = await this.findAllExport(fetchDto);
       const result = await this.createFileExcel(businessList);
-      return this.webHookService.sendEvent({
-        type: 'EXPORT',
-        data: { result },
-      });
+      return result;
     } catch (e) {
+      console.log(e);
       throw new UnprocessableEntityException(e?.response);
     }
   }

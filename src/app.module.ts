@@ -23,7 +23,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { ExportModule } from './shared/export/export.module';
 import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
-import { WebhookService } from './webhook.service';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -79,7 +78,6 @@ import { WebhookService } from './webhook.service';
   ],
   providers: [
     WorkerService,
-    WebhookService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

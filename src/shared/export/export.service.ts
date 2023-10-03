@@ -19,7 +19,7 @@ export class ExportService {
 
       worksheet.addRows(rawDatas);
 
-      const fileName = `${uuidv4()}.csv`;
+      const fileName = `BUSINESS_${uuidv4()}.csv`;
 
       const tempFilePath = `${url}/${fileName}`;
       await workbook.xlsx.writeFile(tempFilePath);

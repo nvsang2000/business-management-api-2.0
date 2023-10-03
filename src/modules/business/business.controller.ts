@@ -11,7 +11,6 @@ import {
   Post,
   Res,
   Query,
-  Sse,
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
@@ -19,16 +18,12 @@ import { CreateBusinessDto, FetchBusinessDto, ExportBusinessDto } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
-import { WebhookService } from 'src/webhook.service';
 
 @ApiTags('Business')
 @Controller('business')
 @ApiBasicAuth('access-token')
 export class BusinessController {
-  constructor(
-    private businessService: BusinessService,
-    private webhookService: WebhookService,
-  ) {}
+  constructor(private businessService: BusinessService) {}
 
   @Get()
   paginate(
@@ -56,11 +51,6 @@ export class BusinessController {
     return this.businessService.create(payload, currentUser);
   }
 
-  @Get('/webhooks')
-  @Sse('/webhooks')
-  async getEvents(): Promise<any> {
-    return this.webhookService.getEvents();
-  }
   // @Put(':id')
   // update(
   //   @Param('id') id: string,
