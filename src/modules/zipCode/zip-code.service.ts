@@ -55,28 +55,6 @@ export class ZipCodeService {
     }
   }
 
-  async createCity() {
-    try {
-      const readFile = fs.readFileSync(
-        'assets/json/unique_zip_code.json',
-        'utf-8',
-      );
-      const cityNameList = JSON.parse(readFile);
-      const result = await this.prisma.city.createMany({
-        data: cityNameList?.map((i) => ({
-          cityName: i?.cityName,
-          stateCode: i?.stateCode,
-          stateName: i?.stateName,
-          countyName: i?.countyName,
-          zipCode: i?.zipCode,
-        })),
-      });
-      return result;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   async readFileZipCode(fetchDto: FetchZipCodeDto) {
     try {
       const { stateCode, countyName } = fetchDto;

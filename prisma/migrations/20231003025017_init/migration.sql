@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "policies" (
-    "id" UUID NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ,
@@ -21,7 +21,7 @@ CREATE TABLE "users" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "role" VARCHAR(24) NOT NULL DEFAULT 'user',
     "thumbnail" VARCHAR(400),
-    "policyId" UUID,
+    "policyId" INTEGER,
     "lastSeen" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMPTZ,
@@ -86,9 +86,10 @@ CREATE TABLE "job" (
 -- CreateTable
 CREATE TABLE "city" (
     "id" UUID NOT NULL,
-    "name" VARCHAR(128) NOT NULL,
-    "state" VARCHAR(8) NOT NULL,
-    "county" VARCHAR(128) NOT NULL,
+    "cityName" VARCHAR(128) NOT NULL,
+    "stateCode" VARCHAR(8) NOT NULL,
+    "stateName" VARCHAR(128) NOT NULL,
+    "countyName" VARCHAR(128) NOT NULL,
     "zipCode" VARCHAR(16) NOT NULL,
 
     CONSTRAINT "city_pkey" PRIMARY KEY ("id")
@@ -128,7 +129,7 @@ CREATE UNIQUE INDEX "business_scratchLink_key" ON "business"("scratchLink");
 CREATE UNIQUE INDEX "business_address_zipCode_state_key" ON "business"("address", "zipCode", "state");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "city_name_state_zipCode_key" ON "city"("name", "state", "zipCode");
+CREATE UNIQUE INDEX "city_cityName_stateCode_zipCode_key" ON "city"("cityName", "stateCode", "zipCode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_businesseToCategory_AB_unique" ON "_businesseToCategory"("A", "B");

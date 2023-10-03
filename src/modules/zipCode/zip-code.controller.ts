@@ -27,12 +27,6 @@ export class ZipCodeController {
     return this.zipCodeService.coverZipCodeTree();
   }
 
-  @Get('create-city')
-  @Roles([ROLE.admin])
-  createCity() {
-    return this.zipCodeService.createCity();
-  }
-
   @Get('cover-city')
   @Roles([ROLE.admin])
   cover() {

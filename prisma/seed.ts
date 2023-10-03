@@ -1,12 +1,14 @@
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
 import { ACTION, ROLE, TABLES } from '../src/constants';
+import * as fs from 'fs-extra';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 const basePolicies = [
   {
+    id: 1,
     isActive: true,
     name: 'Sale',
     permissions: [
@@ -45,6 +47,18 @@ async function seedUsers() {
       role: ROLE.admin,
     },
   });
+
+  await prisma.user.create({
+    data: {
+      email: 'sale@gmail.com',
+      displayName: 'Sale',
+      phone: '0386237060',
+      username: 'Saler',
+      policyId: 1,
+      password: hash,
+      role: ROLE.user,
+    },
+  });
 }
 async function seedPermissions() {
   try {
@@ -63,8 +77,30 @@ async function seedPermissions() {
   }
 }
 
+async function createCity() {
+  try {
+    const readFile = fs.readFileSync(
+      'assets/json/unique_zip_code.json',
+      'utf-8',
+    );
+    const cityNameList = JSON.parse(readFile);
+    const result = await prisma.city.createMany({
+      data: cityNameList?.map((i) => ({
+        cityName: i?.cityName,
+        stateCode: i?.stateCode,
+        stateName: i?.stateName,
+        countyName: i?.countyName,
+        zipCode: i?.zipCode,
+      })),
+    });
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 async function main() {
-  return Promise.all([seedUsers(), seedPermissions()]);
+  return Promise.all([seedUsers(), seedPermissions(), createCity()]);
 }
 
 main()
@@ -72,7 +108,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.log(e)
+    console.log(e);
     await prisma.$disconnect();
     process.exit(1);
   });
