@@ -71,7 +71,7 @@ export class PolicyController {
   @ApiOkResponse({ type: PolicyEntity, description: 'Policy Entity' })
   @Roles([ROLE.admin])
   findOne(@Param('id') id: string): Promise<PolicyEntity> {
-    return this.policyService.findOne(id);
+    return this.policyService.findOne(+id);
   }
 
   @Put('/:id')
@@ -79,7 +79,7 @@ export class PolicyController {
   @HttpCode(200)
   @Roles([ROLE.admin])
   update(@Param('id') id: string, @Body() updatePolicyDto: UpdatePolicyDto) {
-    return this.policyService.update(id, updatePolicyDto);
+    return this.policyService.update(+id, updatePolicyDto);
   }
 
   @Delete('/:id')
@@ -87,6 +87,6 @@ export class PolicyController {
   @HttpCode(204)
   @Roles([ROLE.admin])
   delete(@Param('id') id: string) {
-    return this.policyService.remove(id);
+    return this.policyService.remove(+id);
   }
 }

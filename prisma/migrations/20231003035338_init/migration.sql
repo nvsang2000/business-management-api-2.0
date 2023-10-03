@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "policies" (
-    "id" UUID NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ,
@@ -21,7 +21,7 @@ CREATE TABLE "users" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "role" VARCHAR(24) NOT NULL DEFAULT 'user',
     "thumbnail" VARCHAR(400),
-    "policyId" UUID,
+    "policyId" INTEGER,
     "lastSeen" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMPTZ,

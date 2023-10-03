@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 
 const basePolicies = [
   {
+    id: 1,
     isActive: true,
     name: 'Sale',
     permissions: [
