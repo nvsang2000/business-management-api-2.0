@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 
 const basePolicies = [
   {
-    id: 1,
     isActive: true,
     name: 'Sale',
     permissions: [
@@ -45,18 +44,6 @@ async function seedUsers() {
       username: 'nvsang2670',
       password: hash,
       role: ROLE.admin,
-    },
-  });
-
-  await prisma.user.create({
-    data: {
-      email: 'sale@gmail.com',
-      displayName: 'Sale',
-      phone: '0386237060',
-      username: 'Saler',
-      policyId: 1,
-      password: hash,
-      role: ROLE.user,
     },
   });
 }

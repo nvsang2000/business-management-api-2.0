@@ -42,7 +42,7 @@ export class PolicyService {
     }
   }
 
-  async update(id: number, updatePolicyDto: UpdatePolicyDto) {
+  async update(id: string, updatePolicyDto: UpdatePolicyDto) {
     try {
       const updatedPolicy = await this.prismaService.policy.update({
         where: { id },
@@ -122,7 +122,7 @@ export class PolicyService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       return await this.prismaService.policy.findUnique({
         where: { id },
@@ -132,7 +132,7 @@ export class PolicyService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const policy = await this.prismaService.policy.findUnique({
       where: { id },
     });

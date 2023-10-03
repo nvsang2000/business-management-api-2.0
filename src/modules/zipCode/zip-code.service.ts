@@ -14,21 +14,6 @@ import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class ZipCodeService {
-  private readonly include = {
-    creator: {
-      select: {
-        id: true,
-        displayName: true,
-      },
-    },
-    updatedBy: {
-      select: {
-        id: true,
-        displayName: true,
-      },
-    },
-  };
-
   constructor(private prisma: PrismaService) {}
 
   async findMany() {

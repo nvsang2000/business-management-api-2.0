@@ -2,7 +2,6 @@ import { ROLE } from 'src/constants';
 import {
   BooleanFieldOptional,
   EnumFieldOptional,
-  NumberFieldOptional,
   StringFieldOptional,
 } from 'src/decorators';
 
@@ -19,8 +18,8 @@ export class UpdateUserDto {
   @EnumFieldOptional(() => ROLE, { swaggerOptions: { example: ROLE.admin } })
   role?: ROLE;
 
-  @NumberFieldOptional({})
-  policyId?: number;
+  @StringFieldOptional({})
+  policyId?: string;
 
   @BooleanFieldOptional({})
   isActive?: boolean;
