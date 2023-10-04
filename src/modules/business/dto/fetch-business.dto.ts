@@ -6,9 +6,6 @@ export class FetchBusinessDto extends FetchDto {
   categories?: string[];
 
   @StringFieldOptional({ each: true })
-  address?: string[];
-
-  @StringFieldOptional({ each: true })
   zipCode?: string[];
 
   @StringFieldOptional({ each: true })

@@ -77,12 +77,15 @@ export class BusinessService {
   };
 
   createQuery(fetchDto: FetchBusinessDto) {
-    const { search, address, categories, city, state, zipCode } = fetchDto;
+    const { search } = fetchDto;
+    let { categories, city, state, zipCode } = fetchDto;
+
+    categories && (categories = []?.concat(categories)?.flat(Infinity));
+    city && (city = []?.concat(city)?.flat(Infinity));
+    state && (state = []?.concat(state)?.flat(Infinity));
+    zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
-      ...(address && {
-        address: { in: address },
-      }),
       ...(zipCode && {
         zipCode: { in: zipCode },
       }),
@@ -93,12 +96,9 @@ export class BusinessService {
         city: { in: city, mode: 'insensitive' as any },
       }),
       ...(categories && {
-        category: {
-          some: {
-            id: {
-              in: categories?.map((i) => i),
-            },
-          },
+        categories: {
+          hasSome: categories,
+          mode: 'insensitive' as any,
         },
       }),
       ...(search && {
@@ -127,15 +127,7 @@ export class BusinessService {
       const where = this.createQuery(fetchDto);
       const result = await this.prisma.business.findMany({
         where,
-        include: {
-          ...this.include,
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        include: { ...this.include },
         take: +limit,
         skip: (+page - 1) * +limit,
         orderBy: { [sortBy]: sortDirection },
