@@ -22,9 +22,7 @@ export class WorkerService {
   async processWaitingJob() {
     const job = await this.prisma.job.findFirst({
       where: { status: JOB_STATUS.WAITING },
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy: { createdAt: 'asc' },
     });
     if (job) {
       console.log('Job', job?.id);
