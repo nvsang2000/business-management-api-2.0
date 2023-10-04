@@ -117,24 +117,25 @@ export const removeDuplicates = (arr: any[]) => {
 
 export const promisesSequentially = async (promises: any[], limit: number) => {
   const results = [];
-  const executing = [];
-  for (const promise of promises) {
-    const p = Promise.resolve().then(() => promise());
-    results.push(p);
-    if (executing.length >= limit) await Promise.race(executing);
-    executing.push(p.then(() => executing.splice(executing.indexOf(p), 1)));
+  let currentIndex = 0;
+
+  async function executeNext() {
+    const index = currentIndex;
+    currentIndex++;
+
+    if (index >= promises.length) return;
+
+    const result = await promises[index](); // Wait for the promise to complete
+    results[index] = result; // Add the result at the correct index
+    await executeNext();
   }
-  console.log('results', results?.length, executing?.length);
-  return Promise.all(results);
-};
 
-export const convertDurationToTime = (duration: number): string => {
-  const days = Math.floor(duration / (1000 * 60 * 60 * 24));
-  const hours = Math.floor(
-    (duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-  );
-  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+  const executingPromises = [];
+  for (let i = 0; i < limit; i++) {
+    executingPromises.push(executeNext());
+  }
 
-  const totalProcessTime = `${days} day ${hours} hour ${minutes} minute`;
-  return totalProcessTime;
+  // Wait for all promises to complete
+  await Promise.all(executingPromises);
+  return results;
 };

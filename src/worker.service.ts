@@ -5,20 +5,38 @@ https://docs.nestjs.com/providers#services
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
+import { PrismaService } from 'nestjs-prisma';
+import { JOB_STATUS } from './constants';
 
 @Injectable()
 export class WorkerService {
-  constructor(@InjectQueue('job-queue') private readonly queue: Queue) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue('job-queue') private readonly scrapingQueue: Queue,
+  ) {}
 
   async onModuleInit() {
-    await this.processUnfinishedJobs();
+    await this.processWaitingJob();
   }
 
-  async processUnfinishedJobs() {
-    const jobs = await this.queue.getActive();
-    console.log('Jobs', jobs);
-    for (const job of jobs) {
-      await this.queue.add(job.name, job.data);
+  async processWaitingJob() {
+    const job = await this.prisma.job.findFirst({
+      where: { status: JOB_STATUS.WAITING },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+    if (job) {
+      console.log('Job', job?.id);
+      await this.scrapingQueue.add(
+        'search-business',
+        { jobId: job?.id, userId: job?.creatorId },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
     }
   }
 }

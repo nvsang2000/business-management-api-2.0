@@ -3,5 +3,5 @@ import { FetchBusinessDto } from './fetch-business.dto';
 
 export class ExportBusinessDto extends FetchBusinessDto {
   @NumberFieldOptional({ each: true })
-  isFinsh?: number = 0;
+  isAll?: number = 0;
 }

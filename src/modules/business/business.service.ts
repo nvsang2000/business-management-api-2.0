@@ -227,7 +227,7 @@ export class BusinessService {
   async updateScratchBusiness(
     id: string,
     updateBusiness: UpdateScratchBusinessDto,
-    currentUser: UserEntity = null,
+    userId: string,
   ) {
     try {
       const { categories, city, state, zipCode } = updateBusiness;
@@ -240,7 +240,7 @@ export class BusinessService {
         where: { id },
         data: {
           ...updateBusiness,
-          updatedBy: { connect: { id: currentUser?.id } },
+          updatedBy: { connect: { id: userId } },
           ...(findZipCode && {
             cityName: { connect: { id: findZipCode?.id } },
           }),
@@ -262,7 +262,7 @@ export class BusinessService {
 
   async createScratchBusiness(
     createBusiness: CreateScratchBusinessDto,
-    currentUser: UserEntity = null,
+    userId: string,
   ): Promise<any> {
     try {
       const { categories, city, state, zipCode } = createBusiness;
@@ -275,7 +275,7 @@ export class BusinessService {
         data: {
           ...createBusiness,
           status: [BUSINESS_STATUS.NEW],
-          creator: { connect: { id: currentUser?.id } },
+          creator: { connect: { id: userId } },
           ...(findZipCode && {
             cityName: { connect: { id: findZipCode?.id } },
           }),
@@ -328,8 +328,8 @@ export class BusinessService {
   async createExport(fetchDto: ExportBusinessDto) {
     try {
       let businessList = [];
-      const { isFinsh } = fetchDto;
-      if (isFinsh) {
+      const { isAll } = fetchDto;
+      if (isAll) {
         let hasMore = true;
         let cursor = null;
         fetchDto.limit = '10000';

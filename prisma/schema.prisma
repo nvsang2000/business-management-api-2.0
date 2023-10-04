@@ -30,7 +30,7 @@ model User {
   isActive          Boolean    @default(true)
   role              String     @default("user") @db.VarChar(24)
   thumbnail         String?    @db.VarChar(400)
-  policyId          Int?   
+  policyId          Int?
   lastSeen          DateTime?  @default(now()) @db.Timestamptz()
   updatedAt         DateTime?  @default(now()) @db.Timestamptz()
   createdAt         DateTime?  @updatedAt @db.Timestamptz()
@@ -89,11 +89,11 @@ model Business {
 
 model Job {
   id          String    @id @default(uuid()) @db.Uuid
+  status      Int       @default(1)
   keyword     String?   @db.VarChar(128)
   state       String?   @db.VarChar(8)
   county      String[]  @db.VarChar(128)
   zipCode     String[]  @db.VarChar(16)
-  status      Int       @default(1)
   statusData  Json?
   creatorId   String?   @db.Uuid
   updatedById String?   @db.Uuid

@@ -1,8 +1,6 @@
-import { UserEntity } from 'src/entities';
-
 export interface BullJob {
   jobId: string;
-  currentUser: UserEntity;
+  userId: string;
 }
 
 export interface ItemUniqueZipCode {

@@ -19,8 +19,9 @@ import { JobService } from '../job.service';
 import { JobEntity } from 'src/entities/job.entity';
 import { BullJob } from 'src/interface';
 import { UserEntity } from 'src/entities';
-import { InjectQueue } from '@nestjs/bull';
 import { CreateJobSearchBusinessDto } from '../dto';
+import { InjectQueue } from '@nestjs/bull';
+import { PrismaService } from 'nestjs-prisma';
 
 interface PayloadSearchBusiness {
   keyword: string;
@@ -38,6 +39,7 @@ export class SearchBusinessService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
+    private prisma: PrismaService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
@@ -53,25 +55,31 @@ export class SearchBusinessService {
           createJob?.county && [].concat(createJob?.county).flat(Infinity),
         zipCode: [].concat(createJob?.zipCode).flat(Infinity),
       };
-      const statusData = values?.zipCode?.reduce((acc, item) => {
+      const statusData: any = values?.zipCode?.reduce((acc, item) => {
         acc[item] = { zipCode: item, isFinish: false, page: 1 };
         return acc;
       }, {});
 
+      const userId = currentUser?.id;
       const result = await this.jobService.create(
         { ...values, statusData },
-        currentUser,
+        userId,
       );
-      await this.scrapingQueue.add(
-        'search-business',
-        { jobId: result?.id, currentUser },
-        {
-          removeOnComplete: true,
-          removeOnFail: true,
-          attempts: 20,
-          backoff: 1000,
-        },
-      );
+
+      const jobsWaiting = await this.prisma.job.findMany({
+        where: { status: JOB_STATUS.WAITING },
+      });
+
+      if (jobsWaiting?.length === 1)
+        await this.scrapingQueue.add(
+          'search-business',
+          { jobId: result?.id, userId },
+          {
+            removeOnComplete: true,
+            removeOnFail: true,
+            attempts: 0,
+          },
+        );
 
       return result;
     } catch (e) {
@@ -80,29 +88,32 @@ export class SearchBusinessService {
   }
 
   async runJob(bull: Job<BullJob>) {
-    const { jobId, currentUser } = bull.data;
+    const { jobId, userId } = bull.data;
     try {
-      const job = await this.jobService.findById(jobId);
+      const job: JobEntity = await this.jobService.findById(jobId);
       const { statusData, keyword, createdAt, id } = job;
       const promises = Object?.values(statusData)?.map(
-        (data: StatusDataItem, index) => {
+        (data: StatusDataItem) => {
           return async () => {
             if (data?.isFinish) return;
-            await setDelay(index * 1000);
-            const newPayload = {
-              keyword,
-              zipCode: data?.zipCode,
-              page: data?.page,
-            };
-            return this.searchBusiness(job, newPayload, currentUser);
+            const newPayload = { ...data, keyword };
+            return this.searchBusiness(job, newPayload, userId);
           };
         },
       );
-      await promisesSequentially(promises, 5);
+      const result = await promisesSequentially(promises, 5);
+      if (result) {
+        const job: JobEntity = await this.jobService.findById(jobId);
+        const statusUnFinish = Object?.values(job?.statusData)?.filter(
+          (i: any) => !i?.isFinish,
+        );
+        if (statusUnFinish?.length > 0)
+          throw new UnprocessableEntityException();
+      }
 
       const duration = dayjs().diff(dayjs(createdAt));
       const values = { duration, status: JOB_STATUS.COMPLETE };
-      return await this.jobService.update(id, values, currentUser);
+      return await this.jobService.update(id, values, userId);
     } catch (e) {
       throw new UnprocessableEntityException(e.message);
     }
@@ -111,7 +122,7 @@ export class SearchBusinessService {
   async searchBusiness(
     job: JobEntity,
     payload: PayloadSearchBusiness,
-    currentUser: UserEntity,
+    userId: string,
   ): Promise<any> {
     const { id, statusData } = job;
     const { keyword, zipCode } = payload;
@@ -159,52 +170,46 @@ export class SearchBusinessService {
             city,
             address,
           };
-          businessListForPage.push(item);
+          if (!name || !phone || !state || !zipCode || !address) return;
+          return businessListForPage.push(item);
         });
         if (businessListForPage?.length === 0) break;
 
-        for (const business of businessListForPage) {
-          if (!business?.name || !business?.phone || !business?.address)
-            continue;
-
-          const newBusiness: UpdateScratchBusinessDto = {
-            ...business,
-            scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
-            phone: formatPhoneNumber(business.phone),
-          };
+        for (const business of businessListForPage as UpdateScratchBusinessDto[]) {
+          business.scratchLink =
+            WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
+          business.phone = formatPhoneNumber(business.phone);
 
           const checkScratch = await this.businessService.findByScratchLink(
-            newBusiness?.scratchLink,
+            business?.scratchLink,
           );
 
+          const { address, state, zipCode } = business;
           const checkAddress =
             await this.businessService.findByAddressStateZipCode(
-              business?.address,
-              business?.state,
-              business?.zipCode,
+              address,
+              state,
+              zipCode,
             );
 
           if (!checkScratch && !checkAddress)
-            await this.businessService.createScratchBusiness(
-              newBusiness,
-              currentUser,
-            );
+            await this.businessService.createScratchBusiness(business, userId);
           else if (checkScratch) {
             if (checkAddress) {
               const status = checkScratch?.status;
               if (status?.includes(BUSINESS_STATUS.ADDRESS_VERIFY))
-                delete newBusiness?.address;
+                delete business?.address;
 
               if (status?.includes(BUSINESS_STATUS.PHONE_VERIFY))
-                delete newBusiness?.phone;
+                delete business?.phone;
 
               if (status?.includes(BUSINESS_STATUS.NAME_VERIFY))
-                delete newBusiness?.name;
+                delete business?.name;
             }
             await this.businessService.updateScratchBusiness(
               checkScratch?.id,
-              newBusiness,
-              currentUser,
+              business,
+              userId,
             );
           }
         }
@@ -213,13 +218,12 @@ export class SearchBusinessService {
         if (!nextPage) break;
         page++;
         statusData[zipCode].page = page;
-        console.log(statusData[zipCode]);
         await this.jobService.update(id, { statusData });
+        console.log(statusData[zipCode]);
       }
       statusData[zipCode].isFinish = true;
       return await this.jobService.update(id, { statusData });
     } catch (e) {
-      console.log(e);
       statusData[zipCode].page = page;
       statusData[zipCode].messageError = e?.message;
       return await this.jobService.update(id, { statusData });

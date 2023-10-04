@@ -10,7 +10,6 @@ import {
 import { PrismaService } from 'nestjs-prisma';
 import { FetchDto } from 'src/dto/fetch.dto';
 import { CreateJobSearchBusinessDto, UpdateScratchDto } from './dto';
-import { UserEntity } from 'src/entities';
 import { PaginationMetaParams } from 'src/dto/paginationMeta.dto';
 import { Response } from 'express';
 import { MESSAGE_ERROR } from 'src/constants';
@@ -94,14 +93,13 @@ export class JobService {
 
   async create(
     createScatch: CreateJobSearchBusinessDto | any,
-    currentUser: UserEntity = null,
+    userId: string,
   ): Promise<any> {
     try {
       const result = await this.prisma.job.create({
         data: {
           ...createScatch,
-          creatorId: currentUser?.id,
-          updatedById: currentUser?.id,
+          creatorId: userId,
         },
       });
       return result;
@@ -113,13 +111,13 @@ export class JobService {
   async update(
     id: string,
     updateScatch: UpdateScratchDto,
-    currentUser: UserEntity = null,
+    userId?: string,
   ): Promise<any> {
     try {
       const result = await this.prisma.job.update({
         data: {
           ...updateScatch,
-          updatedById: currentUser?.id,
+          updatedById: userId,
         },
         where: { id },
       });
