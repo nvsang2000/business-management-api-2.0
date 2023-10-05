@@ -86,33 +86,15 @@ export class BusinessService {
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
-      ...(zipCode && {
-        zipCode: { in: zipCode },
-      }),
-      ...(state && {
-        state: { in: state, mode: 'insensitive' as any },
-      }),
-      ...(city && {
-        city: { in: city, mode: 'insensitive' as any },
-      }),
-      ...(categories && {
-        categories: {
-          hasSome: categories,
-          mode: 'insensitive' as any,
-        },
-      }),
+      ...(zipCode && { zipCode: { in: zipCode } }),
+      ...(state && { state: { in: state, mode: 'insensitive' as any } }),
+      ...(city && { city: { in: city, mode: 'insensitive' as any } }),
+      ...(categories && { categories: { hasEvery: categories } }),
       ...(search && {
         OR: [
           isNumberString(search)
-            ? {
-                phone: { contains: search },
-              }
-            : {
-                name: {
-                  contains: search,
-                  mode: 'insensitive' as any,
-                },
-              },
+            ? { phone: { contains: search } }
+            : { name: { contains: search, mode: 'insensitive' as any } },
         ],
       }),
     };
