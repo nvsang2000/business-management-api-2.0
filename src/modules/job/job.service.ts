@@ -80,7 +80,6 @@ export class JobService {
           state: true,
           county: true,
           status: true,
-          statusData: true,
           duration: true,
           createdAt: true,
         },

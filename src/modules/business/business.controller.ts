@@ -20,6 +20,7 @@ import {
   FetchBusinessDto,
   ExportBusinessDto,
   UpdateBusinessDto,
+  UpdateStatusMarketingBusinessDto,
 } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
@@ -59,6 +60,15 @@ export class BusinessController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.businessService.findById(id);
+  }
+
+  @Put('status-marketing/:id')
+  updateMarketing(
+    @Param('id') id: string,
+    @Body() payload: UpdateStatusMarketingBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.businessService.updateMarketing(id, payload, currentUser);
   }
 
   @Put(':id')

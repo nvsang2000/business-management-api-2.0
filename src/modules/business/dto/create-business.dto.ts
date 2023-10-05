@@ -25,6 +25,9 @@ export class CreateBusinessDto {
   @StringField({})
   state: string;
 
+  @StringFieldOptional({ each: true })
+  status?: string[];
+
   @BooleanFieldOptional({})
   isActive?: boolean;
 

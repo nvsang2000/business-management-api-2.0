@@ -13,6 +13,7 @@ import {
   CreateScratchBusinessDto,
   UpdateBusinessDto,
   UpdateScratchBusinessDto,
+  UpdateStatusMarketingBusinessDto,
 } from './dto';
 import { BUSINESS_STATUS, MESSAGE_ERROR } from 'src/constants';
 import { UserEntity } from 'src/entities';
@@ -42,7 +43,7 @@ export class BusinessService {
   };
 
   createQuery(fetchDto: FetchBusinessDto) {
-    const { search } = fetchDto;
+    const { search, statusMarketing, userMarketingId } = fetchDto;
     let { categories, city, state, zipCode } = fetchDto;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
@@ -51,6 +52,8 @@ export class BusinessService {
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
+      ...(userMarketingId && { userMarketingId: { equals: userMarketingId } }),
+      ...(statusMarketing && { statusMarketing: { equals: statusMarketing } }),
       ...(zipCode && { zipCode: { in: zipCode } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),
@@ -102,6 +105,14 @@ export class BusinessService {
     try {
       const result = await this.prisma.business.findUnique({
         where: { id },
+        include: {
+          userMarketing: {
+            select: {
+              id: true,
+              displayName: true,
+            },
+          },
+        },
       });
       return result;
     } catch (e) {
@@ -153,6 +164,26 @@ export class BusinessService {
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async updateMarketing(
+    id: string,
+    statusMarketing: UpdateStatusMarketingBusinessDto,
+    currentUser: UserEntity = null,
+  ) {
+    try {
+      const result = await this.prisma.business.update({
+        where: { id },
+        data: {
+          ...statusMarketing,
+          userMarketing: { connect: { id: currentUser?.id } },
+          updatedBy: { connect: { id: currentUser?.id } },
+        },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
     }
   }
 
