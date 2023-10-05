@@ -21,6 +21,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
+import { BullJobQueue } from './modules/job/bull/job-queue.bull';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -74,6 +75,7 @@ import { JobModule } from './modules/job/job.module';
   ],
   providers: [
     WorkerService,
+    BullJobQueue,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
