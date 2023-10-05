@@ -11,19 +11,29 @@ import {
   Post,
   Res,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
-import { CreateBusinessDto, FetchBusinessDto, ExportBusinessDto } from './dto';
+import {
+  CreateBusinessDto,
+  FetchBusinessDto,
+  ExportBusinessDto,
+  UpdateBusinessDto,
+} from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
+import { ExportBusinessService } from './export-business.service';
 
 @ApiTags('Business')
 @Controller('business')
 @ApiBasicAuth('access-token')
 export class BusinessController {
-  constructor(private businessService: BusinessService) {}
+  constructor(
+    private businessService: BusinessService,
+    private exportBusinessService: ExportBusinessService,
+  ) {}
 
   @Post()
   create(
@@ -43,7 +53,7 @@ export class BusinessController {
 
   @Get('export')
   getExport(@Query() fetchDto: ExportBusinessDto) {
-    return this.businessService.createExport(fetchDto);
+    return this.exportBusinessService.createExport(fetchDto);
   }
 
   @Get(':id')
@@ -51,14 +61,14 @@ export class BusinessController {
     return this.businessService.findById(id);
   }
 
-  // @Put(':id')
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() payload: UpdateBusinessDto,
-  //   @CurrentUser() currentUser: UserEntity,
-  // ) {
-  //   return this.businessService.update(id, payload, currentUser);
-  // }
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() payload: UpdateBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.businessService.update(id, payload, currentUser);
+  }
 
   @Delete(':id')
   delete(@Param('id') id: string) {

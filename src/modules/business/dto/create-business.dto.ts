@@ -1,5 +1,4 @@
 import {
-  ArrayFieldOptional,
   BooleanFieldOptional,
   StringField,
   StringFieldOptional,
@@ -14,13 +13,22 @@ export class CreateBusinessDto {
   @StringFieldOptional({})
   website?: string;
 
-  @StringFieldOptional({})
+  @StringField({})
   address: string;
+
+  @StringField({})
+  city: string;
+
+  @StringField({})
+  zipCode: string;
+
+  @StringField({})
+  state: string;
 
   @BooleanFieldOptional({})
   isActive?: boolean;
 
-  @ArrayFieldOptional({})
+  @StringField({ each: true })
   categories?: string[];
 
   @StringFieldOptional({})

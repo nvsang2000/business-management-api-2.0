@@ -34,6 +34,7 @@ model User {
   lastSeen          DateTime?  @default(now()) @db.Timestamptz()
   updatedAt         DateTime?  @default(now()) @db.Timestamptz()
   createdAt         DateTime?  @updatedAt @db.Timestamptz()
+  marketing         Business[] @relation("userMarketing")
   updatedByBusiness Business[] @relation("updatedByBusiness")
   creatorBusiness   Business[] @relation("creatorBusiness")
   creatorScratch    Job[]      @relation("creatorJob")
@@ -58,28 +59,31 @@ model Category {
 }
 
 model Business {
-  id           String     @id @default(uuid()) @db.Uuid
-  name         String     @db.VarChar(400)
-  phone        String?    @db.VarChar(24)
-  email        String?    @db.VarChar(64)
-  website      String?    @db.VarChar(800)
-  scratchLink  String?    @db.VarChar(400)
-  state        String?    @db.VarChar(8)
-  zipCode      String?    @db.VarChar(16)
-  city         String?    @db.VarChar(128)
-  address      String     @db.VarChar(128)
-  status       String[]   @db.VarChar(24)
-  categories   String[]   @db.VarChar(128)
-  thumbnailUrl String?    @db.VarChar(400)
-  cityId       String?    @db.Uuid
-  creatorId    String?    @db.Uuid
-  updatedById  String?    @db.Uuid
-  createdAt    DateTime?  @default(now()) @db.Timestamptz()
-  updatedAt    DateTime?  @updatedAt @db.Timestamptz()
-  category     Category[] @relation("businesseToCategory")
-  cityName     City?      @relation("cityToBusiness", fields: [cityId], references: [id])
-  creator      User?      @relation("creatorBusiness", fields: [creatorId], references: [id])
-  updatedBy    User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
+  id              String     @id @default(uuid()) @db.Uuid
+  name            String     @db.VarChar(400)
+  phone           String?    @db.VarChar(24)
+  email           String?    @db.VarChar(64)
+  website         String?    @db.VarChar(800)
+  scratchLink     String?    @db.VarChar(400)
+  state           String?    @db.VarChar(8)
+  zipCode         String?    @db.VarChar(16)
+  city            String?    @db.VarChar(128)
+  address         String     @db.VarChar(128)
+  status          String[]   @db.VarChar(24)
+  categories      String[]   @db.VarChar(128)
+  thumbnailUrl    String?    @db.VarChar(400)
+  statusMarketing String?    @default("NOT_ACCEPT") @db.VarChar(24)
+  userMarketingId String?    @db.Uuid
+  cityId          String?    @db.Uuid
+  creatorId       String?    @db.Uuid
+  updatedById     String?    @db.Uuid
+  createdAt       DateTime?  @default(now()) @db.Timestamptz()
+  updatedAt       DateTime?  @updatedAt @db.Timestamptz()
+  category        Category[] @relation("businesseToCategory")
+  cityName        City?      @relation("cityToBusiness", fields: [cityId], references: [id])
+  userMarketing   User?      @relation("userMarketing", fields: [userMarketingId], references: [id])
+  creator         User?      @relation("creatorBusiness", fields: [creatorId], references: [id])
+  updatedBy       User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
 
   @@unique([scratchLink])
   @@unique([address, zipCode, state], name: "address_zipcode_state")

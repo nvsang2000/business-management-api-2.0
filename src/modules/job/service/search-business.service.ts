@@ -101,7 +101,7 @@ export class SearchBusinessService {
           };
         },
       );
-      const result = await promisesSequentially(promises, 5);
+      const result = await promisesSequentially(promises, 10);
       if (result) {
         const job: JobEntity = await this.jobService.findById(jobId);
         const statusUnFinish = Object?.values(job?.statusData)?.filter(

@@ -1,5 +1,4 @@
 import { WorkerService } from './worker.service';
-import { MarketingModule } from './modules/marketing/marketing.module';
 import { CategoryModule } from './modules/category/category.module';
 import { PolicyModule } from './modules/policy/policy.module';
 import { BusinessModule } from './modules/business/business.module';
@@ -20,7 +19,6 @@ import { RateLimitMiddleware } from './middlewares/rate-limit.middleware';
 import { PoliciesGuard } from './guards/policies.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { ExportModule } from './shared/export/export.module';
 import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
 @Module({
@@ -73,8 +71,6 @@ import { JobModule } from './modules/job/job.module';
     CategoryModule,
     ZipCodeModule,
     JobModule,
-    MarketingModule,
-    ExportModule,
   ],
   providers: [
     WorkerService,
