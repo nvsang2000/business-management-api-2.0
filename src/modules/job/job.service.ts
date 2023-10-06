@@ -91,6 +91,27 @@ export class JobService {
     }
   }
 
+  async findOne(id: string): Promise<any> {
+    try {
+      const result = await this.prisma.job.findUnique({
+        where: { id },
+        select: {
+          ...this.include,
+          id: true,
+          keyword: true,
+          state: true,
+          county: true,
+          status: true,
+          duration: true,
+          createdAt: true,
+        },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
   async create(
     createScatch: CreateJobSearchBusinessDto | any,
     userId: string,

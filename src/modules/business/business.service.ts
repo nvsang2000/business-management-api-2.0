@@ -22,10 +22,14 @@ import { Response } from 'express';
 import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
+import { ZipCodeService } from '../zipCode/zip-code.service';
 
 @Injectable()
 export class BusinessService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private zipCodeService: ZipCodeService,
+  ) {}
 
   private readonly include = {
     creator: {
@@ -52,8 +56,11 @@ export class BusinessService {
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
-      ...(userMarketingId && { userMarketingId: { equals: userMarketingId } }),
-      ...(statusMarketing && { statusMarketing: { equals: statusMarketing } }),
+      ...(userMarketingId &&
+        statusMarketing && {
+          userMarketingId: { equals: userMarketingId },
+          statusMarketing: { equals: statusMarketing },
+        }),
       ...(zipCode && { zipCode: { in: zipCode } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),
@@ -219,12 +226,20 @@ export class BusinessService {
     userId: string,
   ) {
     try {
-      const { categories } = updateBusiness;
+      const { categories, city, state, zipCode } = updateBusiness;
+      const findZipCode = await this.zipCodeService.getCity(
+        city,
+        state,
+        zipCode,
+      );
       const result = await this.prisma.business.update({
         where: { id },
         data: {
           ...updateBusiness,
           updatedBy: { connect: { id: userId } },
+          ...(findZipCode && {
+            cityName: { connect: { id: findZipCode?.id } },
+          }),
           ...(categories?.length > 0 && {
             category: {
               connectOrCreate: categories?.map((name) => ({
@@ -246,12 +261,20 @@ export class BusinessService {
     userId: string,
   ): Promise<any> {
     try {
-      const { categories } = createBusiness;
+      const { categories, city, state, zipCode } = createBusiness;
+      const findZipCode = await this.zipCodeService.getCity(
+        city,
+        state,
+        zipCode,
+      );
       const result = await this.prisma.business.create({
         data: {
           ...createBusiness,
           status: [BUSINESS_STATUS.NEW],
           creator: { connect: { id: userId } },
+          ...(findZipCode && {
+            cityName: { connect: { id: findZipCode?.id } },
+          }),
           ...(categories?.length > 0 && {
             category: {
               connectOrCreate: categories?.map((name) => ({
