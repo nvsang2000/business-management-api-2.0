@@ -221,11 +221,12 @@ export class SearchBusinessService {
         await this.jobService.update(id, { statusData });
         console.log(statusData[zipCode]);
       }
-      statusData[zipCode].isFinish = true;
-      return await this.jobService.update(id, { statusData });
     } catch (e) {
-      statusData[zipCode].page = page;
       statusData[zipCode].messageError = e?.message;
+      return await this.jobService.update(id, { statusData });
+    } finally {
+      statusData[zipCode].page = page;
+      statusData[zipCode].isFinish = true;
       return await this.jobService.update(id, { statusData });
     }
   }
