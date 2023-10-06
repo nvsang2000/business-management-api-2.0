@@ -60,6 +60,8 @@ export const REDIS_HOST = 'REDIS_HOST';
 export const REDIS_POST = 'REDIS_POST';
 export const BROWSER_USER_DATA_DIR = 'BROWSER_USER_DATA_DIR';
 export const ASSETS_CSV_DIR = 'ASSETS_CSV_DIR';
+export const GOOGLE_MAP_URL = 'GOOGLE_MAP_URL';
+export const GOOGLE_MAP_KEY = 'GOOGLE_MAP_KEY';
 export const SECONDS_OF_DAY = 86400000;
 
 //class for website
