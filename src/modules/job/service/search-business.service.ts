@@ -4,7 +4,6 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import {
-  BUSINESS_STATUS,
   DEFAULT_OPTION_HEADER_FETCH,
   JOB_STATUS,
   METHOD,
@@ -190,29 +189,10 @@ export class SearchBusinessService {
             business?.scratchLink,
           );
 
-          const { address, state, zipCode } = business;
-          const checkAddress =
-            await this.businessService.findByAddressStateZipCode(
-              address,
-              state,
-              zipCode,
-            );
-
-          if (!checkScratch && !checkAddress)
+          if (!checkScratch)
             await this.businessService.createScratchBusiness(business, userId);
           else if (checkScratch) {
             if (checkScratch?.googleVerify) continue;
-            if (checkAddress) {
-              const status = checkScratch?.status;
-              if (status?.includes(BUSINESS_STATUS.ADDRESS_VERIFY))
-                delete business?.address;
-
-              if (status?.includes(BUSINESS_STATUS.PHONE_VERIFY))
-                delete business?.phone;
-
-              if (status?.includes(BUSINESS_STATUS.NAME_VERIFY))
-                delete business?.name;
-            }
             await this.businessService.updateScratchBusiness(
               checkScratch?.id,
               business,

@@ -17,6 +17,7 @@ import { LimitVerifyDto } from '../dto/limit-verify.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { BullGoogleVerifyBasic } from 'src/interface';
+import { parseAddress } from 'src/helper';
 
 @Injectable()
 export class GoogleService {
@@ -59,7 +60,7 @@ export class GoogleService {
       const businessList = await this.businessService.findManyGoogleVerify({
         ...limit,
       });
-      for (const business of businessList) {
+      for (const [index, business] of businessList.entries()) {
         const { id, name, address, city, state, zipCode } = business;
         const currentAddress = `${address}, ${city}, ${state} ${zipCode}`;
         const input = `${name} in ${currentAddress}`;
@@ -70,7 +71,7 @@ export class GoogleService {
           headers: DEFAULT_OPTION_HEADER_FETCH,
         }).then((response: Response) => response.json());
 
-        console.log('inputValue', business, result);
+        console.log('inputValue', business, result, index);
         const { candidates } = result;
         let replaceAddress: string;
         let valueUpdate: BusinessEntity;
@@ -83,16 +84,18 @@ export class GoogleService {
               /, United States/g,
               '',
             );
-            if (currentAddress !== replaceAddress)
-              await this.businessService.delete(id);
-            else {
-              valueUpdate = {
-                googleVerify: true,
-                name: candidates?.[0]?.name,
-                googleMapId: candidates?.[0]?.place_id,
-              };
-              await this.businessService.update(id, valueUpdate, currentUser);
-            }
+            const { city, state, street, zipCode } =
+              parseAddress(replaceAddress);
+            valueUpdate = {
+              city,
+              state,
+              zipCode,
+              address: street,
+              googleVerify: true,
+              name: candidates?.[0]?.name,
+              googleMapId: candidates?.[0]?.place_id,
+            };
+            await this.businessService.update(id, valueUpdate, currentUser);
           }
         }
         if (candidates?.length > 1) {

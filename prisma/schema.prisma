@@ -88,7 +88,6 @@ model Business {
   updatedBy       User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
 
   @@unique([scratchLink])
-  @@unique([address, zipCode, state], name: "address_zipcode_state")
   @@index([categories, state, zipCode, cityId])
   @@map("business")
 }

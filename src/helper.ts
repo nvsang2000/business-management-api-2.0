@@ -153,7 +153,7 @@ export const parseAddress = (address: string) => {
 
   return {
     country,
-    zip: parseZipCodeAndState?.[1],
+    zipCode: parseZipCodeAndState?.[1],
     state: parseZipCodeAndState?.[0],
     city,
     street,

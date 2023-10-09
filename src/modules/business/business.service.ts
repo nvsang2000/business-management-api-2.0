@@ -210,21 +210,6 @@ export class BusinessService {
     }
   }
 
-  async findByAddressStateZipCode(
-    address: string,
-    state: string,
-    zipCode: string,
-  ) {
-    try {
-      const result = await this.prisma.business.findUnique({
-        where: { address_zipcode_state: { address, state, zipCode } },
-      });
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
   async findByScratchLink(scratchLink: string) {
     try {
       const result = await this.prisma.business.findUnique({
