@@ -23,6 +23,7 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
+import { LimitVerifyDto } from '../job/dto';
 
 @Injectable()
 export class BusinessService {
@@ -108,6 +109,19 @@ export class BusinessService {
     }
   }
 
+  async findManyGoogleVerify({ limit }: LimitVerifyDto) {
+    try {
+      const result = await this.prisma.business.findMany({
+        where: { googleVerify: false },
+        take: +limit,
+      });
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
   async findById(id: string) {
     try {
       const result = await this.prisma.business.findUnique({
@@ -129,15 +143,17 @@ export class BusinessService {
 
   async update(
     id: string,
-    updateBusiness: UpdateBusinessDto,
-    currentUser: UserEntity = null,
+    updateBusiness: UpdateBusinessDto | any,
+    currentUser: UserEntity,
   ) {
     try {
       const result = await this.prisma.business.update({
         where: { id },
         data: {
           ...updateBusiness,
-          updatedBy: { connect: { id: currentUser?.id } },
+          ...(currentUser && {
+            updatedBy: { connect: { id: currentUser?.id } },
+          }),
         },
       });
       return result;

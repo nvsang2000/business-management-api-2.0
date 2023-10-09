@@ -195,6 +195,7 @@ export class SearchBusinessService {
           if (!checkScratch && !checkAddress)
             await this.businessService.createScratchBusiness(business, userId);
           else if (checkScratch) {
+            if (checkScratch?.googleVerify) continue;
             if (checkAddress) {
               const status = checkScratch?.status;
               if (status?.includes(BUSINESS_STATUS.ADDRESS_VERIFY))

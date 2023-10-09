@@ -42,8 +42,11 @@ export class JobController {
   }
 
   @Get('verify-google')
-  getVerifyGoogle(@Query() fetchDto: LimitVerifyDto) {
-    return this.googleService.verifyGoogleBasic(fetchDto);
+  getVerifyGoogle(
+    @Query() fetchDto: LimitVerifyDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.googleService.createJob(fetchDto, currentUser);
   }
 
   @Get()

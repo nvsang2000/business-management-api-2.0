@@ -2,58 +2,77 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { HttpService } from '@nestjs/axios';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { PrismaService } from 'nestjs-prisma';
-import { GOOGLE_MAP_URL } from 'src/constants';
-import { BusinessEntity } from 'src/entities';
+import {
+  FIELDS_BASIC_PLACE,
+  GOOGLE_MAP_KEY,
+  GOOGLE_MAP_URL,
+} from 'src/constants';
+import { BusinessEntity, UserEntity } from 'src/entities';
 import { parseAddress } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { LimitVerifyDto } from '../dto/limit-verify.dto';
+import { InjectQueue } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
+import { BullGoogleVerifyBasic } from 'src/interface';
 
 @Injectable()
 export class GoogleService {
-  private axios: AxiosInstance;
   private baseUrl: string;
+  private googleMapKey: string;
   constructor(
     private configService: ConfigService,
     private businessService: BusinessService,
-    private prisma: PrismaService,
-    private httpService: HttpService,
+    @InjectQueue('job-queue')
+    private scrapingQueue: Queue,
   ) {}
 
   public async onModuleInit(): Promise<any> {
     this.baseUrl = this.configService.get(GOOGLE_MAP_URL);
-    this.axios = this.httpService.axiosRef as unknown as AxiosInstance;
+    this.googleMapKey = this.configService.get(GOOGLE_MAP_KEY);
   }
 
-  async request(config: AxiosRequestConfig) {
-    const axiosConfig = { ...config, url: `${this.baseUrl}${config.url}` };
-    return this.axios.request(axiosConfig);
-  }
-
-  async verifyGoogleBasic(payload: LimitVerifyDto) {
+  async createJob(limit: LimitVerifyDto, currentUser: UserEntity) {
     try {
-      const fields =
-        'formatted_address%2Cname%2Cpermanently_closed%2Ctypes%2Cplace_id';
-      const key = 'AIzaSyANZf_3Y_6YFizSpYe3v_XegrSNcWfxhoI';
-      const businessList = await this.prisma.business.findMany({
-        where: { googleVerify: false },
-        take: +payload.limit,
+      const result = await this.scrapingQueue.add(
+        'google-verify-basic',
+        { limit, currentUser },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  async verifyGoogleBasic(bull: Job<BullGoogleVerifyBasic>) {
+    const { currentUser, limit } = bull.data;
+
+    try {
+      const businessList = await this.businessService.findManyGoogleVerify({
+        ...limit,
       });
       for (const business of businessList) {
         const { id, name, address, city, state, zipCode } = business;
         const currentAddress = `${address}, ${city}, ${state} ${zipCode}`;
-        const inputValue = `${name} in ${currentAddress}`;
+        const input = `${name} in ${currentAddress}`;
+        const url = `${this.baseUrl}findplacefromtext/json?input=${input}&inputtype=textquery&fields=${FIELDS_BASIC_PLACE}&key=${this.googleMapKey}`;
 
-        const result = await this.request({
-          method: 'get',
-          url: `findplacefromtext/json?input=${inputValue}&inputtype=textquery&fields=${fields}&key=${key}`,
-        }).then((res) => res.data);
+        const result = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+          },
+        }).then((response: Response) => response.json());
 
-        console.log('inputValue', business, result?.candidates);
+        console.log('inputValue', business, result);
         const { candidates } = result;
         let replaceAddress: string;
         let valueUpdate: BusinessEntity;
@@ -78,10 +97,7 @@ export class GoogleService {
               name: candidates?.[0]?.name,
               googleMapId: candidates?.[0]?.place_id,
             };
-            await this.prisma.business.update({
-              where: { id },
-              data: valueUpdate,
-            });
+            await this.businessService.update(id, valueUpdate, currentUser);
           }
         }
         if (candidates?.length > 1) {
@@ -101,10 +117,7 @@ export class GoogleService {
                   googleMapId: item?.place_id,
                 };
                 totalUpdate++;
-                await this.prisma.business.update({
-                  where: { id },
-                  data: valueUpdate,
-                });
+                await this.businessService.update(id, valueUpdate, currentUser);
               }
             }
           }
@@ -112,7 +125,7 @@ export class GoogleService {
         }
       }
     } catch (e) {
-      throw new UnprocessableEntityException(e?.response?.data);
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 }

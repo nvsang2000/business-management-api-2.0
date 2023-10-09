@@ -6,15 +6,10 @@ import { JobService } from './job.service';
 import { SearchBusinessService } from './service/search-business.service';
 import { BullJobQueue } from './bull/job-queue.bull';
 import { ZipCodeService } from '../zipCode/zip-code.service';
-import { HttpModule } from '@nestjs/axios';
 import { GoogleService } from './service/google.service';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: 'job-queue' }),
-    BusinessModule,
-    HttpModule,
-  ],
+  imports: [BullModule.registerQueue({ name: 'job-queue' }), BusinessModule],
   controllers: [JobController],
   providers: [
     JobService,

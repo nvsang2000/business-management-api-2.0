@@ -170,6 +170,10 @@ export const HEADER_ROW_BUSINESS = [
   'Zip Code',
   'Categories',
 ];
+
+//fields request google map
+export const FIELDS_BASIC_PLACE =
+  'formatted_address%2Cname%2Cpermanently_closed%2Ctypes%2Cplace_id';
 //regex
 export const REG_IS_STATE = /^\d+$/;
 export const LETTER_AZ = 'abcdefghijklmnopqrstuvwxyz';
