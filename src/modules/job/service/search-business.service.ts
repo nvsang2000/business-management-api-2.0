@@ -12,7 +12,7 @@ import {
   promisesSequentially,
   setDelay,
 } from 'src/helper';
-import { UpdateScratchBusinessDto } from 'src/modules/business/dto';
+import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
 import { JobService } from '../job.service';
@@ -175,7 +175,7 @@ export class SearchBusinessService {
         });
         if (businessListForPage?.length === 0) break;
 
-        for (const business of businessListForPage as UpdateScratchBusinessDto[]) {
+        for (const business of businessListForPage as CreateScratchBusinessDto[]) {
           business.scratchLink =
             WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
           business.phone = formatPhoneNumber(business.phone);

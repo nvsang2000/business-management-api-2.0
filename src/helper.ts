@@ -139,3 +139,23 @@ export const promisesSequentially = async (promises: any[], limit: number) => {
   await Promise.all(executingPromises);
   return results;
 };
+
+export const parseAddress = (address: string) => {
+  const parts = address?.split(',').map((part) => part.trim());
+
+  const country = parts?.[3] ? parts?.pop() : undefined;
+  const zipCodeAndState = parts?.[2] ? parts?.pop() : undefined;
+  const city = parts?.[1] ? parts?.pop() : undefined;
+  const street = parts?.[0] ? parts?.join(',') : undefined;
+  const parseZipCodeAndState = zipCodeAndState
+    ? zipCodeAndState?.split(' ')?.map((part) => part.trim())
+    : undefined;
+
+  return {
+    country,
+    zip: parseZipCodeAndState?.[1],
+    state: parseZipCodeAndState?.[0],
+    city,
+    street,
+  };
+};

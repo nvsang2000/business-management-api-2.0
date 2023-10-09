@@ -7,6 +7,7 @@ import { SearchBusinessService } from './service/search-business.service';
 import { BullJobQueue } from './bull/job-queue.bull';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { HttpModule } from '@nestjs/axios';
+import { GoogleService } from './service/google.service';
 
 @Module({
   imports: [
@@ -15,7 +16,13 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [JobController],
-  providers: [JobService, BullJobQueue, SearchBusinessService, ZipCodeService],
+  providers: [
+    JobService,
+    BullJobQueue,
+    SearchBusinessService,
+    ZipCodeService,
+    GoogleService,
+  ],
   exports: [JobService],
 })
 export class JobModule {}

@@ -223,7 +223,7 @@ export class BusinessService {
   async updateScratchBusiness(
     id: string,
     updateBusiness: UpdateScratchBusinessDto,
-    userId: string,
+    userId?: string,
   ) {
     try {
       const { categories, city, state, zipCode } = updateBusiness;

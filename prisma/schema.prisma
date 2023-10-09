@@ -72,6 +72,8 @@ model Business {
   status          String[]   @db.VarChar(24)
   categories      String[]   @db.VarChar(128)
   thumbnailUrl    String?    @db.VarChar(400)
+  googleVerify    Boolean?   @default(false)
+  googleMapId     String?    @db.VarChar(64)
   statusMarketing String?    @default("NOT_ACCEPT") @db.VarChar(24)
   userMarketingId String?    @db.Uuid
   cityId          String?    @db.Uuid

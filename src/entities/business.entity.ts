@@ -44,6 +44,12 @@ export class BusinessEntity {
   thumbnailUrl?: string;
 
   @ApiProperty()
+  googleVerify?: boolean;
+
+  @ApiProperty()
+  googleMapId?: string;
+
+  @ApiProperty()
   cityId?: string;
 
   @ApiProperty()

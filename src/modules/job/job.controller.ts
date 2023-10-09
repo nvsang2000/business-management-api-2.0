@@ -20,6 +20,8 @@ import { UserEntity } from 'src/entities';
 import { Response } from 'express';
 import { JobService } from './job.service';
 import { SearchBusinessService } from './service/search-business.service';
+import { GoogleService } from './service/google.service';
+import { LimitVerifyDto } from './dto/limit-verify.dto';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -28,14 +30,20 @@ export class JobController {
   constructor(
     private jobService: JobService,
     private searchBusinessService: SearchBusinessService,
+    private googleService: GoogleService,
   ) {}
 
   @Post('search-business')
-  async createJob(
+  createJob(
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.searchBusinessService.createJob(payload, currentUser);
+  }
+
+  @Get('verify-google')
+  getVerifyGoogle(@Query() fetchDto: LimitVerifyDto) {
+    return this.googleService.verifyGoogleBasic(fetchDto);
   }
 
   @Get()

@@ -1,3 +1,39 @@
-import { CreateScratchBusinessDto } from './create-scratch-business.dto';
+import { BooleanFieldOptional, StringFieldOptional } from 'src/decorators';
 
-export class UpdateScratchBusinessDto extends CreateScratchBusinessDto {}
+export class UpdateScratchBusinessDto {
+  @StringFieldOptional({})
+  name: string;
+
+  @StringFieldOptional({})
+  phone?: string;
+
+  @StringFieldOptional({ url: true })
+  website?: string;
+
+  @StringFieldOptional({})
+  address?: string;
+
+  @StringFieldOptional({})
+  zipCode?: string;
+
+  @StringFieldOptional({})
+  state?: string;
+
+  @StringFieldOptional({})
+  city?: string;
+
+  @StringFieldOptional({})
+  thumbnailUrl?: string;
+
+  @BooleanFieldOptional({})
+  googleVerify?: boolean;
+
+  @StringFieldOptional({})
+  googleMapId?: string;
+
+  @StringFieldOptional({})
+  scratchLink?: string;
+
+  @StringFieldOptional({})
+  categories?: string[];
+}
