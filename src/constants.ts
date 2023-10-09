@@ -90,6 +90,11 @@ export const WEBSITE = {
   },
 };
 
+export const DEFAULT_OPTION_HEADER_FETCH = {
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+};
+
 export const LINK_PROFILE = {
   google: 'https://www.google.com',
   googleMap: 'https://maps.google.com',

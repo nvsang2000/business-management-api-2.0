@@ -3,7 +3,13 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { BUSINESS_STATUS, JOB_STATUS, WEBSITE } from 'src/constants';
+import {
+  BUSINESS_STATUS,
+  DEFAULT_OPTION_HEADER_FETCH,
+  JOB_STATUS,
+  METHOD,
+  WEBSITE,
+} from 'src/constants';
 import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
@@ -239,11 +245,8 @@ export class SearchBusinessService {
         tryCount > 0 && console.log('tryCount', tryCount);
         const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
-          },
+          method: METHOD.GET,
+          headers: DEFAULT_OPTION_HEADER_FETCH,
         });
         if (response.ok) return response;
         tryCount++;

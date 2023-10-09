@@ -5,12 +5,13 @@ https://docs.nestjs.com/providers#services
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  DEFAULT_OPTION_HEADER_FETCH,
   FIELDS_BASIC_PLACE,
   GOOGLE_MAP_KEY,
   GOOGLE_MAP_URL,
+  METHOD,
 } from 'src/constants';
 import { BusinessEntity, UserEntity } from 'src/entities';
-import { parseAddress } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { LimitVerifyDto } from '../dto/limit-verify.dto';
 import { InjectQueue } from '@nestjs/bull';
@@ -65,11 +66,8 @@ export class GoogleService {
         const url = `${this.baseUrl}findplacefromtext/json?input=${input}&inputtype=textquery&fields=${FIELDS_BASIC_PLACE}&key=${this.googleMapKey}`;
 
         const result = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
-          },
+          method: METHOD.GET,
+          headers: DEFAULT_OPTION_HEADER_FETCH,
         }).then((response: Response) => response.json());
 
         console.log('inputValue', business, result);
@@ -85,19 +83,16 @@ export class GoogleService {
               /, United States/g,
               '',
             );
-            const { city, state, street, zip } = parseAddress(replaceAddress);
-            valueUpdate = {
-              ...(currentAddress !== replaceAddress && {
-                city,
-                state,
-                zipCode: zip,
-                address: street,
-              }),
-              googleVerify: true,
-              name: candidates?.[0]?.name,
-              googleMapId: candidates?.[0]?.place_id,
-            };
-            await this.businessService.update(id, valueUpdate, currentUser);
+            if (currentAddress !== replaceAddress)
+              await this.businessService.delete(id);
+            else {
+              valueUpdate = {
+                googleVerify: true,
+                name: candidates?.[0]?.name,
+                googleMapId: candidates?.[0]?.place_id,
+              };
+              await this.businessService.update(id, valueUpdate, currentUser);
+            }
           }
         }
         if (candidates?.length > 1) {
