@@ -4,7 +4,7 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { API_HOST, FILE_TYPE } from 'src/constants';
+import { API_HOST, ASSETS_THUMNAIL_DIR, FILE_TYPE } from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { FileEntity } from 'src/entities/file.entity';
 import * as fs from 'fs';
@@ -53,6 +53,7 @@ export class FilesService {
   async createFileImage(image: Express.Multer.File, currentUser: UserEntity) {
     try {
       const apiHost = await this.configService.get(API_HOST);
+      const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
       const sharpImage = await sharp(image.buffer);
       const metadata = await sharpImage.metadata();
       const { size, format } = metadata;
@@ -75,7 +76,7 @@ export class FilesService {
           .withMetadata();
       }
       const fileName = `${uuidv4()}.png`;
-      fs.writeFileSync(`./assets/thumnail/${fileName}`, image.buffer);
+      fs.writeFileSync(`${dir}/${fileName}`, image.buffer);
 
       const url = `${apiHost}assets/thumnail/${fileName}`;
       const newFile = await this.prisma.file.create({
