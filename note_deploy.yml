@@ -16,4 +16,4 @@ kubernetes.io/ingress.provider 		: nginx
 # reset database redis
 # redis-cli FLUSHDB
 
-
+# https://maps.google.com/maps/place/?q=place_id:ChIJEc_ZpK0C24gRBO5c5hcEo1M
