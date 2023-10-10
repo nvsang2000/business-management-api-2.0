@@ -40,7 +40,7 @@ export class ZipCodeService {
     }
   }
 
-  async readFileZipCode(fetchDto: FetchZipCodeDto) {
+  async readFileZipCode(fetchDto?: FetchZipCodeDto) {
     try {
       const { stateCode, countyName } = fetchDto;
       const readFile = fs.readFileSync(

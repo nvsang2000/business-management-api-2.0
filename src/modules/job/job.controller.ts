@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
-import { CreateJobSearchBusinessDto } from './dto';
+import { CreateJobAutoDto, CreateJobSearchBusinessDto } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
@@ -22,6 +22,7 @@ import { JobService } from './job.service';
 import { SearchBusinessService } from './service/search-business.service';
 import { GoogleService } from './service/google.service';
 import { LimitVerifyDto } from './dto/limit-verify.dto';
+import { AutoSearchBusinessService } from './service/auto-search-business.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -29,16 +30,28 @@ import { LimitVerifyDto } from './dto/limit-verify.dto';
 export class JobController {
   constructor(
     private jobService: JobService,
-    private searchBusinessService: SearchBusinessService,
     private googleService: GoogleService,
+    private searchBusinessService: SearchBusinessService,
+    private autoSearchBusinessService: AutoSearchBusinessService,
   ) {}
 
   @Post('search-business')
-  createJob(
+  createJobSearch(
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.searchBusinessService.createJob(payload, currentUser);
+    return this.searchBusinessService.createJobSearch(payload, currentUser);
+  }
+
+  @Post('auto-search-business')
+  createJobAutoSearch(
+    @Body() payload: CreateJobAutoDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.autoSearchBusinessService.createJobAutoSearch(
+      payload,
+      currentUser,
+    );
   }
 
   @Get('verify-google')

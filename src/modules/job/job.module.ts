@@ -7,6 +7,7 @@ import { SearchBusinessService } from './service/search-business.service';
 import { BullJobQueue } from './bull/job-queue.bull';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { GoogleService } from './service/google.service';
+import { AutoSearchBusinessService } from './service/auto-search-business.service';
 
 @Module({
   imports: [BullModule.registerQueue({ name: 'job-queue' }), BusinessModule],
@@ -17,6 +18,7 @@ import { GoogleService } from './service/google.service';
     SearchBusinessService,
     ZipCodeService,
     GoogleService,
+    AutoSearchBusinessService,
   ],
   exports: [JobService],
 })

@@ -3,71 +3,64 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { JobService } from '../job.service';
+import { BusinessService } from 'src/modules/business/business.service';
+import { PrismaService } from 'nestjs-prisma';
+import { InjectQueue } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
+import { CreateJobAutoDto } from '../dto';
+import { UserEntity } from 'src/entities';
 import {
   DEFAULT_OPTION_HEADER_FETCH,
   JOB_STATUS,
   METHOD,
   WEBSITE,
 } from 'src/constants';
-import { Job, Queue } from 'bull';
-import { BusinessService } from 'src/modules/business/business.service';
+import { BullJob } from 'src/interface';
+import { JobEntity } from 'src/entities/job.entity';
 import {
   formatPhoneNumber,
   parseUSAddress,
   promisesSequentially,
   setDelay,
 } from 'src/helper';
-import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
+import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
+import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import * as cheerio from 'cheerio';
-import { JobService } from '../job.service';
-import { JobEntity } from 'src/entities/job.entity';
-import { BullJob } from 'src/interface';
-import { UserEntity } from 'src/entities';
-import { CreateJobSearchBusinessDto } from '../dto';
-import { InjectQueue } from '@nestjs/bull';
-import { PrismaService } from 'nestjs-prisma';
 
-interface PayloadSearchBusiness {
-  keyword: string;
-  zipCode: string;
-  page: number;
-}
 interface StatusDataItem {
-  zipCode: string;
+  state: string;
   isFinish: boolean;
   page: number;
   messageError?: any;
 }
+
 @Injectable()
-export class SearchBusinessService {
+export class AutoSearchBusinessService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
     private prisma: PrismaService,
+    private zipCodeService: ZipCodeService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
-
-  async createJobSearch(
-    createJob: CreateJobSearchBusinessDto,
+  async createJobAutoSearch(
+    payload: CreateJobAutoDto,
     currentUser: UserEntity,
   ) {
     try {
-      const values = {
-        ...createJob,
-        county:
-          createJob?.county && [].concat(createJob?.county).flat(Infinity),
-        zipCode: [].concat(createJob?.zipCode).flat(Infinity),
-      };
-      const statusData: any = values?.zipCode?.reduce((acc, item) => {
-        acc[item] = { zipCode: item, isFinish: false, page: 1 };
+      const zipCodeList = await this.zipCodeService.readFileZipCode({});
+      console.log('result', zipCodeList?.stateList, payload.keyword);
+      const statusData: any = zipCodeList?.stateList?.reduce((acc, item) => {
+        acc[item] = { state: item, isFinish: false };
         return acc;
       }, {});
 
       const userId = currentUser?.id;
       const result = await this.jobService.create(
-        { ...values, statusData },
+        { ...payload, statusData },
         userId,
       );
 
@@ -77,7 +70,7 @@ export class SearchBusinessService {
 
       if (jobsWaiting?.length === 1)
         await this.scrapingQueue.add(
-          'search-business',
+          'auto-search-business-24h',
           { jobId: result?.id, userId },
           {
             removeOnComplete: true,
@@ -92,21 +85,20 @@ export class SearchBusinessService {
     }
   }
 
-  async runJobSearch(bull: Job<BullJob>) {
+  async runJobAutoSearch(bull: Job<BullJob>) {
     const { jobId, userId } = bull.data;
     try {
       const job: JobEntity = await this.jobService.findById(jobId);
-      const { statusData, keyword, createdAt, id } = job;
+      const { statusData, createdAt, id } = job;
       const promises = Object?.values(statusData)?.map(
         (data: StatusDataItem) => {
           return async () => {
             if (data?.isFinish) return;
-            const newPayload = { ...data, keyword };
-            return this.searchBusiness(job, newPayload, userId);
+            return await this.autoSearchBusiness(job, data?.state);
           };
         },
       );
-      const result = await promisesSequentially(promises, 10);
+      const result = await promisesSequentially(promises, 1);
       if (result) {
         const job: JobEntity = await this.jobService.findById(jobId);
         const statusUnFinish = Object?.values(job?.statusData)?.filter(
@@ -124,15 +116,33 @@ export class SearchBusinessService {
     }
   }
 
-  async searchBusiness(
-    job: JobEntity,
-    payload: PayloadSearchBusiness,
-    userId: string,
-  ): Promise<any> {
-    const { id, statusData } = job;
-    const { keyword, zipCode } = payload;
-    let page = payload?.page;
+  async autoSearchBusiness(job: JobEntity, stateCode: string): Promise<any> {
+    const { id, statusData, keyword } = job;
+    const zipCodeTree = await this.zipCodeService.readFileZipCode({
+      stateCode,
+    });
+    const zipCodeList = zipCodeTree?.countyList
+      ?.map((i) => i?.zipCodeList)
+      ?.flat(Infinity);
     try {
+      const prosmises = zipCodeList?.map((zipCode: string) => {
+        return async () => {
+          return await this.searchBusiness(keyword, zipCode);
+        };
+      });
+      console.log('prosmises', prosmises?.length);
+      await promisesSequentially(prosmises, 2);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      statusData[stateCode].isFinish = true;
+      return await this.jobService.update(id, { statusData });
+    }
+  }
+
+  async searchBusiness(keyword: string, zipCode: string) {
+    try {
+      let page = 0;
       while (true) {
         const response = await this.connectPage(keyword, zipCode, page);
         const body = await response?.text();
@@ -190,13 +200,12 @@ export class SearchBusinessService {
           );
 
           if (!checkScratch)
-            await this.businessService.createScratchBusiness(business, userId);
+            await this.businessService.createScratchBusiness(business);
           else if (checkScratch) {
             if (checkScratch?.googleVerify) continue;
             await this.businessService.updateScratchBusiness(
               checkScratch?.id,
               business,
-              userId,
             );
           }
         }
@@ -204,30 +213,23 @@ export class SearchBusinessService {
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
         page++;
-        statusData[zipCode].page = page;
-        await this.jobService.update(id, { statusData });
-        console.log(statusData[zipCode]);
       }
     } catch (e) {
-      statusData[zipCode].messageError = e?.message;
-      return await this.jobService.update(id, { statusData });
-    } finally {
-      statusData[zipCode].page = page;
-      statusData[zipCode].isFinish = true;
-      return await this.jobService.update(id, { statusData });
+      console.log(e);
     }
   }
 
   async connectPage(keyword: string, zipCode: string, page: number) {
     let tryCount = 0;
-    while (tryCount < 10) {
+    while (tryCount < 5) {
       try {
-        tryCount > 0 && console.log('tryCount', tryCount);
         const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await fetch(url, {
           method: METHOD.GET,
           headers: DEFAULT_OPTION_HEADER_FETCH,
         });
+        tryCount > 0 && console.log('tryCount', tryCount);
+        console.log('url', url);
         if (response.ok) return response;
         tryCount++;
       } catch {

@@ -237,7 +237,7 @@ export class BusinessService {
         where: { id },
         data: {
           ...updateBusiness,
-          updatedBy: { connect: { id: userId } },
+          ...(userId && { updatedBy: { connect: { id: userId } } }),
           ...(findZipCode && {
             cityName: { connect: { id: findZipCode?.id } },
           }),
@@ -259,7 +259,7 @@ export class BusinessService {
 
   async createScratchBusiness(
     createBusiness: CreateScratchBusinessDto,
-    userId: string,
+    userId?: string,
   ): Promise<any> {
     try {
       const { categories, city, state, zipCode } = createBusiness;
@@ -270,9 +270,9 @@ export class BusinessService {
       );
       const result = await this.prisma.business.create({
         data: {
-          ...createBusiness,
           status: [BUSINESS_STATUS.NEW],
-          creator: { connect: { id: userId } },
+          ...createBusiness,
+          ...(userId && { creator: { connect: { id: userId } } }),
           ...(findZipCode && {
             cityName: { connect: { id: findZipCode?.id } },
           }),
