@@ -1,3 +1,5 @@
+import { ExportModule } from './shared/export/export.module';
+import { FilesModule } from './modules/files/files.module';
 import { WorkerService } from './worker.service';
 import { CategoryModule } from './modules/category/category.module';
 import { PolicyModule } from './modules/policy/policy.module';
@@ -23,6 +25,8 @@ import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
 @Module({
   imports: [
+    ExportModule,
+    FilesModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'assets'),
       serveRoot: '/assets',

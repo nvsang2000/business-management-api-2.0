@@ -5,6 +5,7 @@
 # browser
 /browser/*
 /assets/csv*
+/assets/thumnail*
 .env
 # Logs
 logs

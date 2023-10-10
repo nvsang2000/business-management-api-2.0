@@ -53,8 +53,11 @@ export class BusinessController {
   }
 
   @Get('export')
-  getExport(@Query() fetchDto: ExportBusinessDto) {
-    return this.exportBusinessService.createExport(fetchDto);
+  getExport(
+    @Query() fetchDto: ExportBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.exportBusinessService.createExport(fetchDto, currentUser);
   }
 
   @Get(':id')

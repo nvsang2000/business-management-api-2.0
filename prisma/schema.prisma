@@ -34,6 +34,7 @@ model User {
   lastSeen          DateTime?  @default(now()) @db.Timestamptz()
   updatedAt         DateTime?  @default(now()) @db.Timestamptz()
   createdAt         DateTime?  @updatedAt @db.Timestamptz()
+  files             File[]     @relation("filesToUser")
   marketing         Business[] @relation("userMarketing")
   updatedByBusiness Business[] @relation("updatedByBusiness")
   creatorBusiness   Business[] @relation("creatorBusiness")
@@ -122,4 +123,17 @@ model City {
 
   @@unique([cityName, stateCode, zipCode])
   @@map("cities")
+}
+
+model File {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(128)
+  type      String   @db.VarChar(20)
+  url       String   @db.VarChar(800)
+  creatorId String?  @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+  creator   User?    @relation("filesToUser", fields: [creatorId], references: [id])
+
+  @@map("files")
 }

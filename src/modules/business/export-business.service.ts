@@ -4,11 +4,12 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { ExportService } from 'src/export.service';
+import { ExportService } from 'src/shared/export/export.service';
 import { ExportBusinessDto, FetchBusinessDto } from './dto';
 import { BusinessService } from './business.service';
-import { BusinessEntity } from 'src/entities';
+import { BusinessEntity, UserEntity } from 'src/entities';
 import { HEADER_ROW_BUSINESS } from 'src/constants';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ExportBusinessService {
@@ -16,6 +17,7 @@ export class ExportBusinessService {
     private prisma: PrismaService,
     private businessService: BusinessService,
     private exportService: ExportService,
+    private filesService: FilesService,
   ) {}
 
   private readonly include = {
@@ -58,11 +60,14 @@ export class ExportBusinessService {
       return result;
     } catch (e) {
       console.log(e);
-      throw new UnprocessableEntityException(e?.response);
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 
-  async createExport(fetchDto: ExportBusinessDto) {
+  async createExport(
+    fetchDto: ExportBusinessDto,
+    currentUser: UserEntity = null,
+  ) {
     try {
       let businessList = [];
       const { isAll } = fetchDto;
@@ -80,32 +85,41 @@ export class ExportBusinessService {
         }
       } else businessList = await this.findAllExport(fetchDto);
 
-      return await this.createFileExcel(businessList);
+      return await this.createFileExcel(businessList, currentUser);
     } catch (e) {
-      throw new UnprocessableEntityException(e?.response);
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 
-  async createFileExcel(businessList: BusinessEntity[]) {
-    const bodyRow = businessList?.map((i: any) => {
-      const categories = i?.category?.map((i: any) => i?.name);
-      return [
-        i?.id,
-        i?.name,
-        i?.phone,
-        i?.website,
-        i?.address,
-        i?.city,
-        i?.state,
-        i?.zipCode,
-        categories,
-      ];
-    });
+  async createFileExcel(
+    businessList: BusinessEntity[],
+    currentUser: UserEntity,
+  ) {
+    try {
+      const bodyRow = businessList?.map((i: any) => {
+        const categories = i?.category?.map((i: any) => i?.name);
+        return [
+          i?.id,
+          i?.name,
+          i?.phone,
+          i?.website,
+          i?.address,
+          i?.city,
+          i?.state,
+          i?.zipCode,
+          categories,
+        ];
+      });
 
-    const result = await this.exportService.exportExcel([
-      HEADER_ROW_BUSINESS,
-      ...bodyRow,
-    ]);
-    return result;
+      const result = await this.exportService.exportExcel([
+        HEADER_ROW_BUSINESS,
+        ...bodyRow,
+      ]);
+      await this.filesService.createFileExcel(result, currentUser);
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
   }
 }

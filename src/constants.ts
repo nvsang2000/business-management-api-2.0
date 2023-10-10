@@ -1,3 +1,4 @@
+// enum
 export enum OPTION_NODE_ENV {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production',
@@ -49,6 +50,36 @@ export enum METHOD {
   UPDATE = 'UPDATE',
   DELETE = 'DELETE',
 }
+
+export enum PERMISSION_SUBJECTS {
+  Business = 'Business',
+  Category = 'Category',
+  Scratch = 'Scratch',
+}
+
+export enum ACTION {
+  Manage = 'manage',
+  Create = 'create',
+  Read = 'read',
+  Update = 'update',
+  Delete = 'delete',
+  Export = 'export',
+  Import = 'import',
+}
+
+export enum TABLES {
+  Policy = 'Policy',
+  User = 'User',
+  Business = 'Business',
+  Category = 'Category',
+  Scratch = 'Scratch',
+  Setting = 'Setting',
+}
+
+export enum FILE_TYPE {
+  image = 'image',
+  excel = 'excel',
+}
 //env
 export const NODE_ENV = 'NODE_ENV';
 export const BUSINESS_LIST = 'BUSINESS_LIST';
@@ -62,6 +93,7 @@ export const BROWSER_USER_DATA_DIR = 'BROWSER_USER_DATA_DIR';
 export const ASSETS_CSV_DIR = 'ASSETS_CSV_DIR';
 export const GOOGLE_MAP_URL = 'GOOGLE_MAP_URL';
 export const GOOGLE_MAP_KEY = 'GOOGLE_MAP_KEY';
+export const API_HOST = 'API_HOST';
 export const SECONDS_OF_DAY = 86400000;
 
 //class for website
@@ -138,31 +170,6 @@ export const MESSAGE_ERROR = {
 
 export const SORT_DIRECTION = ['asc', 'desc'];
 export const CATEGORY_SORT_BY = ['name', 'isActive', 'createdAt'];
-
-export enum PERMISSION_SUBJECTS {
-  Business = 'Business',
-  Category = 'Category',
-  Scratch = 'Scratch',
-}
-
-export enum ACTION {
-  Manage = 'manage',
-  Create = 'create',
-  Read = 'read',
-  Update = 'update',
-  Delete = 'delete',
-  Export = 'export',
-  Import = 'import',
-}
-
-export enum TABLES {
-  Policy = 'Policy',
-  User = 'User',
-  Business = 'Business',
-  Category = 'Category',
-  Scratch = 'Scratch',
-  Setting = 'Setting',
-}
 
 export const HEADER_ROW_BUSINESS = [
   'Id',
