@@ -17,32 +17,9 @@ import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 
 const isImage = (format) => {
-  return ['jpeg', 'png', 'webp'].includes(format);
+  return ['jpeg', 'png', 'webp', 'img'].includes(format);
 };
-const BYTES_IN_MB = 1024 * 1024;
-const LIMIT_20MB = 10 * BYTES_IN_MB;
 
-const compressConfig = (originSize: number) => {
-  const compressionLevel = ((originSize - LIMIT_20MB) * 100) / originSize;
-
-  return {
-    jpeg: {
-      quality: Math.floor(compressionLevel),
-      adaptiveFiltering: true,
-      force: true,
-    },
-    webp: {
-      quality: Math.floor(compressionLevel),
-      adaptiveFiltering: true,
-      force: true,
-    },
-    png: {
-      quality: Math.floor(compressionLevel),
-      adaptiveFiltering: true,
-      force: true,
-    },
-  };
-};
 @Injectable()
 export class FilesService {
   constructor(
@@ -56,25 +33,12 @@ export class FilesService {
       const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
       const sharpImage = await sharp(image.buffer);
       const metadata = await sharpImage.metadata();
-      const { size, format } = metadata;
+      const { format } = metadata;
 
       if (!isImage(format)) {
         throw new UnprocessableEntityException('Format not supported !');
       }
 
-      if (size < LIMIT_20MB) {
-        await sharpImage
-          .resize({
-            width: 1200,
-          })
-          .withMetadata();
-      } else {
-        await sharpImage[format](compressConfig(size)[format])
-          .resize({
-            width: 1200,
-          })
-          .withMetadata();
-      }
       const fileName = `${uuidv4()}.png`;
       fs.writeFileSync(`${dir}/${fileName}`, image.buffer);
 
