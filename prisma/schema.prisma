@@ -103,6 +103,7 @@ model Job {
   statusData  Json?
   creatorId   String?   @db.Uuid
   updatedById String?   @db.Uuid
+  type        String?   @db.VarChar(24) @default("NORMAL")
   duration    Int?
   createdAt   DateTime? @default(now()) @db.Timestamptz()
   updatedAt   DateTime? @updatedAt @db.Timestamptz()

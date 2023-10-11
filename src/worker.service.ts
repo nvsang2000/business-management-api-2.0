@@ -6,7 +6,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { PrismaService } from 'nestjs-prisma';
-import { JOB_STATUS } from './constants';
+import { JOB_STATUS, TYPE_JOB } from './constants';
 
 @Injectable()
 export class WorkerService {
@@ -25,9 +25,13 @@ export class WorkerService {
       orderBy: { createdAt: 'asc' },
     });
     if (job) {
-      console.log('Job', job?.id);
+      console.log('Job', job);
+      const nameJob =
+        job.type === TYPE_JOB.AUTO
+          ? 'auto-search-business-24h'
+          : 'search-business';
       await this.scrapingQueue.add(
-        'search-business',
+        nameJob,
         { jobId: job?.id, userId: job?.creatorId },
         {
           removeOnComplete: true,

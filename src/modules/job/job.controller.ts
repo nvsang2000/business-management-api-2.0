@@ -54,6 +54,14 @@ export class JobController {
     );
   }
 
+  @Get('re-auto-search-business/:id')
+  createJobReAutoSearch(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.autoSearchBusinessService.reJobAutoSearch(id, currentUser);
+  }
+
   @Get('verify-google')
   getVerifyGoogle(
     @Query() fetchDto: LimitVerifyDto,

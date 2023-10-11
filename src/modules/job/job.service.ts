@@ -113,7 +113,7 @@ export class JobService {
   }
 
   async create(
-    createScatch: CreateJobSearchBusinessDto | any,
+    createScatch: CreateJobSearchBusinessDto,
     userId: string,
   ): Promise<any> {
     try {

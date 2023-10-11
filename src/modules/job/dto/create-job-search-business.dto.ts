@@ -12,4 +12,10 @@ export class CreateJobSearchBusinessDto {
 
   @StringField({ each: true, swaggerOptions: { example: ['94601'] } })
   zipCode?: string[];
+
+  @StringFieldOptional({})
+  statusData?: string;
+
+  @StringFieldOptional({})
+  type?: string;
 }

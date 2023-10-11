@@ -10,6 +10,10 @@ export enum ROLE {
   user = 'user',
 }
 
+export enum TYPE_JOB {
+  AUTO = 'AUTO',
+  NORMAL = 'NORMAL',
+}
 export enum STATE_JOB {
   active = 'active',
   completed = 'completed',

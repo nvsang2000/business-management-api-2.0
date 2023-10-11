@@ -46,6 +46,25 @@ export class AutoSearchBusinessService {
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
+
+  async reJobAutoSearch(id: string, currentUser: UserEntity) {
+    try {
+      const job = await this.scrapingQueue.add(
+        'auto-search-business-24h',
+        { jobId: id, userId: currentUser?.id },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
+
+      return job;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
   async createJobAutoSearch(
     payload: CreateJobAutoDto,
     currentUser: UserEntity,
@@ -59,7 +78,7 @@ export class AutoSearchBusinessService {
 
       const userId = currentUser?.id;
       const result = await this.jobService.create(
-        { ...payload, statusData },
+        { ...payload, statusData, type: 'AUTO' },
         userId,
       );
 
@@ -132,7 +151,7 @@ export class AutoSearchBusinessService {
         };
       });
       console.log('prosmises', prosmises?.length);
-      await promisesSequentially(prosmises, 2);
+      await promisesSequentially(prosmises, 10);
     } catch (e) {
       console.log(e);
     } finally {
