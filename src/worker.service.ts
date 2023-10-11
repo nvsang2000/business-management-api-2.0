@@ -15,9 +15,9 @@ export class WorkerService {
     @InjectQueue('job-queue') private readonly scrapingQueue: Queue,
   ) {}
 
-  async onModuleInit() {
-    await this.processWaitingJob();
-  }
+  // async onModuleInit() {
+  //   await this.processWaitingJob();
+  // }
 
   async processWaitingJob() {
     const job = await this.prisma.job.findFirst({
