@@ -13,11 +13,11 @@ import {
 } from 'src/constants';
 import { BusinessEntity, UserEntity } from 'src/entities';
 import { BusinessService } from 'src/modules/business/business.service';
-import { LimitVerifyDto } from '../dto/limit-verify.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { BullGoogleVerifyBasic } from 'src/interface';
 import { parseAddress } from 'src/helper';
+import { FetchVerifyDto } from '../dto';
 
 @Injectable()
 export class GoogleService {
@@ -35,11 +35,11 @@ export class GoogleService {
     this.googleMapKey = this.configService.get(GOOGLE_MAP_KEY);
   }
 
-  async createJob(limit: LimitVerifyDto, currentUser: UserEntity) {
+  async createJob(payload: FetchVerifyDto, currentUser: UserEntity) {
     try {
       const result = await this.scrapingQueue.add(
         'google-verify-basic',
-        { limit, currentUser },
+        { payload, currentUser },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -54,11 +54,11 @@ export class GoogleService {
   }
 
   async verifyGoogleBasic(bull: Job<BullGoogleVerifyBasic>) {
-    const { currentUser, limit } = bull.data;
+    const { currentUser, payload } = bull.data;
 
     try {
       const businessList = await this.businessService.findManyGoogleVerify({
-        ...limit,
+        ...payload,
       });
       for (const [index, business] of businessList.entries()) {
         const { id, name, address, city, state, zipCode } = business;
@@ -86,6 +86,8 @@ export class GoogleService {
             );
             const { city, state, street, zipCode } =
               parseAddress(replaceAddress);
+
+            console.log('address', city, state, street, zipCode);
             valueUpdate = {
               city,
               state,

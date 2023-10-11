@@ -164,7 +164,7 @@ export class SearchBusinessService {
             addressStreet,
           );
           const item = {
-            website,
+            website: website?.length > 400 ? undefined : website,
             scratchLink,
             name,
             categories,

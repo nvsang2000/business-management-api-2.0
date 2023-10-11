@@ -13,6 +13,8 @@ export enum ROLE {
 export enum TYPE_JOB {
   AUTO = 'AUTO',
   NORMAL = 'NORMAL',
+  VERIFY_V1 = 'VERIFY_V1',
+  VERIFY_V2 = 'VERIFY_V2',
 }
 export enum STATE_JOB {
   active = 'active',

@@ -1,12 +1,12 @@
 import { UserEntity } from 'src/entities';
-import { LimitVerifyDto } from 'src/modules/job/dto';
+import { FetchVerifyDto } from 'src/modules/job/dto';
 export interface BullJob {
   jobId: string;
   userId: string;
 }
 
 export interface BullGoogleVerifyBasic {
-  limit: LimitVerifyDto;
+  payload: FetchVerifyDto;
   currentUser: UserEntity;
 }
 

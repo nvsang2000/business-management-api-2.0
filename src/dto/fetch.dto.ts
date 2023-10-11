@@ -10,9 +10,6 @@ export class FetchDto {
   @StringFieldOptional({ number: true })
   limit?: string = '10';
 
-  @StringFieldOptional({ bool: true })
-  isActive?: string;
-
   @EnumFieldOptional(() => CATEGORY_SORT_BY)
   sortBy?: string = 'createdAt';
 

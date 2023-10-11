@@ -15,7 +15,11 @@ import {
   UpdateScratchBusinessDto,
   UpdateStatusMarketingBusinessDto,
 } from './dto';
-import { BUSINESS_STATUS, MESSAGE_ERROR } from 'src/constants';
+import {
+  BUSINESS_STATUS,
+  MESSAGE_ERROR,
+  STATUS_MARKETING,
+} from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { Response } from 'express';
@@ -23,7 +27,7 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
-import { LimitVerifyDto } from '../job/dto';
+import { FetchVerifyDto } from '../job/dto';
 
 @Injectable()
 export class BusinessService {
@@ -48,8 +52,10 @@ export class BusinessService {
   };
 
   createQuery(fetchDto: FetchBusinessDto) {
-    const { search, statusMarketing, userMarketingId } = fetchDto;
     let { categories, city, state, zipCode } = fetchDto;
+    const { search, statusMarketing, userMarketingId, googleVerify } = fetchDto;
+    const checkStatus = statusMarketing === STATUS_MARKETING.NOT_ACCEPT;
+    const boolGoogleVerify = Number(googleVerify) === 1 ? true : false;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
     city && (city = []?.concat(city)?.flat(Infinity));
@@ -57,11 +63,13 @@ export class BusinessService {
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
+      ...(boolGoogleVerify && { googleVerify: { equals: boolGoogleVerify } }),
       ...(userMarketingId &&
-        statusMarketing && {
+        !checkStatus && {
           userMarketingId: { equals: userMarketingId },
           statusMarketing: { equals: statusMarketing },
         }),
+      ...(checkStatus && { statusMarketing: { equals: statusMarketing } }),
       ...(zipCode && { zipCode: { in: zipCode } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),
@@ -109,11 +117,15 @@ export class BusinessService {
     }
   }
 
-  async findManyGoogleVerify({ limit }: LimitVerifyDto) {
+  async findManyGoogleVerify(fetchDto: FetchVerifyDto) {
     try {
+      const { limit, page, sortBy, sortDirection } = fetchDto;
+      const where = this.createQuery(fetchDto);
       const result = await this.prisma.business.findMany({
-        where: { googleVerify: false },
+        where,
         take: +limit,
+        skip: (+page - 1) * +limit,
+        orderBy: { [sortBy]: sortDirection },
       });
 
       return result;

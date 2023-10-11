@@ -6,6 +6,9 @@ import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
 import { FetchDto } from 'src/dto/fetch.dto';
 
 export class FetchBusinessDto extends FetchDto {
+  @StringFieldOptional({ bool: true })
+  googleVerify?: string;
+
   @StringFieldOptional({ each: true })
   categories?: string[];
 
