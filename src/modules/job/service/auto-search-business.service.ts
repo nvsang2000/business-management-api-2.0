@@ -52,7 +52,6 @@ export class AutoSearchBusinessService {
   ) {
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});
-      console.log('result', zipCodeList?.stateList, payload.keyword);
       const statusData: any = zipCodeList?.stateList?.reduce((acc, item) => {
         acc[item] = { state: item, isFinish: false };
         return acc;
@@ -68,7 +67,8 @@ export class AutoSearchBusinessService {
         where: { status: JOB_STATUS.WAITING },
       });
 
-      if (jobsWaiting?.length === 1)
+      if (jobsWaiting?.length === 1) {
+        console.log('jobsWaiting?.length', jobsWaiting?.length);
         await this.scrapingQueue.add(
           'auto-search-business-24h',
           { jobId: result?.id, userId },
@@ -78,6 +78,7 @@ export class AutoSearchBusinessService {
             attempts: 0,
           },
         );
+      }
 
       return result;
     } catch (e) {
