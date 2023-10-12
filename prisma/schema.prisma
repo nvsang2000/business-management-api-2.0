@@ -89,6 +89,7 @@ model Business {
   updatedBy       User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
 
   @@unique([scratchLink])
+  @@unique([googleMapId])
   @@index([categories, state, zipCode, cityId])
   @@map("business")
 }

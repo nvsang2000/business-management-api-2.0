@@ -86,6 +86,11 @@ export enum FILE_TYPE {
   image = 'image',
   excel = 'excel',
 }
+
+export enum GOOGLE_API_INPUT_TYPE {
+  PHONE_NUMBER = 'phonenumber',
+  TEXT_QUERY = 'textquery',
+}
 //env
 export const NODE_ENV = 'NODE_ENV';
 export const BUSINESS_LIST = 'BUSINESS_LIST';
@@ -107,7 +112,7 @@ export const SECONDS_OF_DAY = 86400000;
 export const WEBSITE = {
   GOOGLE: {
     URL: 'https://www.google.com',
-    MAP_URL: 'https://maps.google.com',
+    MAP_URL: 'https://maps.google.com/maps/place/?q=place_id',
     BUTTON_ACCEPT: '.GzLjMd #L2AGLb',
     INPUT_EMAIL: "*[type='email']",
     INPUT_PASSWORD: "*[type='password']",
@@ -191,8 +196,10 @@ export const HEADER_ROW_BUSINESS = [
 ];
 
 //fields request google map
-export const FIELDS_BASIC_PLACE =
-  'formatted_address%2Cname%2Cpermanently_closed%2Ctypes%2Cplace_id';
+export const FIELDS_BASIC_PLACE = 'permanently_closed%2Cplace_id';
+
+export const FIELDS_DETAIL_PLACE =
+  'name%2Cformatted_phone_number%2Cwebsite%2Cformatted_address';
 //regex
 export const REG_IS_STATE = /^\d+$/;
 export const LETTER_AZ = 'abcdefghijklmnopqrstuvwxyz';

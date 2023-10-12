@@ -7,25 +7,40 @@ import { ConfigService } from '@nestjs/config';
 import {
   DEFAULT_OPTION_HEADER_FETCH,
   FIELDS_BASIC_PLACE,
+  FIELDS_DETAIL_PLACE,
+  GOOGLE_API_INPUT_TYPE,
   GOOGLE_MAP_KEY,
   GOOGLE_MAP_URL,
   METHOD,
+  WEBSITE,
 } from 'src/constants';
-import { BusinessEntity, UserEntity } from 'src/entities';
+import { UserEntity } from 'src/entities';
 import { BusinessService } from 'src/modules/business/business.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { BullGoogleVerifyBasic } from 'src/interface';
-import { parseAddress } from 'src/helper';
+import { formatPhoneNumber, parseAddress } from 'src/helper';
 import { FetchVerifyDto } from '../dto';
 
+interface ResultPlace {
+  name: string;
+  website: string;
+  formatted_address: string;
+  formatted_phone_number: string;
+}
+
+interface DetailPlace {
+  html_attributions: any;
+  result: ResultPlace;
+  status: string;
+}
 @Injectable()
 export class GoogleService {
   private baseUrl: string;
   private googleMapKey: string;
   constructor(
     private configService: ConfigService,
-    private businessService: BusinessService,
+    private business: BusinessService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
@@ -57,75 +72,126 @@ export class GoogleService {
     const { currentUser, payload } = bull.data;
 
     try {
-      const businessList = await this.businessService.findManyGoogleVerify({
+      const businessList = await this.business.findManyGoogleVerify({
         ...payload,
       });
       for (const [index, business] of businessList.entries()) {
-        const { id, name, address, city, state, zipCode } = business;
+        const { id, address, city, state, zipCode, name, categories } =
+          business;
         const currentAddress = `${address}, ${city}, ${state} ${zipCode}`;
-        const input = `${name} in ${currentAddress}`;
-        const url = `${this.baseUrl}findplacefromtext/json?input=${input}&inputtype=textquery&fields=${FIELDS_BASIC_PLACE}&key=${this.googleMapKey}`;
+        const textquery = GOOGLE_API_INPUT_TYPE.TEXT_QUERY;
+        const input = `${name}, ${payload?.categories} in ${currentAddress}`;
+        const result = await this.getPlaceId(input, textquery);
+        console.log('inputValue', business, result, index, input);
+        const { candidates } = result;
+        if (candidates?.length === 1) {
+          const { permanently_closed, place_id } = candidates?.[0];
+          if (permanently_closed) await this.business.delete(id);
+          else {
+            const business = await this.business.findByGoogleMapId(place_id);
+            if (!business) {
+              const detailPlace = await this.getDetailPlaceId(place_id);
+              const { result } = detailPlace as DetailPlace;
+              const newPhone = result?.formatted_phone_number;
+              if (newPhone) {
+                const newAddress = result?.formatted_address?.replace(
+                  /, United States/g,
+                  '',
+                );
+                const { city, state, street, zipCode } =
+                  parseAddress(newAddress);
+                const phone = formatPhoneNumber(newPhone);
+                const valueUpdate = {
+                  city,
+                  state,
+                  zipCode,
+                  phone,
+                  address: street,
+                  googleVerify: true,
+                  website: result?.website,
+                  name: result?.name,
+                  googleMapId: place_id,
+                };
+                await this.business.update(id, valueUpdate, currentUser);
+              }
+            }
+          }
+        }
+        if (candidates?.length > 1) {
+          const totalUpdate = 0;
+          for (const item of candidates) {
+            const { permanently_closed, place_id } = item;
+            if (!permanently_closed) {
+              const business = await this.business.findByGoogleMapId(place_id);
+              if (!business) {
+                const detailPlace = await this.getDetailPlaceId(place_id);
+                const { result } = detailPlace as DetailPlace;
+                const newPhone = result?.formatted_phone_number;
+                if (newPhone) {
+                  const newAddress = result?.formatted_address?.replace(
+                    /, United States/g,
+                    '',
+                  );
+                  const { city, state, street, zipCode } =
+                    parseAddress(newAddress);
+                  const phone = formatPhoneNumber(newPhone);
+                  const valueUpdate = {
+                    city,
+                    state,
+                    zipCode,
+                    phone,
+                    address: street,
+                    googleVerify: true,
+                    website: result?.website,
+                    name: result?.name,
+                    googleMapId: place_id,
+                    scratchLink: `${WEBSITE.GOOGLE.MAP_URL}:${place_id}`,
+                  };
+                  if (totalUpdate === 0)
+                    await this.business.update(id, valueUpdate, currentUser);
+                  else
+                    await this.business.create(
+                      { ...valueUpdate, categories },
+                      currentUser,
+                    );
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
 
+  async getDetailPlaceId(placeId: string) {
+    try {
+      try {
+        const url = `${this.baseUrl}details/json?fields=${FIELDS_DETAIL_PLACE}&place_id=${placeId}&key=${this.googleMapKey}`;
         const result = await fetch(url, {
           method: METHOD.GET,
           headers: DEFAULT_OPTION_HEADER_FETCH,
         }).then((response: Response) => response.json());
 
-        console.log('inputValue', business, result, index);
-        const { candidates } = result;
-        let replaceAddress: string;
-        let valueUpdate: BusinessEntity;
-        if (candidates?.length === 0) await this.businessService.delete(id);
-        if (candidates?.length === 1) {
-          if (candidates?.[0]?.permanently_closed)
-            await this.businessService.delete(id);
-          else {
-            replaceAddress = candidates?.[0]?.formatted_address?.replace(
-              /, United States/g,
-              '',
-            );
-            const { city, state, street, zipCode } =
-              parseAddress(replaceAddress);
-
-            console.log('address', city, state, street, zipCode);
-            valueUpdate = {
-              city,
-              state,
-              zipCode,
-              address: street,
-              googleVerify: true,
-              name: candidates?.[0]?.name,
-              googleMapId: candidates?.[0]?.place_id,
-            };
-            await this.businessService.update(id, valueUpdate, currentUser);
-          }
-        }
-        if (candidates?.length > 1) {
-          let totalUpdate = 0;
-          for (const item of candidates) {
-            replaceAddress = item?.formatted_address?.replace(
-              /, United States/g,
-              '',
-            );
-            if (currentAddress === replaceAddress) {
-              if (item?.permanently_closed)
-                await this.businessService.delete(id);
-              else {
-                valueUpdate = {
-                  googleVerify: true,
-                  name: item?.name,
-                  googleMapId: item?.place_id,
-                };
-                totalUpdate++;
-                await this.businessService.update(id, valueUpdate, currentUser);
-              }
-            }
-          }
-          if (totalUpdate === 0) await this.businessService.delete(id);
-        }
+        return result;
+      } catch (e) {
+        console.log(e);
       }
+    } catch (e) {}
+  }
+
+  async getPlaceId(input: string, inputtype: string) {
+    try {
+      const url = `${this.baseUrl}findplacefromtext/json?input=${input}&inputtype=${inputtype}&fields=${FIELDS_BASIC_PLACE}&key=${this.googleMapKey}`;
+      const result = await fetch(url, {
+        method: METHOD.GET,
+        headers: DEFAULT_OPTION_HEADER_FETCH,
+      }).then((response: Response) => response.json());
+
+      return result;
     } catch (e) {
-      throw new UnprocessableEntityException(e?.message);
+      console.log(e);
     }
   }
 }

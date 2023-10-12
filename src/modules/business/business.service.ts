@@ -122,7 +122,7 @@ export class BusinessService {
       const { limit, page, sortBy, sortDirection } = fetchDto;
       const where = this.createQuery(fetchDto);
       const result = await this.prisma.business.findMany({
-        where,
+        where: { ...where, googleVerify: false },
         take: +limit,
         skip: (+page - 1) * +limit,
         orderBy: { [sortBy]: sortDirection },
@@ -146,6 +146,17 @@ export class BusinessService {
             },
           },
         },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async findByGoogleMapId(id: string) {
+    try {
+      const result = await this.prisma.business.findUnique({
+        where: { googleMapId: id },
       });
       return result;
     } catch (e) {
