@@ -24,14 +24,10 @@ export class WorkerService {
       where: { status: JOB_STATUS.WAITING },
       orderBy: { createdAt: 'asc' },
     });
-    if (job) {
+    if (job.type === TYPE_JOB.NORMAL) {
       console.log('Job', job);
-      const nameJob =
-        job.type === TYPE_JOB.AUTO
-          ? 'auto-search-business-24h'
-          : 'search-business';
       await this.scrapingQueue.add(
-        nameJob,
+        'search-business',
         { jobId: job?.id, userId: job?.creatorId },
         {
           removeOnComplete: true,
