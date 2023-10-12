@@ -15,11 +15,7 @@ import {
   UpdateScratchBusinessDto,
   UpdateStatusMarketingBusinessDto,
 } from './dto';
-import {
-  BUSINESS_STATUS,
-  MESSAGE_ERROR,
-  STATUS_MARKETING,
-} from 'src/constants';
+import { BUSINESS_STATUS, GOOOGLE_VERIFY, MESSAGE_ERROR } from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { Response } from 'express';
@@ -29,6 +25,7 @@ import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 import { FetchVerifyDto } from '../job/dto';
 
+const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
 @Injectable()
 export class BusinessService {
   constructor(
@@ -54,22 +51,25 @@ export class BusinessService {
   createQuery(fetchDto: FetchBusinessDto) {
     let { categories, city, state, zipCode } = fetchDto;
     const { search, statusMarketing, userMarketingId, googleVerify } = fetchDto;
-    const checkStatus = statusMarketing === STATUS_MARKETING.NOT_ACCEPT;
-    const boolGoogleVerify = Number(googleVerify) === 1 ? true : false;
+    const boolGoogleVerify =
+      googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
     city && (city = []?.concat(city)?.flat(Infinity));
     state && (state = []?.concat(state)?.flat(Infinity));
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
-
     return {
-      ...(boolGoogleVerify && { googleVerify: { equals: boolGoogleVerify } }),
+      ...(googleVerify && {
+        googleVerify: { equals: boolGoogleVerify },
+      }),
       ...(userMarketingId &&
-        !checkStatus && {
+        statusUser?.includes(statusMarketing) && {
           userMarketingId: { equals: userMarketingId },
           statusMarketing: { equals: statusMarketing },
         }),
-      ...(checkStatus && { statusMarketing: { equals: statusMarketing } }),
+      ...(!statusUser?.includes(statusMarketing) && {
+        statusMarketing: { equals: statusMarketing },
+      }),
       ...(zipCode && { zipCode: { in: zipCode } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),

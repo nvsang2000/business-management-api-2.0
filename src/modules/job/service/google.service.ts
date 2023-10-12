@@ -145,14 +145,17 @@ export class GoogleService {
                     website: result?.website,
                     name: result?.name,
                     googleMapId: place_id,
-                    scratchLink: `${WEBSITE.GOOGLE.MAP_URL}:${place_id}`,
                   };
                   if (totalUpdate === 0)
                     await this.business.update(id, valueUpdate, currentUser);
                   else
-                    await this.business.create(
-                      { ...valueUpdate, categories },
-                      currentUser,
+                    await this.business.createScratchBusiness(
+                      {
+                        ...valueUpdate,
+                        categories,
+                        scratchLink: `${WEBSITE.GOOGLE.MAP_URL}:${place_id}`,
+                      },
+                      currentUser?.id,
                     );
                 }
               }

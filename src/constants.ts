@@ -32,6 +32,11 @@ export enum JOB_STATUS {
   COMPLETE_WITH_WARNING = 4,
 }
 
+export enum GOOOGLE_VERIFY {
+  VERIFY = 'Verified',
+  UN_VERIFY = 'UnVerified',
+}
+
 export enum BUSINESS_STATUS {
   NEW = 'NEW',
   VERIFY = 'VERIFY',
