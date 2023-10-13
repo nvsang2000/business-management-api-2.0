@@ -24,7 +24,7 @@ export class WorkerService {
       where: { status: JOB_STATUS.WAITING },
       orderBy: { createdAt: 'asc' },
     });
-    if (job.type === TYPE_JOB.NORMAL) {
+    if (job?.type === TYPE_JOB.NORMAL) {
       console.log('Job', job);
       await this.scrapingQueue.add(
         'search-business',

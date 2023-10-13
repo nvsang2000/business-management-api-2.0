@@ -200,11 +200,6 @@ export const HEADER_ROW_BUSINESS = [
   'Categories',
 ];
 
-//fields request google map
-export const FIELDS_BASIC_PLACE = 'permanently_closed%2Cplace_id';
-
-export const FIELDS_DETAIL_PLACE =
-  'name%2Cformatted_phone_number%2Cwebsite%2Cformatted_address';
 //regex
 export const REG_IS_STATE = /^\d+$/;
 export const LETTER_AZ = 'abcdefghijklmnopqrstuvwxyz';

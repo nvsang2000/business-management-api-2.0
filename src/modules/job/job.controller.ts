@@ -14,17 +14,12 @@ import {
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
-import {
-  CreateJobAutoDto,
-  CreateJobSearchBusinessDto,
-  FetchVerifyDto,
-} from './dto';
+import { CreateJobAutoDto, CreateJobSearchBusinessDto } from './dto';
 import { CurrentUser, Roles } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
 import { JobService } from './job.service';
 import { SearchBusinessService } from './service/search-business.service';
-import { GoogleService } from './service/google.service';
 import { AutoSearchBusinessService } from './service/auto-search-business.service';
 import { ROLE } from 'src/constants';
 
@@ -34,7 +29,6 @@ import { ROLE } from 'src/constants';
 export class JobController {
   constructor(
     private jobService: JobService,
-    private googleService: GoogleService,
     private searchBusinessService: SearchBusinessService,
     private autoSearchBusinessService: AutoSearchBusinessService,
   ) {}
@@ -66,15 +60,6 @@ export class JobController {
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.autoSearchBusinessService.reJobAutoSearch(id, currentUser);
-  }
-
-  @Get('verify-google')
-  @Roles([ROLE.admin])
-  getVerifyGoogle(
-    @Query() fetchDto: FetchVerifyDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.googleService.createJob(fetchDto, currentUser);
   }
 
   @Get()
