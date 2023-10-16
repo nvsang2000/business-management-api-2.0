@@ -1,3 +1,4 @@
+import { VerifyService } from './modules/job/service/verify.service';
 import { ExportModule } from './shared/export/export.module';
 import { FilesModule } from './modules/files/files.module';
 import { WorkerService } from './worker.service';
@@ -77,6 +78,7 @@ import { JobModule } from './modules/job/job.module';
     JobModule,
   ],
   providers: [
+    VerifyService,
     WorkerService,
     {
       provide: APP_GUARD,

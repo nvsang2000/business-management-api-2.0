@@ -40,7 +40,7 @@ interface StatusDataItem {
   messageError?: any;
 }
 @Injectable()
-export class SearchBusinessService {
+export class SearchService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
@@ -77,7 +77,7 @@ export class SearchBusinessService {
 
       if (jobsWaiting?.length === 1)
         await this.scrapingQueue.add(
-          'search-business',
+          'search',
           { jobId: result?.id, userId },
           {
             removeOnComplete: true,

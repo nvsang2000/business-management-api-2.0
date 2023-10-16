@@ -37,7 +37,7 @@ interface StatusDataItem {
 }
 
 @Injectable()
-export class AutoSearchBusinessService {
+export class AutoSearchService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
@@ -50,7 +50,7 @@ export class AutoSearchBusinessService {
   async reJobAutoSearch(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-search-business-24h',
+        'auto-search-24h',
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,

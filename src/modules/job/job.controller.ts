@@ -14,14 +14,19 @@ import {
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
-import { CreateJobAutoDto, CreateJobSearchBusinessDto } from './dto';
+import {
+  CreateJobAutoDto,
+  CreateJobSearchBusinessDto,
+  FetchVerifyDto,
+} from './dto';
 import { CurrentUser, Roles } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
 import { JobService } from './job.service';
-import { SearchBusinessService } from './service/search-business.service';
-import { AutoSearchBusinessService } from './service/auto-search-business.service';
+import { SearchService } from './service/search.service';
+import { AutoSearchService } from './service/auto-search.service';
 import { ROLE } from 'src/constants';
+import { VerifyService } from './service/verify.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -29,37 +34,44 @@ import { ROLE } from 'src/constants';
 export class JobController {
   constructor(
     private jobService: JobService,
-    private searchBusinessService: SearchBusinessService,
-    private autoSearchBusinessService: AutoSearchBusinessService,
+    private searchService: SearchService,
+    private verifyService: VerifyService,
+    private autoSearchService: AutoSearchService,
   ) {}
 
-  @Post('search-business')
+  @Post('search')
   createJobSearch(
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.searchBusinessService.createJobSearch(payload, currentUser);
+    return this.searchService.createJobSearch(payload, currentUser);
   }
 
-  @Post('auto-search-business')
+  @Post('auto-search')
   @Roles([ROLE.admin])
   createJobAutoSearch(
     @Body() payload: CreateJobAutoDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.autoSearchBusinessService.createJobAutoSearch(
-      payload,
-      currentUser,
-    );
+    return this.autoSearchService.createJobAutoSearch(payload, currentUser);
   }
 
-  @Get('re-auto-search-business/:id')
+  @Get('re-auto-search/:id')
   @Roles([ROLE.admin])
   createJobReAutoSearch(
     @Param('id') id: string,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.autoSearchBusinessService.reJobAutoSearch(id, currentUser);
+    return this.autoSearchService.reJobAutoSearch(id, currentUser);
+  }
+
+  @Get('verify')
+  @Roles([ROLE.admin])
+  getVerifyGoogle(
+    @Query() fetchDto: FetchVerifyDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.verifyService.createJobVerify(fetchDto, currentUser);
   }
 
   @Get()

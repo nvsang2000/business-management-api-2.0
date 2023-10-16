@@ -158,8 +158,12 @@ export class UsersService {
     try {
       const user = await this.findFirstOne({ id });
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
+      const { password } = updateUser;
       const result = await this.prisma.user.update({
-        data: updateUser,
+        data: {
+          ...updateUser,
+          ...(password && { password: await bcrypt.hash(password, 10) }),
+        },
         where: { id },
       });
       return result;

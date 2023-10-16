@@ -130,6 +130,9 @@ export const WEBSITE = {
     PLACESE_ITEM_CONTAINER:
       'g-sticky-content-container block-component .xpdopen .ifM9O',
   },
+  YELP: {
+    URL: 'https://www.yelp.com/',
+  },
   YELLOW_PAGES: {
     URL: 'https://www.yellowpages.com',
     CONTAINER: '[class="search-results organic"] .result',
@@ -162,6 +165,39 @@ export const SCRATCH_STATUS = {
   GET_KEYWORD_BUSINESS: 'GET_KEYWORD_BUSINESS',
   SEARCH_KEYWORD_GOOGLE: 'SEARCH_KEYWORD_GOOGLE',
   GET_PLACE_LIST: 'GET_PLACE_LIST',
+};
+
+export const MAPPING_CATEGORIES = {
+  'American (New)': 'American (New) Restaurants',
+  'American (Traditional)': 'American Restaurants',
+  Seafood: 'Seafood Restaurants',
+  Italian: 'Italian Restaurants',
+  Vietnamese: 'Vietnamese Restaurants',
+  French: 'French Restaurants',
+  Chinese: 'Chinese Restaurants',
+  Japanese: 'Japanese Restaurants',
+  Indian: 'Indian Restaurants',
+  Mexican: 'Mexican Restaurants',
+  Thai: 'Thai Restaurants',
+  Greek: 'Greek Restaurants',
+  Korean: 'Korean Restaurants',
+  Spanish: 'Spanish Restaurants',
+  Sushi: 'Sushi Restaurants',
+  'Fast Food': 'Fast Food Restaurants',
+  Asian: 'Asian Restaurants',
+  Barbecue: 'Barbecue Restaurants',
+  'Latin American': 'Latin American Restaurants',
+  Mediterranean: 'Mediterranean Restaurants',
+  Chicken: 'Chicken Restaurants',
+  Hawaiian: 'Hawaiian Restaurants',
+  Russian: 'Russian Restaurants',
+  'Soul Food': 'Soul Food Restaurants',
+  African: 'African Restaurants',
+  Filipino: 'Filipino Restaurants',
+  Brazilian: 'Brazilian Restaurants',
+  Vegetarian: 'Vegetarian Restaurants',
+  Irish: 'Irish Restaurants',
+  Cafeteria: 'Cafeterias',
 };
 
 export const PRISMA_ERROR_CODE = {

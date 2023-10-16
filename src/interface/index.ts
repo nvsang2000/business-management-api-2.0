@@ -5,8 +5,8 @@ export interface BullJob {
   userId: string;
 }
 
-export interface BullGoogleVerifyBasic {
-  payload: FetchVerifyDto;
+export interface BullJobVerify {
+  fetchDto: FetchVerifyDto;
   currentUser: UserEntity;
 }
 
