@@ -13,8 +13,6 @@ export enum ROLE {
 export enum TYPE_JOB {
   AUTO = 'AUTO',
   NORMAL = 'NORMAL',
-  VERIFY_V1 = 'VERIFY_V1',
-  VERIFY_V2 = 'VERIFY_V2',
 }
 export enum STATE_JOB {
   active = 'active',
@@ -132,6 +130,8 @@ export const WEBSITE = {
   },
   YELP: {
     URL: 'https://www.yelp.com/',
+    NEXT_PAGE:
+      '.navigation-button-container__09f24__SvcBh span a[aria-label="Next"]',
   },
   YELLOW_PAGES: {
     URL: 'https://www.yellowpages.com',

@@ -61,6 +61,7 @@ model Category {
 
 model Business {
   id              String     @id @default(uuid()) @db.Uuid
+  isActive        Boolean    @default(true)
   name            String     @db.VarChar(400)
   phone           String?    @db.VarChar(24)
   email           String?    @db.VarChar(64)
@@ -104,7 +105,7 @@ model Job {
   statusData  Json?
   creatorId   String?   @db.Uuid
   updatedById String?   @db.Uuid
-  type        String?   @db.VarChar(24) @default("NORMAL")
+  type        String?   @default("NORMAL") @db.VarChar(24)
   duration    Int?
   createdAt   DateTime? @default(now()) @db.Timestamptz()
   updatedAt   DateTime? @updatedAt @db.Timestamptz()

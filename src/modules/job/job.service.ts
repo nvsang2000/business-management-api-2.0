@@ -113,13 +113,13 @@ export class JobService {
   }
 
   async create(
-    createScatch: CreateJobSearchBusinessDto,
+    createJob: CreateJobSearchBusinessDto | any,
     userId: string,
   ): Promise<any> {
     try {
       const result = await this.prisma.job.create({
         data: {
-          ...createScatch,
+          ...createJob,
           creatorId: userId,
         },
       });
@@ -131,13 +131,13 @@ export class JobService {
 
   async update(
     id: string,
-    updateScatch: UpdateScratchDto,
+    updateJob: UpdateScratchDto,
     userId?: string,
   ): Promise<any> {
     try {
       const result = await this.prisma.job.update({
         data: {
-          ...updateScatch,
+          ...updateJob,
           updatedById: userId,
         },
         where: { id },

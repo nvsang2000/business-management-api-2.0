@@ -14,11 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
-import {
-  CreateJobAutoDto,
-  CreateJobSearchBusinessDto,
-  FetchVerifyDto,
-} from './dto';
+import { JobAutoDto, CreateJobSearchBusinessDto } from './dto';
 import { CurrentUser, Roles } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
@@ -26,7 +22,7 @@ import { JobService } from './job.service';
 import { SearchService } from './service/search.service';
 import { AutoSearchService } from './service/auto-search.service';
 import { ROLE } from 'src/constants';
-import { VerifyService } from './service/verify.service';
+import { AutoVerifyService } from './service/auto-verify.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -35,7 +31,7 @@ export class JobController {
   constructor(
     private jobService: JobService,
     private searchService: SearchService,
-    private verifyService: VerifyService,
+    private autoVerifyService: AutoVerifyService,
     private autoSearchService: AutoSearchService,
   ) {}
 
@@ -47,13 +43,22 @@ export class JobController {
     return this.searchService.createJobSearch(payload, currentUser);
   }
 
-  @Post('auto-search')
+  @Get('auto-search')
   @Roles([ROLE.admin])
   createJobAutoSearch(
-    @Body() payload: CreateJobAutoDto,
+    @Query() payload: JobAutoDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.autoSearchService.createJobAutoSearch(payload, currentUser);
+  }
+
+  @Get('auto-verify')
+  @Roles([ROLE.admin])
+  getVerifyGoogle(
+    @Query() payload: JobAutoDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.autoVerifyService.createJobAutoVerify(payload, currentUser);
   }
 
   @Get('re-auto-search/:id')
@@ -63,15 +68,6 @@ export class JobController {
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.autoSearchService.reJobAutoSearch(id, currentUser);
-  }
-
-  @Get('verify')
-  @Roles([ROLE.admin])
-  getVerifyGoogle(
-    @Query() fetchDto: FetchVerifyDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.verifyService.createJobVerify(fetchDto, currentUser);
   }
 
   @Get()

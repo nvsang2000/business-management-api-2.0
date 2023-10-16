@@ -23,7 +23,6 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
-import { FetchVerifyDto } from '../job/dto';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
 @Injectable()
@@ -114,23 +113,6 @@ export class BusinessService {
       return result;
     } catch (error) {
       throw new UnprocessableEntityException(error.message);
-    }
-  }
-
-  async findManyGoogleVerify(fetchDto: FetchVerifyDto) {
-    try {
-      const { limit, page, sortBy, sortDirection } = fetchDto;
-      const where = this.createQuery(fetchDto);
-      const result = await this.prisma.business.findMany({
-        where: { ...where, googleVerify: false },
-        take: +limit,
-        skip: (+page - 1) * +limit,
-        orderBy: { [sortBy]: sortDirection },
-      });
-
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
     }
   }
 

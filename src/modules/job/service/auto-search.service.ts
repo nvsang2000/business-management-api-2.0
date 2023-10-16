@@ -5,15 +5,15 @@ https://docs.nestjs.com/providers#services
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { JobService } from '../job.service';
 import { BusinessService } from 'src/modules/business/business.service';
-import { PrismaService } from 'nestjs-prisma';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import { CreateJobAutoDto } from '../dto';
+import { JobAutoDto } from '../dto';
 import { UserEntity } from 'src/entities';
 import {
   DEFAULT_OPTION_HEADER_FETCH,
   JOB_STATUS,
   METHOD,
+  TYPE_JOB,
   WEBSITE,
 } from 'src/constants';
 import { BullJob } from 'src/interface';
@@ -41,7 +41,6 @@ export class AutoSearchService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    private prisma: PrismaService,
     private zipCodeService: ZipCodeService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
@@ -65,10 +64,7 @@ export class AutoSearchService {
     }
   }
 
-  async createJobAutoSearch(
-    payload: CreateJobAutoDto,
-    currentUser: UserEntity,
-  ) {
+  async createJobAutoSearch(payload: JobAutoDto, currentUser: UserEntity) {
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});
       const statusData: any = zipCodeList?.stateList?.reduce((acc, item) => {
@@ -78,26 +74,19 @@ export class AutoSearchService {
 
       const userId = currentUser?.id;
       const result = await this.jobService.create(
-        { ...payload, statusData, type: 'AUTO' },
+        { ...payload, statusData, type: TYPE_JOB.AUTO },
         userId,
       );
 
-      const jobsWaiting = await this.prisma.job.findMany({
-        where: { status: JOB_STATUS.WAITING },
-      });
-
-      if (jobsWaiting?.length === 1) {
-        console.log('jobsWaiting?.length', jobsWaiting?.length);
-        await this.scrapingQueue.add(
-          'auto-search-business-24h',
-          { jobId: result?.id, userId },
-          {
-            removeOnComplete: true,
-            removeOnFail: true,
-            attempts: 0,
-          },
-        );
-      }
+      await this.scrapingQueue.add(
+        'auto-search-24h',
+        { jobId: result?.id, userId },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
 
       return result;
     } catch (e) {
@@ -249,7 +238,6 @@ export class AutoSearchService {
           headers: DEFAULT_OPTION_HEADER_FETCH,
         });
         tryCount > 0 && console.log('tryCount', tryCount);
-        console.log('url', url);
         if (response.ok) return response;
         tryCount++;
       } catch {

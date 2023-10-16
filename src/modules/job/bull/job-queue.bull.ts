@@ -2,14 +2,14 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { SearchService } from '../service/search.service';
-import { BullJob, BullJobVerify } from 'src/interface';
+import { BullJob } from 'src/interface';
 import { AutoSearchService } from '../service/auto-search.service';
-import { VerifyService } from '../service/verify.service';
+import { AutoVerifyService } from '../service/auto-verify.service';
 
 @Processor('job-queue')
 export class BullJobQueue {
   constructor(
-    private verify: VerifyService,
+    private autoVerify: AutoVerifyService,
     private search: SearchService,
     private autoSearch: AutoSearchService,
   ) {}
@@ -23,19 +23,19 @@ export class BullJobQueue {
     }
   }
 
-  @Process('search')
-  async runBullSearch(bull: Job<BullJob>) {
+  @Process('auto-verify-24h')
+  async runBullVerify(bull: Job<BullJob>) {
     try {
-      return await this.search.runJobSearch(bull);
+      return await this.autoVerify.runJobAutoVerify(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
   }
 
-  @Process('verify')
-  async runBullVerify(bull: Job<BullJobVerify>) {
+  @Process('search')
+  async runBullSearch(bull: Job<BullJob>) {
     try {
-      return await this.verify.runJobVerify(bull);
+      return await this.search.runJobSearch(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
