@@ -35,6 +35,11 @@ export enum GOOOGLE_VERIFY {
   UN_VERIFY = 'UnVerified',
 }
 
+export enum STRING_BOOLEAN {
+  TRUE = 'true',
+  FALSE = 'false',
+}
+
 export enum BUSINESS_STATUS {
   NEW = 'NEW',
   VERIFY = 'VERIFY',
@@ -206,19 +211,19 @@ export const PRISMA_ERROR_CODE = {
 };
 
 export const MESSAGE_ERROR = {
+  //Server
+  NOT_FUND_DATA: 'Not fund data!',
+  //Login
   INCORRECT_USERNAME_OR_PASSWORD: 'Incorrect username or password!',
+  HAS_EXPIRED: 'Login session has expired!',
+  //User
   USER_NOT_EXIST: 'User does not exist!',
   USER_ALREADY_EXISTS: 'User already exists!',
   USERNAME_EXISTS: 'Username already exists!',
   EMAIL_EXISTS: 'Email already exists!',
   PHONE_EXISTS: 'Phone already exists!',
-  SIC_EXISTS: 'SIC already exists!',
-  NOT_FUND_DATA: 'Not fund data!',
+  //category
   CATEGORY_EXISTS: 'Category already exists!',
-  HAS_EXPIRED: 'Login session has expired!',
-  BUSINESS_EXIST: 'Business already exists!',
-  PHONE_EXIST: 'Phone number already exists!',
-  ADDRESS_EXITS: 'Address already exists!',
 };
 
 export const SORT_DIRECTION = ['asc', 'desc'];
@@ -237,8 +242,8 @@ export const HEADER_ROW_BUSINESS = [
 ];
 
 //regex
+export const REG_IS_STRESS = /^[0-9]+ [a-zA-Z0-9\s,.'-]+$/;
 export const REG_IS_STATE = /^\d+$/;
-export const LETTER_AZ = 'abcdefghijklmnopqrstuvwxyz';
 export const REGEX_PHONE_NUMBER =
   /(?:\+\d{1,2}\s*)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?:\s?[xX]\d+)?/g;
 export const REGEX_ADDRESS =

@@ -15,13 +15,18 @@ import {
   UpdateScratchBusinessDto,
   UpdateStatusMarketingBusinessDto,
 } from './dto';
-import { BUSINESS_STATUS, GOOOGLE_VERIFY, MESSAGE_ERROR } from 'src/constants';
+import {
+  BUSINESS_STATUS,
+  GOOOGLE_VERIFY,
+  MESSAGE_ERROR,
+  STRING_BOOLEAN,
+} from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { Response } from 'express';
 import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
-import { generateSlug } from 'src/helper';
+import { generateSlug, isAddressStreet } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
@@ -48,16 +53,21 @@ export class BusinessService {
   };
 
   createQuery(fetchDto: FetchBusinessDto) {
-    let { categories, city, state, zipCode } = fetchDto;
-    const { search, statusMarketing, userMarketingId, googleVerify } = fetchDto;
+    const { search, statusMarketing, userMarketingId, googleVerify, website } =
+      fetchDto;
     const boolGoogleVerify =
       googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
+    let { categories, city, state, zipCode } = fetchDto;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
     city && (city = []?.concat(city)?.flat(Infinity));
     state && (state = []?.concat(state)?.flat(Infinity));
     zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
+
     return {
+      ...(website && {
+        website: website === STRING_BOOLEAN.TRUE ? { not: null } : null,
+      }),
       ...(googleVerify && {
         googleVerify: { equals: boolGoogleVerify },
       }),
@@ -73,13 +83,17 @@ export class BusinessService {
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),
       ...(categories && { categories: { hasEvery: categories } }),
-      ...(search && {
-        OR: [
-          isNumberString(search)
-            ? { phone: { contains: search } }
-            : { name: { contains: search, mode: 'insensitive' as any } },
-        ],
-      }),
+      ...(search && isAddressStreet(search)
+        ? {
+            address: { contains: search, mode: 'insensitive' as any },
+          }
+        : {
+            OR: [
+              isNumberString(search)
+                ? { phone: { contains: search } }
+                : { name: { contains: search, mode: 'insensitive' as any } },
+            ],
+          }),
     };
   }
 

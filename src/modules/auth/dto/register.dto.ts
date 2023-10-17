@@ -16,7 +16,7 @@ export class RegisterDto extends LoginDto {
   })
   email: string;
 
-  @IsPhoneNumber('VN', { message: 'Phone number is invalid !' })
+  @IsPhoneNumber()
   @StringField({ swaggerOptions: { example: '0386237067' } })
   phone: string;
 }

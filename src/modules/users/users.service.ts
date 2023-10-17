@@ -15,12 +15,7 @@ import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { isBoolean } from 'lodash';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
-interface FindOneOption {
-  id?: string;
-  username?: string;
-  email?: string;
-  phone?: string;
-}
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -95,7 +90,7 @@ export class UsersService {
     }
   }
 
-  async findUnique(id: string): Promise<any> {
+  async findById(id: string): Promise<any> {
     try {
       const result = await this.prisma.user.findUnique({
         where: { id },
@@ -116,18 +111,27 @@ export class UsersService {
     }
   }
 
-  async findFirstOne({
-    email,
-    username,
-    id,
-    phone,
-  }: FindOneOption): Promise<any> {
+  async findByUsername(username: string): Promise<any> {
     try {
-      const result = await this.prisma.user.findFirst({
-        where: {
-          OR: [{ id }, { username }, { email }, { phone }],
-        },
-      });
+      const result = await this.prisma.user.findUnique({ where: { username } });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async findByEmail(email: string): Promise<any> {
+    try {
+      const result = await this.prisma.user.findUnique({ where: { email } });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async findByPhone(phone: string): Promise<any> {
+    try {
+      const result = await this.prisma.user.findUnique({ where: { phone } });
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.response);
@@ -137,10 +141,16 @@ export class UsersService {
   async create(createUser: CreateUserDto): Promise<any> {
     try {
       const { email, username, phone, password } = createUser;
-      const user = await this.findFirstOne({ email, username, phone });
+      const checkUsername = await this.findByUsername(username);
+      if (checkUsername)
+        throw new BadRequestException(MESSAGE_ERROR.USERNAME_EXISTS);
+
+      const checkEmail = await this.findByEmail(email);
+      if (checkEmail) throw new BadRequestException(MESSAGE_ERROR.EMAIL_EXISTS);
+
+      const checkPhone = await this.findByPhone(phone);
+      if (checkPhone) throw new BadRequestException(MESSAGE_ERROR.PHONE_EXISTS);
       const hashedPassword = await bcrypt.hash(password, 10);
-      if (user)
-        throw new BadRequestException(MESSAGE_ERROR.USER_ALREADY_EXISTS);
       const result = await this.prisma.user.create({
         data: {
           ...createUser,
@@ -156,7 +166,7 @@ export class UsersService {
 
   async update(updateUser: UpdateUserDto, id: string): Promise<any> {
     try {
-      const user = await this.findFirstOne({ id });
+      const user = await this.findById(id);
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const { password } = updateUser;
       const result = await this.prisma.user.update({
@@ -174,7 +184,7 @@ export class UsersService {
 
   async delete(id: string) {
     try {
-      const user = await this.findFirstOne({ id });
+      const user = await this.findById(id);
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const result = await this.prisma.user.delete({ where: { id } });
       return result;

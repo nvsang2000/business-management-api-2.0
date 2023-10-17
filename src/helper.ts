@@ -1,6 +1,6 @@
 import slugify from 'slugify';
 import * as fs from 'fs-extra';
-import { LINK_PROFILE, REG_IS_STATE } from './constants';
+import { LINK_PROFILE, REG_IS_STATE, REG_IS_STRESS } from './constants';
 
 export const parseSafe = (s) => {
   try {
@@ -158,4 +158,9 @@ export const parseAddress = (address: string) => {
     city,
     street,
   };
+};
+
+export const isAddressStreet = (street: string) => {
+  const isStreet = REG_IS_STRESS.test(street);
+  return isStreet;
 };

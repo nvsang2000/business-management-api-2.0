@@ -19,11 +19,11 @@ import {
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto';
 import { UsersService } from './users.service';
-import { FetchDto } from '../../dto/fetch.dto';
 import { UpdateUserDto } from './dto';
 import { Response } from 'express';
 import { Roles } from 'src/decorators';
 import { ROLE } from 'src/constants';
+import { FetchDto } from 'src/dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -45,7 +45,7 @@ export class UsersController {
   @Roles([ROLE.admin])
   @UseInterceptors(ClassSerializerInterceptor)
   async findUnique(@Param('id') id: string) {
-    return this.userService.findUnique(id);
+    return this.userService.findById(id);
   }
 
   @Post()

@@ -1,11 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsUUID } from 'class-validator';
 import { UUID } from 'crypto';
-import { GOOOGLE_VERIFY, STATUS_MARKETING } from 'src/constants';
+import {
+  GOOOGLE_VERIFY,
+  STATUS_MARKETING,
+  STRING_BOOLEAN,
+} from 'src/constants';
 import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
 import { FetchDto } from 'src/dto/fetch.dto';
 
 export class FetchBusinessDto extends FetchDto {
+  @EnumFieldOptional(() => STRING_BOOLEAN)
+  website?: string;
+
   @EnumFieldOptional(() => GOOOGLE_VERIFY)
   googleVerify?: string;
 
