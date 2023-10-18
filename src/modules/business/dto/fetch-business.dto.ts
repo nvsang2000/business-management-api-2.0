@@ -28,6 +28,9 @@ export class FetchBusinessDto extends FetchDto {
   @StringFieldOptional({ each: true })
   city?: string[];
 
+  @StringFieldOptional({})
+  address?: string;
+
   @EnumFieldOptional(() => STATUS_MARKETING)
   statusMarketing?: STATUS_MARKETING;
 

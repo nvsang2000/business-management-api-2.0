@@ -26,7 +26,7 @@ import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { Response } from 'express';
 import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
-import { generateSlug, isAddressStreet } from 'src/helper';
+import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
@@ -53,8 +53,14 @@ export class BusinessService {
   };
 
   createQuery(fetchDto: FetchBusinessDto) {
-    const { search, statusMarketing, userMarketingId, googleVerify, website } =
-      fetchDto;
+    const {
+      search,
+      statusMarketing,
+      userMarketingId,
+      googleVerify,
+      website,
+      address,
+    } = fetchDto;
     const boolGoogleVerify =
       googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
     let { categories, city, state, zipCode } = fetchDto;
@@ -83,17 +89,16 @@ export class BusinessService {
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(city && { city: { in: city, mode: 'insensitive' as any } }),
       ...(categories && { categories: { hasEvery: categories } }),
-      ...(search && isAddressStreet(search)
-        ? {
-            address: { contains: search, mode: 'insensitive' as any },
-          }
-        : {
-            OR: [
-              isNumberString(search)
-                ? { phone: { contains: search } }
-                : { name: { contains: search, mode: 'insensitive' as any } },
-            ],
-          }),
+      ...(address && {
+        address: { contains: address, mode: 'insensitive' as any },
+      }),
+      ...(search && {
+        OR: [
+          isNumberString(search)
+            ? { phone: { contains: search } }
+            : { name: { contains: search, mode: 'insensitive' as any } },
+        ],
+      }),
     };
   }
 
