@@ -60,15 +60,15 @@ export class BusinessService {
       googleVerify,
       website,
       address,
+      city,
+      zipCode,
     } = fetchDto;
+    let { categories, state } = fetchDto;
     const boolGoogleVerify =
       googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
-    let { categories, city, state, zipCode } = fetchDto;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
-    city && (city = []?.concat(city)?.flat(Infinity));
     state && (state = []?.concat(state)?.flat(Infinity));
-    zipCode && (zipCode = []?.concat(zipCode)?.flat(Infinity));
 
     return {
       ...(website && {
@@ -85,10 +85,10 @@ export class BusinessService {
       ...(!statusUser?.includes(statusMarketing) && {
         statusMarketing: { equals: statusMarketing },
       }),
-      ...(zipCode && { zipCode: { in: zipCode } }),
-      ...(state && { state: { in: state, mode: 'insensitive' as any } }),
-      ...(city && { city: { in: city, mode: 'insensitive' as any } }),
       ...(categories && { categories: { hasEvery: categories } }),
+      ...(state && { state: { in: state, mode: 'insensitive' as any } }),
+      ...(zipCode && { zipCode: { contains: zipCode } }),
+      ...(city && { city: { contains: city, mode: 'insensitive' as any } }),
       ...(address && {
         address: { contains: address, mode: 'insensitive' as any },
       }),

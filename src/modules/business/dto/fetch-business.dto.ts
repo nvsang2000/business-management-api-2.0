@@ -19,14 +19,14 @@ export class FetchBusinessDto extends FetchDto {
   @StringFieldOptional({ each: true })
   categories?: string[];
 
-  @StringFieldOptional({ each: true })
-  zipCode?: string[];
+  @StringFieldOptional({})
+  zipCode?: string;
 
   @StringFieldOptional({ each: true })
   state?: string[];
 
-  @StringFieldOptional({ each: true })
-  city?: string[];
+  @StringFieldOptional({})
+  city?: string;
 
   @StringFieldOptional({})
   address?: string;
