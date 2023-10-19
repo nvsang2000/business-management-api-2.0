@@ -42,6 +42,24 @@ export class AutoVerifyService {
     private scrapingQueue: Queue,
   ) {}
 
+  async reJobAutoVerify(id: string, currentUser: UserEntity) {
+    try {
+      const job = await this.scrapingQueue.add(
+        'auto-verify-24h',
+        { jobId: id, userId: currentUser?.id },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
+
+      return job;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
   async createJobAutoVerify(payload: JobAutoDto, currentUser: UserEntity) {
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});

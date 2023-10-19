@@ -52,15 +52,6 @@ export class JobController {
     return this.autoSearchService.createJobAutoSearch(payload, currentUser);
   }
 
-  @Get('auto-verify')
-  @Roles([ROLE.admin])
-  getVerifyGoogle(
-    @Query() payload: JobAutoDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.autoVerifyService.createJobAutoVerify(payload, currentUser);
-  }
-
   @Get('re-auto-search/:id')
   @Roles([ROLE.admin])
   createJobReAutoSearch(
@@ -68,6 +59,24 @@ export class JobController {
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.autoSearchService.reJobAutoSearch(id, currentUser);
+  }
+
+  @Get('auto-verify')
+  @Roles([ROLE.admin])
+  getVerify(
+    @Query() payload: JobAutoDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.autoVerifyService.createJobAutoVerify(payload, currentUser);
+  }
+
+  @Get('re-auto-verify/:id')
+  @Roles([ROLE.admin])
+  createJobReAutoVerify(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.autoVerifyService.reJobAutoVerify(id, currentUser);
   }
 
   @Get()
