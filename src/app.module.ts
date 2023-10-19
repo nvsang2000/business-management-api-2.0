@@ -23,6 +23,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ZipCodeModule } from './modules/zipCode/zip-code.module';
 import { JobModule } from './modules/job/job.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     ExportModule,
@@ -31,6 +32,12 @@ import { JobModule } from './modules/job/job.module';
       rootPath: join(__dirname, '..', '..', 'assets'),
       serveRoot: '/assets',
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -89,6 +96,10 @@ import { JobModule } from './modules/job/job.module';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
   exports: [AppModule],

@@ -7,6 +7,7 @@ import {
   ClassSerializerInterceptor,
   Get,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { CurrentUser, Public } from 'src/decorators';
 import { RegisterDto } from './dto/register.dto';
 import { UserEntity } from 'src/entities';
+import { ThrottlerBehindProxyGuard } from 'src/guards/throttler-behind-proxy.guard';
 @Injectable()
 @ApiTags('Auth')
 @Controller('auth')
@@ -33,6 +35,7 @@ export class AuthController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(ThrottlerBehindProxyGuard)
   @ApiBasicAuth('access-token')
   @Get('/profile')
   getProfile(@CurrentUser() currentUser: UserEntity): Promise<UserEntity> {

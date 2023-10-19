@@ -1,6 +1,12 @@
 import slugify from 'slugify';
 import * as fs from 'fs-extra';
-import { LINK_PROFILE, REG_IS_STATE, REG_IS_STRESS } from './constants';
+import {
+  DEFAULT_OPTION_HEADER_FETCH,
+  LINK_PROFILE,
+  METHOD,
+  REG_IS_STATE,
+  REG_IS_STRESS,
+} from './constants';
 
 export const parseSafe = (s) => {
   try {
@@ -163,4 +169,23 @@ export const parseAddress = (address: string) => {
 export const isAddressStreet = (street: string) => {
   const isStreet = REG_IS_STRESS.test(street);
   return isStreet;
+};
+
+export const connectPage = async (url: string) => {
+  let tryCount = 0;
+  while (tryCount < 10) {
+    try {
+      tryCount > 0 && console.log('tryCount', tryCount);
+      const response = await fetch(url, {
+        method: METHOD.GET,
+        headers: DEFAULT_OPTION_HEADER_FETCH,
+      });
+      if (response.ok) return response;
+      tryCount++;
+    } catch {
+      tryCount++;
+      await setDelay(2000);
+      continue;
+    }
+  }
 };

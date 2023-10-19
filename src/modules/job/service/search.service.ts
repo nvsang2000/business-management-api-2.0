@@ -3,19 +3,14 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import {
-  DEFAULT_OPTION_HEADER_FETCH,
-  JOB_STATUS,
-  METHOD,
-  WEBSITE,
-} from 'src/constants';
+import { JOB_STATUS, WEBSITE } from 'src/constants';
 import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
+  connectPage,
   formatPhoneNumber,
   parseUSAddress,
   promisesSequentially,
-  setDelay,
 } from 'src/helper';
 import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
@@ -134,7 +129,8 @@ export class SearchService {
     let page = payload?.page;
     try {
       while (true) {
-        const response = await this.connectPage(keyword, zipCode, page);
+        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
+        const response = await connectPage(url);
         const body = await response?.text();
         const $ = cheerio.load(body);
         const businessListForPage = [];
@@ -215,26 +211,6 @@ export class SearchService {
       statusData[zipCode].page = page;
       statusData[zipCode].isFinish = true;
       return await this.jobService.update(id, { statusData });
-    }
-  }
-
-  async connectPage(keyword: string, zipCode: string, page: number) {
-    let tryCount = 0;
-    while (tryCount < 10) {
-      try {
-        tryCount > 0 && console.log('tryCount', tryCount);
-        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
-        const response = await fetch(url, {
-          method: METHOD.GET,
-          headers: DEFAULT_OPTION_HEADER_FETCH,
-        });
-        if (response.ok) return response;
-        tryCount++;
-      } catch {
-        tryCount++;
-        await setDelay(2000);
-        continue;
-      }
     }
   }
 }

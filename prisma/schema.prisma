@@ -21,29 +21,40 @@ model Policy {
 }
 
 model User {
-  id                String     @id @default(uuid()) @db.Uuid
-  email             String?    @unique(map: "user_email_key") @db.VarChar(128)
-  username          String     @unique(map: "user_username_key") @db.VarChar(128)
-  password          String     @db.VarChar(255)
-  displayName       String?    @db.VarChar(128)
-  phone             String?    @unique @db.VarChar(24)
-  isActive          Boolean    @default(true)
-  role              String     @default("user") @db.VarChar(24)
-  thumbnail         String?    @db.VarChar(400)
+  id                String         @id @default(uuid()) @db.Uuid
+  email             String?        @unique(map: "user_email_key") @db.VarChar(128)
+  username          String         @unique(map: "user_username_key") @db.VarChar(128)
+  password          String         @db.VarChar(255)
+  displayName       String?        @db.VarChar(128)
+  phone             String?        @unique @db.VarChar(24)
+  isActive          Boolean        @default(true)
+  role              String         @default("user") @db.VarChar(24)
+  thumbnail         String?        @db.VarChar(400)
   policyId          Int?
-  lastSeen          DateTime?  @default(now()) @db.Timestamptz()
-  updatedAt         DateTime?  @default(now()) @db.Timestamptz()
-  createdAt         DateTime?  @updatedAt @db.Timestamptz()
-  files             File[]     @relation("filesToUser")
-  marketing         Business[] @relation("userMarketing")
-  updatedByBusiness Business[] @relation("updatedByBusiness")
-  creatorBusiness   Business[] @relation("creatorBusiness")
-  creatorScratch    Job[]      @relation("creatorJob")
-  updatedByScratch  Job[]      @relation("updatedByJob")
-  creatorCategory   Category[] @relation("creatorCategory")
-  policy            Policy?    @relation(fields: [policyId], references: [id])
+  lastSeen          DateTime?      @default(now()) @db.Timestamptz()
+  updatedAt         DateTime?      @default(now()) @db.Timestamptz()
+  createdAt         DateTime?      @updatedAt @db.Timestamptz()
+  files             File[]         @relation("filesToUser")
+  loginHistory      LoginHistory[] @relation("loginHistoryToUser")
+  marketing         Business[]     @relation("userMarketing")
+  updatedByBusiness Business[]     @relation("updatedByBusiness")
+  creatorBusiness   Business[]     @relation("creatorBusiness")
+  creatorScratch    Job[]          @relation("creatorJob")
+  updatedByScratch  Job[]          @relation("updatedByJob")
+  creatorCategory   Category[]     @relation("creatorCategory")
+  policy            Policy?        @relation(fields: [policyId], references: [id])
 
   @@map("users")
+}
+
+model LoginHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  ipAddress String   @db.VarChar(64)
+  createAt  DateTime @default(now()) @db.Timestamptz()
+  user User @relation("loginHistoryToUser", fields: [userId], references: [id])
+
+  @@map("login_history")
 }
 
 model Category {

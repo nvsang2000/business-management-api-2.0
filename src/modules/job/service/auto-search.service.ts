@@ -9,20 +9,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { JobAutoDto } from '../dto';
 import { UserEntity } from 'src/entities';
-import {
-  DEFAULT_OPTION_HEADER_FETCH,
-  JOB_STATUS,
-  METHOD,
-  TYPE_JOB,
-  WEBSITE,
-} from 'src/constants';
+import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import {
+  connectPage,
   formatPhoneNumber,
   parseUSAddress,
   promisesSequentially,
-  setDelay,
 } from 'src/helper';
 import dayjs from 'dayjs';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
@@ -99,7 +93,7 @@ export class AutoSearchService {
     try {
       const job: JobEntity = await this.jobService.findById(jobId);
       const { statusData, createdAt, id } = job;
-      const promises = Object?.values(statusData)?.map(
+      const promisesState = Object?.values(statusData)?.map(
         (data: StatusDataItem) => {
           return async () => {
             if (data?.isFinish) return;
@@ -107,7 +101,7 @@ export class AutoSearchService {
           };
         },
       );
-      const result = await promisesSequentially(promises, 1);
+      const result = await promisesSequentially(promisesState, 1);
       if (result) {
         const job: JobEntity = await this.jobService.findById(jobId);
         const statusUnFinish = Object?.values(job?.statusData)?.filter(
@@ -134,13 +128,13 @@ export class AutoSearchService {
       ?.map((i) => i?.zipCodeList)
       ?.flat(Infinity);
     try {
-      const prosmises = zipCodeList?.map((zipCode: string) => {
+      const prosmisesZipCode = zipCodeList?.map((zipCode: string) => {
         return async () => {
           return await this.searchBusiness(keyword, zipCode);
         };
       });
-      console.log('prosmises', prosmises?.length);
-      await promisesSequentially(prosmises, 10);
+      console.log('prosmises', prosmisesZipCode?.length);
+      await promisesSequentially(prosmisesZipCode, 10);
     } catch (e) {
       console.log(e);
     } finally {
@@ -153,7 +147,8 @@ export class AutoSearchService {
     try {
       let page = 0;
       while (true) {
-        const response = await this.connectPage(keyword, zipCode, page);
+        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
+        const response = await connectPage(url);
         const body = await response?.text();
         const $ = cheerio.load(body);
         const businessListForPage = [];
@@ -225,26 +220,6 @@ export class AutoSearchService {
       }
     } catch (e) {
       console.log(e);
-    }
-  }
-
-  async connectPage(keyword: string, zipCode: string, page: number) {
-    let tryCount = 0;
-    while (tryCount < 5) {
-      try {
-        const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
-        const response = await fetch(url, {
-          method: METHOD.GET,
-          headers: DEFAULT_OPTION_HEADER_FETCH,
-        });
-        tryCount > 0 && console.log('tryCount', tryCount);
-        if (response.ok) return response;
-        tryCount++;
-      } catch {
-        tryCount++;
-        await setDelay(2000);
-        continue;
-      }
     }
   }
 }

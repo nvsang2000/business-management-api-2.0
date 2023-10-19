@@ -165,6 +165,28 @@ export class BusinessService {
     }
   }
 
+  async findByScratchLink(scratchLink: string) {
+    try {
+      const result = await this.prisma.business.findUnique({
+        where: { scratchLink },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async findFistOne(name: string, phone: string, address: string) {
+    try {
+      const result = await this.prisma.business.findFirst({
+        where: { AND: { name, phone, address } },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
   async update(
     id: string,
     updateBusiness: UpdateBusinessDto | any,
@@ -227,17 +249,6 @@ export class BusinessService {
           userMarketing: { connect: { id: currentUser?.id } },
           updatedBy: { connect: { id: currentUser?.id } },
         },
-      });
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
-  async findByScratchLink(scratchLink: string) {
-    try {
-      const result = await this.prisma.business.findUnique({
-        where: { scratchLink },
       });
       return result;
     } catch (e) {

@@ -242,6 +242,8 @@ export const HEADER_ROW_BUSINESS = [
 ];
 
 //regex
+export const REG_FORMAT_ADDRESS = /([^,]+),\s([A-Z]{2})\s(\d{5})/;
+export const REG_IS_WEBSITE = /([a-zA-Z0-9.-]+)\(\d+\)/;
 export const REG_IS_STRESS = /^[0-9]+ [a-zA-Z0-9\s,.'-]+$/;
 export const REG_IS_STATE = /^\d+$/;
 export const REGEX_PHONE_NUMBER =
