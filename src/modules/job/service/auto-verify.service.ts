@@ -12,7 +12,6 @@ import {
   JOB_STATUS,
   MAPPING_CATEGORIES,
   REG_FORMAT_ADDRESS,
-  REG_IS_WEBSITE,
   TYPE_JOB,
   WEBSITE,
 } from 'src/constants';
@@ -184,11 +183,13 @@ export class AutoVerifyService {
       const zipCode = matches[3];
 
       let phone: string, website: string;
+      const removeText = websiteAndPhone?.replace('Get Directions', '');
       if (websiteAndPhone) {
-        const removeText = websiteAndPhone?.replace('Get Directions', '');
-        const websiteMatch = removeText?.match(REG_IS_WEBSITE);
-        website = websiteMatch ? websiteMatch?.[0] : undefined;
-        phone = website ? removeText?.replace(website, '') : removeText;
+        const openParenIndex = removeText.indexOf('(');
+
+        website = removeText.slice(0, openParenIndex);
+        phone = removeText.slice(openParenIndex);
+        if (!phone) return;
       }
       const categories = [];
       $('.arrange-unit__09f24__rqHTg .css-1xfc281 .css-1fdy0l5 a').map(
