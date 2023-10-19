@@ -156,7 +156,7 @@ export class AutoVerifyService {
             return await this.getDetail(business);
           };
         });
-        await promisesSequentially(promiseGetDetail, 1);
+        await promisesSequentially(promiseGetDetail, 10);
       }
     } catch (e) {
       console.log(e);
@@ -178,9 +178,10 @@ export class AutoVerifyService {
       const formatAddress = $('address  .css-qgunke span')?.text();
       if (!address || !formatAddress) return;
       const matches = formatAddress?.match(REG_FORMAT_ADDRESS);
-      const city = matches[1];
-      const state = matches[2];
-      const zipCode = matches[3];
+      if (matches?.length < 3) return;
+      const city = matches?.[1];
+      const state = matches?.[2];
+      const zipCode = matches?.[3];
 
       let phone: string, website: string;
       const removeText = websiteAndPhone?.replace('Get Directions', '');
@@ -234,7 +235,7 @@ export class AutoVerifyService {
           newBusiness,
         );
       }
-      //console.log('newBusiness', newBusiness);
+      console.log('newBusiness', newBusiness);
     } catch (e) {
       console.log(e);
     }
