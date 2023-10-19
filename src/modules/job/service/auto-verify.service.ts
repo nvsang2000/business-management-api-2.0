@@ -101,7 +101,7 @@ export class AutoVerifyService {
           return await this.parserZipCode(job, data?.state);
         };
       });
-      const result = await promisesSequentially(promisesState, 1);
+      const result = await promisesSequentially(promisesState, 2);
       if (result) {
         const job: JobEntity = await this.jobService.findById(jobId);
         const statusUnFinish = Object?.values(job?.statusData)?.filter(
@@ -134,7 +134,7 @@ export class AutoVerifyService {
         };
       });
       console.log('prosmises', prosmisesZipCode?.length);
-      await promisesSequentially(prosmisesZipCode, 10);
+      await promisesSequentially(prosmisesZipCode, 20);
     } catch (e) {
       console.log(e);
     } finally {
