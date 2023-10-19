@@ -235,7 +235,7 @@ export class AutoVerifyService {
           newBusiness,
         );
       }
-      console.log('newBusiness', newBusiness);
+      //console.log('newBusiness', newBusiness);
     } catch (e) {
       console.log(e);
     }
