@@ -137,6 +137,13 @@ export const WEBSITE = {
     URL: 'https://www.yelp.com/',
     NEXT_PAGE:
       '.navigation-button-container__09f24__SvcBh span a[aria-label="Next"]',
+    ITEM_LIST: '[data-testid="serp-ia-card"]',
+    DETAIL_CATEGORIES:
+      '.arrange-unit__09f24__rqHTg .css-1xfc281 .css-1fdy0l5 a',
+    DETAIL_ADDRESS: 'address .css-r9996t a .raw__09f24__T4Ezm',
+    DETAIL_FORMAT_ADDRESS: 'address  .css-qgunke span',
+    DETAIL_WEB_PHONE:
+      'aside section .arrange-unit-fill__09f24__CUubG .css-1p9ibgf',
   },
   YELLOW_PAGES: {
     URL: 'https://www.yellowpages.com',
@@ -152,17 +159,9 @@ export const DEFAULT_OPTION_HEADER_FETCH = {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
 };
 
-export const LINK_PROFILE = {
-  google: 'https://www.google.com',
-  googleMap: 'https://maps.google.com',
-  instagram: 'https://www.instagram.com/',
-  facebook: 'https://www.facebook.com/',
-  twitter: 'https://twitter.com/',
-  linkedin: 'https://www.linkedin.com/',
-  yelp: 'https://www.yelp.com/',
-  yellowbot: 'https://www.yellowbot.com',
-  golocal247: 'https://www.golocal247.com',
-  findOpen: 'https://find-open.com',
+export const LINK_SOURCE = {
+  yelp: 'https://www.yelp.com',
+  yellowpages: 'https://www.yellowpages.com',
 };
 
 export const SCRATCH_STATUS = {

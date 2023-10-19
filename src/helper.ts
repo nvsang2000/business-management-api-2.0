@@ -2,7 +2,7 @@ import slugify from 'slugify';
 import * as fs from 'fs-extra';
 import {
   DEFAULT_OPTION_HEADER_FETCH,
-  LINK_PROFILE,
+  LINK_SOURCE,
   METHOD,
   REG_IS_STATE,
   REG_IS_STRESS,
@@ -99,8 +99,8 @@ export const parseUSAddress = (
 export const parseWebsite = (links: string[]) => {
   return links.map((link: string) => {
     let type = null;
-    for (const key in LINK_PROFILE) {
-      if (link.startsWith(LINK_PROFILE[key])) {
+    for (const key in LINK_SOURCE) {
+      if (link.startsWith(LINK_SOURCE[key])) {
         type = key;
         break;
       }

@@ -28,9 +28,9 @@ WHERE id IN (
     WHERE t.rnum > 1
 );
 
-# SELECT phone, COUNT(*) AS duplicate_count
-# FROM business
-# GROUP BY phone
-# HAVING COUNT(*) > 1;
+SELECT phone, COUNT(*) AS duplicate_count
+FROM business
+GROUP BY phone
+HAVING COUNT(*) > 1;
 
 # 78613

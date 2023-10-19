@@ -135,7 +135,7 @@ export class AutoVerifyService {
         const body = await response?.text();
         const $ = cheerio.load(body);
 
-        $('[data-testid="serp-ia-card"]')?.map((i, el) => {
+        $(WEBSITE.YELP.ITEM_LIST)?.map((i, el) => {
           const name = $(el)?.find('h3 span a')?.text();
           const thumbnailUrl = $(el)?.find('.css-eqfjza a img')?.attr('src');
           const url = $(el)?.find('.css-eqfjza a')?.attr('href');
@@ -164,18 +164,14 @@ export class AutoVerifyService {
   }
 
   async getDetail(business: BusinessForList) {
-    const { scratchLink, name } = business;
+    const { scratchLink } = business;
     try {
       const response = await connectPage(scratchLink);
       const body = await response?.text();
       const $ = cheerio.load(body);
 
-      const websiteAndPhone = $(
-        'aside section .arrange-unit-fill__09f24__CUubG .css-1p9ibgf',
-      )?.text();
-
-      const address = $('address .css-r9996t a .raw__09f24__T4Ezm')?.text();
-      const formatAddress = $('address  .css-qgunke span')?.text();
+      const address = $(WEBSITE.YELP.DETAIL_ADDRESS)?.text();
+      const formatAddress = $(WEBSITE.YELP.DETAIL_FORMAT_ADDRESS)?.text();
       if (!address || !formatAddress) return;
       const matches = formatAddress?.match(REG_FORMAT_ADDRESS);
       if (matches?.length < 3) return;
@@ -184,22 +180,20 @@ export class AutoVerifyService {
       const zipCode = matches?.[3];
 
       let phone: string, website: string;
+      const websiteAndPhone = $(WEBSITE.YELP.DETAIL_WEB_PHONE)?.text();
       const removeText = websiteAndPhone?.replace('Get Directions', '');
+      if (!removeText) return;
       if (websiteAndPhone) {
         const openParenIndex = removeText.indexOf('(');
-
         website = removeText.slice(0, openParenIndex);
         phone = removeText.slice(openParenIndex);
-        if (!phone) return;
       }
-      const categories = [];
-      $('.arrange-unit__09f24__rqHTg .css-1xfc281 .css-1fdy0l5 a').map(
-        (i, el) => {
-          const category = $(el).text();
-          categories.push(category);
-        },
-      );
 
+      const categories = [];
+      $(WEBSITE.YELP.DETAIL_CATEGORIES).map((i, el) => {
+        const category = $(el).text();
+        categories.push(category);
+      });
       const mappingCategories = categories?.map((category: string) => {
         const mapping = MAPPING_CATEGORIES[category];
         return mapping ? mapping : category;
@@ -215,27 +209,36 @@ export class AutoVerifyService {
         zipCode,
         categories: mappingCategories,
       };
-
+      if (
+        !newBusiness?.phone ||
+        !newBusiness?.address ||
+        !newBusiness?.city ||
+        !newBusiness?.state ||
+        !newBusiness?.zipCode
+      )
+        return;
       const checkScratch = await this.business.findByScratchLink(scratchLink);
-      const checkDulicate = await this.business.findFistOne(
-        name,
-        phone,
-        address,
+      const checkDuplicate = await this.business.findFistOne(
+        newBusiness?.name,
+        newBusiness?.phone,
+        newBusiness?.address,
       );
-      if (!checkScratch) {
-        if (checkDulicate)
+      if (!checkDuplicate && !checkScratch)
+        await this.business.createScratchBusiness(newBusiness);
+      else {
+        if (checkScratch)
           await this.business.updateScratchBusiness(
-            checkDulicate?.id,
+            checkScratch?.id,
             newBusiness,
           );
-        else await this.business.createScratchBusiness(newBusiness);
-      } else {
-        await this.business.updateScratchBusiness(
-          checkScratch?.id,
-          newBusiness,
-        );
+        else {
+          delete newBusiness.scratchLink;
+          await this.business.updateScratchBusiness(
+            checkDuplicate?.id,
+            newBusiness,
+          );
+        }
       }
-      //console.log('newBusiness', newBusiness);
     } catch (e) {
       console.log(e);
     }
