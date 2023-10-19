@@ -174,7 +174,7 @@ export class AutoVerifyService {
             return await this.getDetail(business);
           };
         });
-        await promisesSequentially(promiseGetDetail, 10);
+        await promisesSequentially(promiseGetDetail, 50);
       }
     } catch (e) {
       console.log(e);
