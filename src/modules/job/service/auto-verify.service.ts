@@ -175,10 +175,21 @@ export class AutoVerifyService {
         'aside section .arrange-unit-fill__09f24__CUubG .css-1p9ibgf',
       )?.text();
 
-      const removeText = websiteAndPhone.replace('Get Directions', '');
-      const websiteMatch = removeText.match(REG_IS_WEBSITE);
-      const website = websiteMatch ? websiteMatch[1] : null;
-      const phone = removeText.replace(website, '');
+      const address = $('address .css-r9996t a .raw__09f24__T4Ezm')?.text();
+      const formatAddress = $('address  .css-qgunke span')?.text();
+      if (!address || !formatAddress) return;
+      const matches = formatAddress?.match(REG_FORMAT_ADDRESS);
+      const city = matches[1];
+      const state = matches[2];
+      const zipCode = matches[3];
+
+      let phone: string, website: string;
+      if (websiteAndPhone) {
+        const removeText = websiteAndPhone?.replace('Get Directions', '');
+        const websiteMatch = removeText?.match(REG_IS_WEBSITE);
+        website = websiteMatch ? websiteMatch?.[0] : undefined;
+        phone = website ? removeText?.replace(website, '') : removeText;
+      }
       const categories = [];
       $('.arrange-unit__09f24__rqHTg .css-1xfc281 .css-1fdy0l5 a').map(
         (i, el) => {
@@ -192,18 +203,10 @@ export class AutoVerifyService {
         return mapping ? mapping : category;
       });
 
-      const address = $('address .css-r9996t a .raw__09f24__T4Ezm')?.text();
-      const formatAddress = $('address  .css-qgunke span')?.text();
-      const matches = formatAddress.match(REG_FORMAT_ADDRESS);
-
-      const city = matches[1];
-      const state = matches[2];
-      const zipCode = matches[3];
-
       const newBusiness = {
         ...business,
-        website,
-        phone: formatPhoneNumber(phone),
+        website: website ? `https://www.${website}` : undefined,
+        phone: phone ? formatPhoneNumber(phone) : undefined,
         address,
         city,
         state,
@@ -226,11 +229,13 @@ export class AutoVerifyService {
         else await this.business.createScratchBusiness(newBusiness);
       } else {
         await this.business.updateScratchBusiness(
-          checkDulicate?.id,
+          checkScratch?.id,
           newBusiness,
         );
       }
-      console.log('newBusiness', newBusiness);
-    } catch (e) {}
+      //console.log('newBusiness', newBusiness);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
