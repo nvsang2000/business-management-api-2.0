@@ -10,11 +10,13 @@ import { BullModule } from '@nestjs/bull';
 import { ExportBusinessService } from './export-business.service';
 import { ExportModule } from 'src/shared/export/export.module';
 import { FilesModule } from '../files/files.module';
+import { ImportModule } from 'src/shared/import/import.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'job-export-business' }),
     ExportModule,
+    ImportModule,
     FilesModule,
   ],
   controllers: [BusinessController],

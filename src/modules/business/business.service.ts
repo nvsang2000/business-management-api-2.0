@@ -18,6 +18,7 @@ import {
 import {
   BUSINESS_STATUS,
   GOOOGLE_VERIFY,
+  LINK_SOURCE,
   MESSAGE_ERROR,
   STRING_BOOLEAN,
 } from 'src/constants';
@@ -28,6 +29,7 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
+import { ImportService } from 'src/shared/import/import.service';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
 @Injectable()
@@ -35,6 +37,7 @@ export class BusinessService {
   constructor(
     private prisma: PrismaService,
     private zipCodeService: ZipCodeService,
+    private importService: ImportService,
   ) {}
 
   private readonly include = {
@@ -62,6 +65,7 @@ export class BusinessService {
       address,
       city,
       zipCode,
+      source,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const boolGoogleVerify =
@@ -71,6 +75,7 @@ export class BusinessService {
     state && (state = []?.concat(state)?.flat(Infinity));
 
     return {
+      ...(source && { scratchLink: { contains: LINK_SOURCE[source] } }),
       ...(website && {
         website: website === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
@@ -85,7 +90,7 @@ export class BusinessService {
       ...(!statusUser?.includes(statusMarketing) && {
         statusMarketing: { equals: statusMarketing },
       }),
-      ...(categories && { categories: { hasEvery: categories } }),
+      ...(categories && { categories: { hasSome: categories } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
       ...(zipCode && { zipCode: { contains: zipCode } }),
       ...(city && { city: { contains: city, mode: 'insensitive' as any } }),
@@ -325,5 +330,11 @@ export class BusinessService {
     } catch (e) {
       throw new UnprocessableEntityException(e?.response);
     }
+  }
+
+  async importExcel() {
+    try {
+      await this.importService.importBusiness();
+    } catch (e) {}
   }
 }

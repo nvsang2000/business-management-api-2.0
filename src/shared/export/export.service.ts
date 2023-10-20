@@ -4,9 +4,9 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as ExcelJS from 'exceljs';
+import dayjs from 'dayjs';
 import { API_HOST, ASSETS_CSV_DIR } from 'src/constants';
-import { v4 as uuidv4 } from 'uuid';
+import * as XLSX from 'xlsx-js-style';
 
 @Injectable()
 export class ExportService {
@@ -15,15 +15,15 @@ export class ExportService {
     try {
       const dir = await this.configService.get(ASSETS_CSV_DIR);
       const apiHost = await this.configService.get(API_HOST);
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Data');
-
-      worksheet.addRows(rawDatas);
-
-      const fileName = `BUSINESS_${uuidv4()}.csv`;
-
+      const fileName = `BUSINESS_${dayjs().format(
+        'DD-MM-YYYY',
+      )}_${Date.now().toString()}.csv`;
       const tempFilePath = `${dir}/${fileName}`;
-      await workbook.xlsx.writeFile(tempFilePath);
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet(rawDatas);
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'business');
+      XLSX.writeFile(workbook, tempFilePath);
 
       return {
         name: fileName,

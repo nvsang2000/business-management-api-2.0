@@ -1,3 +1,4 @@
+import { ImportModule } from './shared/import/import.module';
 import { ExportModule } from './shared/export/export.module';
 import { FilesModule } from './modules/files/files.module';
 import { WorkerService } from './worker.service';
@@ -26,6 +27,7 @@ import { JobModule } from './modules/job/job.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
+    ImportModule,
     ExportModule,
     FilesModule,
     ServeStaticModule.forRoot({

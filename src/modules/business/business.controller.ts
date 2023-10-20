@@ -52,17 +52,17 @@ export class BusinessController {
     return this.businessService.paginate(fetchDto, res);
   }
 
+  @Get('import')
+  async getImport() {
+    return await this.businessService.importExcel();
+  }
+
   @Get('export')
   getExport(
     @Query() fetchDto: ExportBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.exportBusinessService.createExport(fetchDto, currentUser);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.businessService.findById(id);
   }
 
   @Put('status-marketing/:id')
@@ -72,6 +72,11 @@ export class BusinessController {
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.businessService.updateMarketing(id, payload, currentUser);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.businessService.findById(id);
   }
 
   @Put(':id')

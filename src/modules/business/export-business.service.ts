@@ -8,9 +8,21 @@ import { ExportService } from 'src/shared/export/export.service';
 import { ExportBusinessDto, FetchBusinessDto } from './dto';
 import { BusinessService } from './business.service';
 import { BusinessEntity, UserEntity } from 'src/entities';
-import { HEADER_ROW_BUSINESS } from 'src/constants';
 import { FilesService } from '../files/files.service';
 
+export const HEADER_ROW_BUSINESS = [
+  'id',
+  'name',
+  'phone',
+  'website',
+  'address',
+  'city',
+  'state',
+  'zipCode',
+  'categories',
+  'scratchLink',
+  'thumbnailUrl',
+];
 @Injectable()
 export class ExportBusinessService {
   constructor(
@@ -96,8 +108,7 @@ export class ExportBusinessService {
     currentUser: UserEntity,
   ) {
     try {
-      const bodyRow = businessList?.map((i: any) => {
-        const categories = i?.category?.map((i: any) => i?.name);
+      const bodyRow = businessList?.map((i: BusinessEntity) => {
         return [
           i?.id,
           i?.name,
@@ -107,7 +118,9 @@ export class ExportBusinessService {
           i?.city,
           i?.state,
           i?.zipCode,
-          categories,
+          i?.categories,
+          i?.scratchLink,
+          i?.thumbnailUrl,
         ];
       });
 

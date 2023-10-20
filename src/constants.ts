@@ -95,10 +95,20 @@ export enum FILE_TYPE {
   excel = 'excel',
 }
 
+export enum SOURCE_SCRATCH {
+  YELP = 'yelp',
+  YELLOW_PAGES = 'yellow',
+}
+
 export enum GOOGLE_API_INPUT_TYPE {
   PHONE_NUMBER = 'phonenumber',
   TEXT_QUERY = 'textquery',
 }
+
+export const LINK_SOURCE = {
+  yelp: 'https://www.yelp.com',
+  yellow: 'https://www.yellowpages.com',
+};
 //env
 export const NODE_ENV = 'NODE_ENV';
 export const BUSINESS_LIST = 'BUSINESS_LIST';
@@ -157,11 +167,6 @@ export const WEBSITE = {
 export const DEFAULT_OPTION_HEADER_FETCH = {
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
-};
-
-export const LINK_SOURCE = {
-  yelp: 'https://www.yelp.com',
-  yellowpages: 'https://www.yellowpages.com',
 };
 
 export const SCRATCH_STATUS = {
@@ -227,18 +232,6 @@ export const MESSAGE_ERROR = {
 
 export const SORT_DIRECTION = ['asc', 'desc'];
 export const CATEGORY_SORT_BY = ['name', 'isActive', 'createdAt'];
-
-export const HEADER_ROW_BUSINESS = [
-  'Id',
-  'Name',
-  'Phone',
-  'Website',
-  'Address',
-  'City',
-  'State',
-  'Zip Code',
-  'Categories',
-];
 
 //regex
 export const REG_FORMAT_ADDRESS = /([^,]+),\s([A-Z]{2})\s(\d{5})/;

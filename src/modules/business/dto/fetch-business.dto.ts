@@ -3,6 +3,7 @@ import { IsOptional, IsUUID } from 'class-validator';
 import { UUID } from 'crypto';
 import {
   GOOOGLE_VERIFY,
+  SOURCE_SCRATCH,
   STATUS_MARKETING,
   STRING_BOOLEAN,
 } from 'src/constants';
@@ -10,6 +11,9 @@ import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
 import { FetchDto } from 'src/dto/fetch.dto';
 
 export class FetchBusinessDto extends FetchDto {
+  @EnumFieldOptional(() => SOURCE_SCRATCH)
+  source?: string;
+
   @EnumFieldOptional(() => STRING_BOOLEAN)
   website?: string;
 

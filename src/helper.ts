@@ -16,6 +16,9 @@ export const parseSafe = (s) => {
   }
 };
 
+export const getNestedVal = (object, path) =>
+  path.split('.').reduce((res, prop) => res?.[prop], object);
+
 export const sumNumberArray = (array: Array<any>) => {
   return array.reduce((accumulator, currentValue) => {
     return accumulator + currentValue;

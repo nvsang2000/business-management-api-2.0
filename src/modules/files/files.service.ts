@@ -14,7 +14,7 @@ import { transformTextSearch } from 'src/helper';
 import { Response } from 'express';
 import sharp from 'sharp';
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 
 const isImage = (format) => {
   return ['jpeg', 'png', 'webp', 'img'].includes(format);
@@ -39,7 +39,9 @@ export class FilesService {
         throw new UnprocessableEntityException('Format not supported !');
       }
 
-      const fileName = `${uuidv4()}.png`;
+      const fileName = `THUMNAIL_${dayjs().format(
+        'DD-MM-YYYY',
+      )}_${Date.now().toString()}.png`;
       fs.writeFileSync(`${dir}/${fileName}`, image.buffer);
 
       const url = `${apiHost}assets/thumnail/${fileName}`;
