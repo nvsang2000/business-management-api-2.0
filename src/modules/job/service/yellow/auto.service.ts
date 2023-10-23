@@ -3,11 +3,11 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { JobService } from '../job.service';
+import { JobService } from '../../job.service';
 import { BusinessService } from 'src/modules/business/business.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import { JobAutoDto } from '../dto';
+import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
 import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
 import { BullJob } from 'src/interface';
@@ -15,13 +15,13 @@ import { JobEntity } from 'src/entities/job.entity';
 import {
   connectPage,
   formatPhoneNumber,
-  parseUSAddress,
   promisesSequentially,
 } from 'src/helper';
 import dayjs from 'dayjs';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
 import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import * as cheerio from 'cheerio';
+import { SearchYellowService } from './search.service';
 
 interface StatusDataItem {
   state: string;
@@ -31,8 +31,9 @@ interface StatusDataItem {
 }
 
 @Injectable()
-export class AutoSearchService {
+export class AutoSearchYellowService {
   constructor(
+    private searchYellow: SearchYellowService,
     private jobService: JobService,
     private businessService: BusinessService,
     private zipCodeService: ZipCodeService,
@@ -40,10 +41,10 @@ export class AutoSearchService {
     private scrapingQueue: Queue,
   ) {}
 
-  async reJobAutoSearch(id: string, currentUser: UserEntity) {
+  async reJobAuto(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-search-24h',
+        'auto-search-yellow',
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -58,7 +59,8 @@ export class AutoSearchService {
     }
   }
 
-  async createJobAutoSearch(payload: JobAutoDto, currentUser: UserEntity) {
+  async createJobAuto(payload: JobAutoDto, currentUser: UserEntity) {
+    delete payload.source;
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});
       const statusData: any = zipCodeList?.stateList?.reduce((acc, item) => {
@@ -73,7 +75,7 @@ export class AutoSearchService {
       );
 
       await this.scrapingQueue.add(
-        'auto-search-24h',
+        'auto-search-yellow',
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,
@@ -88,7 +90,7 @@ export class AutoSearchService {
     }
   }
 
-  async runJobAutoSearch(bull: Job<BullJob>) {
+  async runJobAuto(bull: Job<BullJob>) {
     const { jobId, userId } = bull.data;
     try {
       const job: JobEntity = await this.jobService.findById(jobId);
@@ -151,50 +153,10 @@ export class AutoSearchService {
         const response = await connectPage(url);
         const body = await response?.text();
         const $ = cheerio.load(body);
-        const businessListForPage = [];
-        $('[class="search-results organic"] .result')?.map((i, el) => {
-          const addressStreet = $(el)
-            ?.find('.info-secondary .adr .street-address')
-            ?.text();
-          const addressLocality = $(el)
-            ?.find('.info-secondary .adr .locality')
-            ?.text();
-          const name = $(el)?.find('.info-primary h2 .business-name')?.text();
-          const categories = [];
-          $(el)
-            ?.find('.info-primary .categories a')
-            ?.map((i, el) => categories.push($(el)?.text()));
-          const phone = $(el).find('.info-secondary .phone')?.text();
-          const thumbnailUrl = $(el)
-            ?.find('.media-thumbnail-wrapper img')
-            ?.attr('src');
-          const scratchLink = $(el)?.find('.info-primary h2 a')?.attr('href');
-          const website = $(el)
-            ?.find('.info-primary .links a[target="_blank"]')
-            ?.attr('href');
+        const businessList = await this.searchYellow.findElDetail($);
+        if (businessList?.length === 0) break;
 
-          const { address, city, state, zipCode } = parseUSAddress(
-            addressLocality,
-            addressStreet,
-          );
-          const item = {
-            website,
-            scratchLink,
-            name,
-            categories,
-            thumbnailUrl,
-            phone,
-            zipCode,
-            state,
-            city,
-            address,
-          };
-          if (!name || !phone || !state || !zipCode || !address) return;
-          return businessListForPage.push(item);
-        });
-        if (businessListForPage?.length === 0) break;
-
-        for (const business of businessListForPage as CreateScratchBusinessDto[]) {
+        for (const business of businessList as CreateScratchBusinessDto[]) {
           business.scratchLink =
             WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
           business.phone = formatPhoneNumber(business.phone);

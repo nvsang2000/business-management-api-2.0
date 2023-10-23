@@ -15,11 +15,11 @@ import {
 import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
-import { JobService } from '../job.service';
+import { JobService } from '../../job.service';
 import { JobEntity } from 'src/entities/job.entity';
 import { BullJob } from 'src/interface';
 import { UserEntity } from 'src/entities';
-import { CreateJobSearchBusinessDto } from '../dto';
+import { CreateJobSearchBusinessDto } from '../../dto';
 import { InjectQueue } from '@nestjs/bull';
 import { PrismaService } from 'nestjs-prisma';
 
@@ -35,7 +35,7 @@ interface StatusDataItem {
   messageError?: any;
 }
 @Injectable()
-export class SearchService {
+export class SearchYellowService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
@@ -43,6 +43,24 @@ export class SearchService {
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
+
+  async reJobSearch(id: string, currentUser: UserEntity) {
+    try {
+      const job = await this.scrapingQueue.add(
+        'search-yellow',
+        { jobId: id, userId: currentUser?.id },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
+
+      return job;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
 
   async createJobSearch(
     createJob: CreateJobSearchBusinessDto,
@@ -72,7 +90,7 @@ export class SearchService {
 
       if (jobsWaiting?.length === 1)
         await this.scrapingQueue.add(
-          'search',
+          'search-yellow',
           { jobId: result?.id, userId },
           {
             removeOnComplete: true,
@@ -97,7 +115,7 @@ export class SearchService {
           return async () => {
             if (data?.isFinish) return;
             const newPayload = { ...data, keyword };
-            return this.searchBusiness(job, newPayload, userId);
+            return this.searchWhithZipCode(job, newPayload);
           };
         },
       );
@@ -119,10 +137,9 @@ export class SearchService {
     }
   }
 
-  async searchBusiness(
+  async searchWhithZipCode(
     job: JobEntity,
     payload: PayloadSearchBusiness,
-    userId: string,
   ): Promise<any> {
     const { id, statusData } = job;
     const { keyword, zipCode } = payload;
@@ -133,50 +150,10 @@ export class SearchService {
         const response = await connectPage(url);
         const body = await response?.text();
         const $ = cheerio.load(body);
-        const businessListForPage = [];
-        $('[class="search-results organic"] .result')?.map((i, el) => {
-          const addressStreet = $(el)
-            ?.find('.info-secondary .adr .street-address')
-            ?.text();
-          const addressLocality = $(el)
-            ?.find('.info-secondary .adr .locality')
-            ?.text();
-          const name = $(el)?.find('.info-primary h2 .business-name')?.text();
-          const categories = [];
-          $(el)
-            ?.find('.info-primary .categories a')
-            ?.map((i, el) => categories.push($(el)?.text()));
-          const phone = $(el).find('.info-secondary .phone')?.text();
-          const thumbnailUrl = $(el)
-            ?.find('.media-thumbnail-wrapper img')
-            ?.attr('src');
-          const scratchLink = $(el)?.find('.info-primary h2 a')?.attr('href');
-          const website = $(el)
-            ?.find('.info-primary .links a[target="_blank"]')
-            ?.attr('href');
+        const businessList = await this.findElDetail($);
+        if (businessList?.length === 0) break;
 
-          const { address, city, state, zipCode } = parseUSAddress(
-            addressLocality,
-            addressStreet,
-          );
-          const item = {
-            website: website?.length > 400 ? undefined : website,
-            scratchLink,
-            name,
-            categories,
-            thumbnailUrl,
-            phone,
-            zipCode,
-            state,
-            city,
-            address,
-          };
-          if (!name || !phone || !state || !zipCode || !address) return;
-          return businessListForPage.push(item);
-        });
-        if (businessListForPage?.length === 0) break;
-
-        for (const business of businessListForPage as CreateScratchBusinessDto[]) {
+        for (const business of businessList as CreateScratchBusinessDto[]) {
           business.scratchLink =
             WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
           business.phone = formatPhoneNumber(business.phone);
@@ -186,13 +163,12 @@ export class SearchService {
           );
 
           if (!checkScratch)
-            await this.businessService.createScratchBusiness(business, userId);
+            await this.businessService.createScratchBusiness(business);
           else if (checkScratch) {
             if (checkScratch?.googleVerify) continue;
             await this.businessService.updateScratchBusiness(
               checkScratch?.id,
               business,
-              userId,
             );
           }
         }
@@ -212,5 +188,53 @@ export class SearchService {
       statusData[zipCode].isFinish = true;
       return await this.jobService.update(id, { statusData });
     }
+  }
+
+  async findElDetail($: any) {
+    const businessListForPage = [];
+    $('[class="search-results organic"] .result')?.map(
+      (i: number, el: Element) => {
+        const addressStreet = $(el)
+          ?.find('.info-secondary .adr .street-address')
+          ?.text();
+        const addressLocality = $(el)
+          ?.find('.info-secondary .adr .locality')
+          ?.text();
+        const name = $(el)?.find('.info-primary h2 .business-name')?.text();
+        const categories = [];
+        $(el)
+          ?.find('.info-primary .categories a')
+          ?.map((i, el) => categories.push($(el)?.text()));
+        const phone = $(el).find('.info-secondary .phone')?.text();
+        const thumbnailUrl = $(el)
+          ?.find('.media-thumbnail-wrapper img')
+          ?.attr('src');
+        const scratchLink = $(el)?.find('.info-primary h2 a')?.attr('href');
+        const website = $(el)
+          ?.find('.info-primary .links a[target="_blank"]')
+          ?.attr('href');
+
+        const { address, city, state, zipCode } = parseUSAddress(
+          addressLocality,
+          addressStreet,
+        );
+        const item = {
+          website: website?.length > 400 ? undefined : website,
+          scratchLink,
+          name,
+          categories,
+          thumbnailUrl,
+          phone,
+          zipCode,
+          state,
+          city,
+          address,
+        };
+        if (!name || !phone || !state || !zipCode || !address) return;
+        return businessListForPage.push(item);
+      },
+    );
+
+    return businessListForPage;
   }
 }

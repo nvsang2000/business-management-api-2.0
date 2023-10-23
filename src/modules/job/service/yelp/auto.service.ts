@@ -3,38 +3,33 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { JobAutoDto } from '../dto';
+import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
 import { BusinessService } from 'src/modules/business/business.service';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import {
-  JOB_STATUS,
-  MAPPING_CATEGORIES,
-  REG_FORMAT_ADDRESS,
-  TYPE_JOB,
-  WEBSITE,
-} from 'src/constants';
+import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
 import * as cheerio from 'cheerio';
-import {
-  connectPage,
-  formatPhoneNumber,
-  promisesSequentially,
-} from 'src/helper';
+import { connectPage, promisesSequentially } from 'src/helper';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
-import { JobService } from '../job.service';
+import { JobService } from '../../job.service';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
+import { PrismaService } from 'nestjs-prisma';
+import { SearchYelpService } from './search.service';
 
 interface BusinessForList {
   name: string;
   thumbnailUrl: string;
   scratchLink: string;
 }
+
 @Injectable()
-export class AutoVerifyService {
+export class AutoSearchYelpService {
   constructor(
+    private searchYelp: SearchYelpService,
+    private prisma: PrismaService,
     private zipCodeService: ZipCodeService,
     private business: BusinessService,
     private jobService: JobService,
@@ -42,10 +37,10 @@ export class AutoVerifyService {
     private scrapingQueue: Queue,
   ) {}
 
-  async reJobAutoVerify(id: string, currentUser: UserEntity) {
+  async reJobAuto(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-verify-24h',
+        'auto-search-yelp',
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -60,7 +55,8 @@ export class AutoVerifyService {
     }
   }
 
-  async createJobAutoVerify(payload: JobAutoDto, currentUser: UserEntity) {
+  async createJobAuto(payload: JobAutoDto, currentUser: UserEntity) {
+    delete payload.source;
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});
       const statusData: any = zipCodeList?.stateList?.reduce((acc, item) => {
@@ -75,7 +71,7 @@ export class AutoVerifyService {
       );
 
       await this.scrapingQueue.add(
-        'auto-verify-24h',
+        'auto-search-yelp',
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,
@@ -90,7 +86,7 @@ export class AutoVerifyService {
     }
   }
 
-  async runJobAutoVerify(bull: Job<BullJob>) {
+  async runJobAuto(bull: Job<BullJob>) {
     const { jobId, userId } = bull.data;
     try {
       const job: JobEntity = await this.jobService.findById(jobId);
@@ -98,7 +94,7 @@ export class AutoVerifyService {
       const promisesState = Object?.values(statusData)?.map((data: any) => {
         return async () => {
           if (data?.isFinish) return;
-          return await this.parserZipCode(job, data?.state);
+          return await this.searchWithManyZipCode(job, data?.state);
         };
       });
       const result = await promisesSequentially(promisesState, 1);
@@ -119,7 +115,7 @@ export class AutoVerifyService {
     }
   }
 
-  async parserZipCode(job: JobEntity, stateCode: string): Promise<any> {
+  async searchWithManyZipCode(job: JobEntity, stateCode: string): Promise<any> {
     const { id, statusData, keyword } = job;
     const zipCodeTree = await this.zipCodeService.readFileZipCode({
       stateCode,
@@ -130,7 +126,7 @@ export class AutoVerifyService {
     try {
       const prosmisesZipCode = zipCodeList?.map((zipCode: string) => {
         return async () => {
-          return await this.getList(keyword, zipCode);
+          return await this.searchWithZipCode(keyword, zipCode);
         };
       });
       console.log('prosmises', prosmisesZipCode?.length);
@@ -143,7 +139,7 @@ export class AutoVerifyService {
     }
   }
 
-  async getList(keyword: string, zipCode: string): Promise<any> {
+  async searchWithZipCode(keyword: string, zipCode: string): Promise<any> {
     try {
       let page = 0;
       const businessListForPage: BusinessForList[] = [];
@@ -153,14 +149,8 @@ export class AutoVerifyService {
         const body = await response?.text();
         const $ = cheerio.load(body);
 
-        $(WEBSITE.YELP.ITEM_LIST)?.map((i, el) => {
-          const name = $(el)?.find('h3 span a')?.text();
-          const thumbnailUrl = $(el)?.find('.css-eqfjza a img')?.attr('src');
-          const url = $(el)?.find('.css-eqfjza a')?.attr('href');
-          const scratchLink = `${WEBSITE.YELP.URL}${url}`;
-          const item = { name, thumbnailUrl, scratchLink };
-          businessListForPage.push(item);
-        });
+        const businessList = await this.searchYelp.findElList($);
+        businessListForPage.push(...businessList);
 
         const nextPage = $(WEBSITE.YELP.NEXT_PAGE).attr('href');
         if (!nextPage) break;
@@ -171,91 +161,10 @@ export class AutoVerifyService {
       else {
         const promiseGetDetail = businessListForPage?.map((business) => {
           return async () => {
-            return await this.getDetail(business);
+            return await this.searchYelp.saveBusiness(business);
           };
         });
         await promisesSequentially(promiseGetDetail, 10);
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async getDetail(business: BusinessForList) {
-    const { scratchLink } = business;
-    try {
-      const response = await connectPage(scratchLink);
-      const body = await response?.text();
-      const $ = cheerio.load(body);
-
-      const address = $(WEBSITE.YELP.DETAIL_ADDRESS)?.text();
-      const formatAddress = $(WEBSITE.YELP.DETAIL_FORMAT_ADDRESS)?.text();
-      if (!address || !formatAddress) return;
-      const matches = formatAddress?.match(REG_FORMAT_ADDRESS);
-      if (matches?.length < 3) return;
-      const city = matches?.[1];
-      const state = matches?.[2];
-      const zipCode = matches?.[3];
-
-      let phone: string, website: string;
-      const websiteAndPhone = $(WEBSITE.YELP.DETAIL_WEB_PHONE)?.text();
-      const removeText = websiteAndPhone?.replace('Get Directions', '');
-      if (!removeText) return;
-      if (websiteAndPhone) {
-        const openParenIndex = removeText.indexOf('(');
-        website = removeText.slice(0, openParenIndex);
-        phone = removeText.slice(openParenIndex);
-      }
-
-      const categories = [];
-      $(WEBSITE.YELP.DETAIL_CATEGORIES).map((i, el) => {
-        const category = $(el).text();
-        categories.push(category);
-      });
-      const mappingCategories = categories?.map((category: string) => {
-        const mapping = MAPPING_CATEGORIES[category];
-        return mapping ? mapping : category;
-      });
-
-      const newBusiness = {
-        ...business,
-        website: website ? `https://www.${website}` : undefined,
-        phone: phone ? formatPhoneNumber(phone) : undefined,
-        address,
-        city,
-        state,
-        zipCode,
-        categories: mappingCategories,
-      };
-      if (
-        !newBusiness?.phone ||
-        !newBusiness?.address ||
-        !newBusiness?.city ||
-        !newBusiness?.state ||
-        !newBusiness?.zipCode
-      )
-        return;
-      const checkScratch = await this.business.findByScratchLink(scratchLink);
-      const checkDuplicate = await this.business.findFistOne(
-        newBusiness?.name,
-        newBusiness?.phone,
-        newBusiness?.address,
-      );
-      if (!checkDuplicate && !checkScratch)
-        await this.business.createScratchBusiness(newBusiness);
-      else {
-        if (checkScratch)
-          await this.business.updateScratchBusiness(
-            checkScratch?.id,
-            newBusiness,
-          );
-        else {
-          delete newBusiness.scratchLink;
-          await this.business.updateScratchBusiness(
-            checkDuplicate?.id,
-            newBusiness,
-          );
-        }
       }
     } catch (e) {
       console.log(e);

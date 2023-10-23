@@ -11,6 +11,7 @@ import {
   Post,
   Body,
   Delete,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
@@ -19,10 +20,11 @@ import { CurrentUser, Roles } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
 import { JobService } from './job.service';
-import { SearchService } from './service/search.service';
-import { AutoSearchService } from './service/auto-search.service';
-import { ROLE } from 'src/constants';
-import { AutoVerifyService } from './service/auto-verify.service';
+import { SearchYellowService } from './service/yellow/search.service';
+import { ROLE, SOURCE_SCRATCH } from 'src/constants';
+import { AutoSearchYelpService } from './service/yelp/auto.service';
+import { AutoSearchYellowService } from './service/yellow/auto.service';
+import { SearchYelpService } from './service/yelp/search.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -30,17 +32,38 @@ import { AutoVerifyService } from './service/auto-verify.service';
 export class JobController {
   constructor(
     private jobService: JobService,
-    private searchService: SearchService,
-    private autoVerifyService: AutoVerifyService,
-    private autoSearchService: AutoSearchService,
+    private searchYelp: SearchYelpService,
+    private searchYellow: SearchYellowService,
+    private autoSearchYelp: AutoSearchYelpService,
+    private autoSearchYellow: AutoSearchYellowService,
   ) {}
 
-  @Post('search')
+  @Post('search/:source')
   createJobSearch(
+    @Param('source') source: SOURCE_SCRATCH,
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.searchService.createJobSearch(payload, currentUser);
+    if (source === SOURCE_SCRATCH.YELLOW_PAGES)
+      return this.searchYellow.createJobSearch(payload, currentUser);
+
+    if (source === SOURCE_SCRATCH.YELP)
+      return this.searchYelp.createJobSearch(payload, currentUser);
+
+    throw new UnprocessableEntityException();
+  }
+
+  @Get('search/:id')
+  createReJobSearch(
+    @Param('id') id: string,
+    @Query() payload: JobAutoDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+      return this.searchYellow.reJobSearch(id, currentUser);
+
+    if (payload?.source === SOURCE_SCRATCH.YELP)
+      return this.searchYelp.reJobSearch(id, currentUser);
   }
 
   @Get('auto-search')
@@ -49,34 +72,25 @@ export class JobController {
     @Query() payload: JobAutoDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.autoSearchService.createJobAutoSearch(payload, currentUser);
+    if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+      return this.autoSearchYellow.createJobAuto(payload, currentUser);
+
+    if (payload?.source === SOURCE_SCRATCH.YELP)
+      return this.autoSearchYelp.createJobAuto(payload, currentUser);
   }
 
   @Get('re-auto-search/:id')
   @Roles([ROLE.admin])
   createJobReAutoSearch(
     @Param('id') id: string,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.autoSearchService.reJobAutoSearch(id, currentUser);
-  }
-
-  @Get('auto-verify')
-  @Roles([ROLE.admin])
-  getVerify(
     @Query() payload: JobAutoDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    return this.autoVerifyService.createJobAutoVerify(payload, currentUser);
-  }
+    if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+      return this.autoSearchYellow.reJobAuto(id, currentUser);
 
-  @Get('re-auto-verify/:id')
-  @Roles([ROLE.admin])
-  createJobReAutoVerify(
-    @Param('id') id: string,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.autoVerifyService.reJobAutoVerify(id, currentUser);
+    if (payload?.source === SOURCE_SCRATCH.YELP)
+      return this.autoSearchYelp.reJobAuto(id, currentUser);
   }
 
   @Get()

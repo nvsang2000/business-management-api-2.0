@@ -1,41 +1,53 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { SearchService } from '../service/search.service';
+import { SearchYellowService } from '../service/yellow/search.service';
 import { BullJob } from 'src/interface';
-import { AutoSearchService } from '../service/auto-search.service';
-import { AutoVerifyService } from '../service/auto-verify.service';
+import { AutoSearchYellowService } from '../service/yellow/auto.service';
+import { AutoSearchYelpService } from '../service/yelp/auto.service';
+import { SearchYelpService } from '../service/yelp/search.service';
 
 @Processor('job-queue')
 export class BullJobQueue {
   constructor(
-    private autoVerify: AutoVerifyService,
-    private search: SearchService,
-    private autoSearch: AutoSearchService,
+    private searchYelp: SearchYelpService,
+    private searchYellow: SearchYellowService,
+    private autoSearchYelp: AutoSearchYelpService,
+    private autoSearchYellow: AutoSearchYellowService,
   ) {}
 
-  @Process('auto-search-24h')
-  async runBullAuto(bull: Job<BullJob>) {
+  @Process('search-yellow')
+  async runBullSearchYellow(bull: Job<BullJob>) {
     try {
-      return await this.autoSearch.runJobAutoSearch(bull);
+      return await this.searchYellow.runJobSearch(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
   }
 
-  @Process('auto-verify-24h')
-  async runBullVerify(bull: Job<BullJob>) {
+  @Process('auto-search-yellow')
+  async runBullAutoSearchYellow(bull: Job<BullJob>) {
     try {
-      return await this.autoVerify.runJobAutoVerify(bull);
+      return await this.autoSearchYellow.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
   }
 
-  @Process('search')
-  async runBullSearch(bull: Job<BullJob>) {
+  @Process('search-yelp')
+  async runBullSearchYelp(bull: Job<BullJob>) {
     try {
-      return await this.search.runJobSearch(bull);
+      console.log('yelp', bull);
+      return await this.searchYelp.runJobSearch(bull);
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  @Process('auto-search-yelp')
+  async runBullAutoSearchYelp(bull: Job<BullJob>) {
+    try {
+      return await this.autoSearchYelp.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
