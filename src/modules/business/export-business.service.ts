@@ -9,6 +9,7 @@ import { ExportBusinessDto, FetchBusinessDto } from './dto';
 import { BusinessService } from './business.service';
 import { BusinessEntity, UserEntity } from 'src/entities';
 import { FilesService } from '../files/files.service';
+import { FILE_TYPE } from 'src/constants';
 
 export const HEADER_ROW_BUSINESS = [
   'id',
@@ -109,7 +110,7 @@ export class ExportBusinessService {
   ) {
     try {
       const bodyRow = businessList?.map((i: BusinessEntity) => {
-        return [
+        const row = [
           i?.id,
           i?.name,
           i?.phone,
@@ -118,17 +119,19 @@ export class ExportBusinessService {
           i?.city,
           i?.state,
           i?.zipCode,
-          i?.categories,
+          i?.categories?.join(', '),
           i?.scratchLink,
           i?.thumbnailUrl,
         ];
+        return row;
       });
 
-      const result = await this.exportService.exportExcel([
-        HEADER_ROW_BUSINESS,
-        ...bodyRow,
-      ]);
-      await this.filesService.createFileExcel(result, currentUser);
+      const rawData = [HEADER_ROW_BUSINESS, ...bodyRow];
+      const result = await this.exportService.exportExcel(rawData);
+      await this.filesService.create(
+        { ...result, type: FILE_TYPE.excel },
+        currentUser,
+      );
 
       return result;
     } catch (e) {

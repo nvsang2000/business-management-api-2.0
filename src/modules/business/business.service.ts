@@ -29,7 +29,6 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 import { ZipCodeService } from '../zipCode/zip-code.service';
-import { ImportService } from 'src/shared/import/import.service';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
 @Injectable()
@@ -37,7 +36,6 @@ export class BusinessService {
   constructor(
     private prisma: PrismaService,
     private zipCodeService: ZipCodeService,
-    private importService: ImportService,
   ) {}
 
   private readonly include = {
@@ -188,6 +186,7 @@ export class BusinessService {
       });
       return result;
     } catch (e) {
+      console.log('err', e);
       throw new UnprocessableEntityException(e.message);
     }
   }
@@ -267,20 +266,12 @@ export class BusinessService {
     userId?: string,
   ) {
     try {
-      const { categories, city, state, zipCode } = updateBusiness;
-      const findZipCode = await this.zipCodeService.getCity(
-        city,
-        state,
-        zipCode,
-      );
+      const { categories } = updateBusiness;
       const result = await this.prisma.business.update({
         where: { id },
         data: {
           ...updateBusiness,
           ...(userId && { updatedBy: { connect: { id: userId } } }),
-          ...(findZipCode && {
-            cityName: { connect: { id: findZipCode?.id } },
-          }),
           ...(categories?.length > 0 && {
             category: {
               connectOrCreate: categories?.map((name) => ({
@@ -293,6 +284,7 @@ export class BusinessService {
       });
       return result;
     } catch (e) {
+      console.log('err', e);
       throw new UnprocessableEntityException(e.message);
     }
   }
@@ -302,20 +294,12 @@ export class BusinessService {
     userId?: string,
   ): Promise<any> {
     try {
-      const { categories, city, state, zipCode } = createBusiness;
-      const findZipCode = await this.zipCodeService.getCity(
-        city,
-        state,
-        zipCode,
-      );
+      const { categories } = createBusiness;
       const result = await this.prisma.business.create({
         data: {
           status: [BUSINESS_STATUS.NEW],
           ...createBusiness,
           ...(userId && { creator: { connect: { id: userId } } }),
-          ...(findZipCode && {
-            cityName: { connect: { id: findZipCode?.id } },
-          }),
           ...(categories?.length > 0 && {
             category: {
               connectOrCreate: categories?.map((name) => ({
@@ -328,13 +312,8 @@ export class BusinessService {
       });
       return result;
     } catch (e) {
-      throw new UnprocessableEntityException(e?.response);
+      console.log('err', e);
+      throw new UnprocessableEntityException(e?.message);
     }
-  }
-
-  async importExcel() {
-    try {
-      await this.importService.importBusiness();
-    } catch (e) {}
   }
 }

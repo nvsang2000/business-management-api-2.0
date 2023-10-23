@@ -6,7 +6,6 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { API_HOST, ASSETS_THUMNAIL_DIR, FILE_TYPE } from 'src/constants';
 import { UserEntity } from 'src/entities';
-import { FileEntity } from 'src/entities/file.entity';
 import * as fs from 'fs';
 import { PaginationMetaParams } from 'src/dto/paginationMeta.dto';
 import { FetchDto } from 'src/dto/fetch.dto';
@@ -15,6 +14,7 @@ import { Response } from 'express';
 import sharp from 'sharp';
 import { ConfigService } from '@nestjs/config';
 import dayjs from 'dayjs';
+import { CreateFileDto } from './dto/create-file.dto';
 
 const isImage = (format) => {
   return ['jpeg', 'png', 'webp', 'img'].includes(format);
@@ -59,14 +59,13 @@ export class FilesService {
       throw new UnprocessableEntityException(e.message);
     }
   }
-  async createFileExcel(file: FileEntity, currentUser: UserEntity) {
+
+  async create(file: CreateFileDto, currentUser: UserEntity) {
     try {
       const result = await this.prisma.file.create({
         data: {
-          url: file.url,
-          name: file.name,
-          type: FILE_TYPE.excel,
-          creatorId: currentUser?.id,
+          ...file,
+          creator: { connect: { id: currentUser?.id } },
         },
       });
 

@@ -7,7 +7,6 @@ https://docs.nestjs.com/modules
 import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [],
   controllers: [ZipCodeController],
   providers: [ZipCodeService],
   exports: [ZipCodeService],

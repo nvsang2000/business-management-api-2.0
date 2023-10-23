@@ -53,6 +53,9 @@ export class BusinessEntity {
   cityId?: string;
 
   @ApiProperty()
+  category?: any;
+
+  @ApiProperty()
   createdAt?: Date;
 
   @ApiProperty()

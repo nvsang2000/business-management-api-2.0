@@ -5,17 +5,17 @@ export class FileEntity {
   @ApiProperty({ type: String })
   id?: string;
 
-  @ApiProperty({ type: String, required: false })
-  creatorId?: string;
-
   @ApiProperty({ type: String })
-  name?: string;
+  name: string;
 
   @ApiProperty({ type: String, enum: FILE_TYPE })
-  type?: FILE_TYPE;
+  type: FILE_TYPE;
 
   @ApiProperty({ type: String })
-  url?: string;
+  url: string;
+
+  @ApiProperty({ type: String, required: false })
+  creatorId?: string;
 
   constructor(partial: Partial<FileEntity>) {
     Object.assign(this, partial);

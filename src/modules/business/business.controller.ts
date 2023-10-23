@@ -52,11 +52,6 @@ export class BusinessController {
     return this.businessService.paginate(fetchDto, res);
   }
 
-  @Get('import')
-  async getImport() {
-    return await this.businessService.importExcel();
-  }
-
   @Get('export')
   getExport(
     @Query() fetchDto: ExportBusinessDto,
