@@ -63,7 +63,8 @@ export class ImportService {
     try {
       const businessList = await this.readCSV(dirFile);
       console.log('businessList', businessList?.length);
-      for (const business of businessList) {
+      for (const [i, business] of businessList.entries()) {
+        console.log('index:', i);
         const newBusiness = {
           ...business,
           name: String(business?.name),
