@@ -152,26 +152,7 @@ export class SearchYellowService {
         const $ = cheerio.load(body);
         const businessList = await this.findElDetail($);
         if (businessList?.length === 0) break;
-
-        for (const business of businessList as CreateScratchBusinessDto[]) {
-          business.scratchLink =
-            WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
-          business.phone = formatPhoneNumber(business.phone);
-
-          const checkScratch = await this.businessService.findByScratchLink(
-            business?.scratchLink,
-          );
-
-          if (!checkScratch)
-            await this.businessService.createScratchBusiness(business);
-          else if (checkScratch) {
-            if (checkScratch?.googleVerify) continue;
-            await this.businessService.updateScratchBusiness(
-              checkScratch?.id,
-              business,
-            );
-          }
-        }
+        await this.saveBusiness(businessList);
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
@@ -190,6 +171,28 @@ export class SearchYellowService {
     }
   }
 
+  async saveBusiness(businessList: CreateScratchBusinessDto[]) {
+    try {
+      for (const business of businessList) {
+        business.scratchLink = WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
+        business.phone = formatPhoneNumber(business.phone);
+        const checkScratch = await this.businessService.findByScratchLink(
+          business?.scratchLink,
+        );
+        if (!checkScratch)
+          await this.businessService.createScratchBusiness(business);
+        else if (checkScratch) {
+          if (checkScratch?.googleVerify) continue;
+          await this.businessService.updateScratchBusiness(
+            checkScratch?.id,
+            business,
+          );
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
   async findElDetail($: any) {
     const businessListForPage = [];
     $('[class="search-results organic"] .result')?.map(

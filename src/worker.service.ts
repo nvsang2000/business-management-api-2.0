@@ -25,7 +25,7 @@ export class WorkerService {
       orderBy: { createdAt: 'asc' },
     });
     if (job?.type === TYPE_JOB.NORMAL) {
-      console.log('Job', job);
+      console.log('Job', job.id);
       await this.scrapingQueue.add(
         'search-business',
         { jobId: job?.id, userId: job?.creatorId },

@@ -5,7 +5,6 @@ https://docs.nestjs.com/providers#services
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
-import { BusinessService } from 'src/modules/business/business.service';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
@@ -16,7 +15,6 @@ import { JobService } from '../../job.service';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
-import { PrismaService } from 'nestjs-prisma';
 import { SearchYelpService } from './search.service';
 
 interface BusinessForList {
@@ -29,9 +27,7 @@ interface BusinessForList {
 export class AutoSearchYelpService {
   constructor(
     private searchYelp: SearchYelpService,
-    private prisma: PrismaService,
     private zipCodeService: ZipCodeService,
-    private business: BusinessService,
     private jobService: JobService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,

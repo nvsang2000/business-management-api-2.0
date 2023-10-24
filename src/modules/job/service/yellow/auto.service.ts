@@ -4,7 +4,6 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { JobService } from '../../job.service';
-import { BusinessService } from 'src/modules/business/business.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { JobAutoDto } from '../../dto';
@@ -12,14 +11,9 @@ import { UserEntity } from 'src/entities';
 import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
-import {
-  connectPage,
-  formatPhoneNumber,
-  promisesSequentially,
-} from 'src/helper';
+import { connectPage, promisesSequentially } from 'src/helper';
 import dayjs from 'dayjs';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
-import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import * as cheerio from 'cheerio';
 import { SearchYellowService } from './search.service';
 
@@ -35,7 +29,6 @@ export class AutoSearchYellowService {
   constructor(
     private searchYellow: SearchYellowService,
     private jobService: JobService,
-    private businessService: BusinessService,
     private zipCodeService: ZipCodeService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
@@ -155,26 +148,7 @@ export class AutoSearchYellowService {
         const $ = cheerio.load(body);
         const businessList = await this.searchYellow.findElDetail($);
         if (businessList?.length === 0) break;
-
-        for (const business of businessList as CreateScratchBusinessDto[]) {
-          business.scratchLink =
-            WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
-          business.phone = formatPhoneNumber(business.phone);
-
-          const checkScratch = await this.businessService.findByScratchLink(
-            business?.scratchLink,
-          );
-
-          if (!checkScratch)
-            await this.businessService.createScratchBusiness(business);
-          else if (checkScratch) {
-            if (checkScratch?.googleVerify) continue;
-            await this.businessService.updateScratchBusiness(
-              checkScratch?.id,
-              business,
-            );
-          }
-        }
+        await this.searchYellow.saveBusiness(businessList);
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;

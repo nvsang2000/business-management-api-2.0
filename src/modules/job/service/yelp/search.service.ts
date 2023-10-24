@@ -24,7 +24,6 @@ import { JobService } from '../../job.service';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
-import { PrismaService } from 'nestjs-prisma';
 
 interface StatusDataItem {
   zipCode: string;
@@ -41,7 +40,6 @@ interface BusinessForList {
 
 export class SearchYelpService {
   constructor(
-    private prisma: PrismaService,
     private business: BusinessService,
     private jobService: JobService,
     @InjectQueue('job-queue')
@@ -51,7 +49,7 @@ export class SearchYelpService {
   async reJobSearch(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'search-yellow',
+        'search-yelp',
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
