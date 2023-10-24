@@ -81,6 +81,7 @@ export class ExportBusinessService {
     fetchDto: ExportBusinessDto,
     currentUser: UserEntity = null,
   ) {
+    console.log('fetchDto', fetchDto);
     try {
       let businessList = [];
       const { isAll } = fetchDto;
@@ -100,6 +101,7 @@ export class ExportBusinessService {
 
       return await this.createFileExcel(businessList, currentUser);
     } catch (e) {
+      console.log(e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -135,6 +137,7 @@ export class ExportBusinessService {
 
       return result;
     } catch (e) {
+      console.log('err', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
