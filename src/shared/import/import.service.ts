@@ -92,7 +92,6 @@ export class ImportService {
               newBusiness,
             );
           else {
-            delete newBusiness.scratchLink;
             await this.businessSerivce.updateScratchBusiness(
               checkDuplicate?.id,
               newBusiness,
