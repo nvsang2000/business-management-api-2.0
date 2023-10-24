@@ -84,20 +84,15 @@ export class SearchYellowService {
         userId,
       );
 
-      const jobsWaiting = await this.prisma.job.findMany({
-        where: { status: JOB_STATUS.WAITING },
-      });
-
-      if (jobsWaiting?.length === 1)
-        await this.scrapingQueue.add(
-          'search-yellow',
-          { jobId: result?.id, userId },
-          {
-            removeOnComplete: true,
-            removeOnFail: true,
-            attempts: 0,
-          },
-        );
+      await this.scrapingQueue.add(
+        'search-yellow',
+        { jobId: result?.id, userId },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 0,
+        },
+      );
 
       return result;
     } catch (e) {
