@@ -39,7 +39,7 @@ export class BullJobQueue {
   @Process('search-yelp')
   async runBullSearchYelp(bull: Job<BullJob>) {
     try {
-      console.log('yelp', bull);
+      console.log('bull', bull.data);
       return await this.searchYelp.runJobSearch(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
