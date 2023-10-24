@@ -7,13 +7,20 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job, Queue } from 'bull';
 import dayjs from 'dayjs';
-import { API_HOST, ASSETS_CSV_DIR, FILE_TYPE } from 'src/constants';
+import {
+  API_HOST,
+  ASSETS_CSV_DIR,
+  FILE_EXTENTSION,
+  FILE_TYPE,
+} from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { BusinessService } from 'src/modules/business/business.service';
 import { CreateFileDto } from 'src/modules/files/dto';
 import { FilesService } from 'src/modules/files/files.service';
 import * as XLSX from 'xlsx-js-style';
 import * as fs from 'fs';
+import * as unrar from 'node-unrar-js';
+import { TypeImportDto } from './dto/type-import.dto';
 @Injectable()
 export class ImportService {
   constructor(
@@ -24,6 +31,7 @@ export class ImportService {
     private importQueue: Queue,
   ) {}
   async createImportBusiness(
+    payload: TypeImportDto,
     file: Express.Multer.File,
     currentUser: UserEntity,
   ) {
@@ -32,13 +40,14 @@ export class ImportService {
       const apiHost = await this.configService.get(API_HOST);
       const fileName = `BUSINESS_${dayjs().format(
         'DD-MM-YYYY',
-      )}_${Date.now().toString()}.csv`;
+      )}_${Date.now().toString()}${FILE_EXTENTSION[payload?.type]}`;
       const url = `${apiHost}assets/csv/${fileName}`;
       fs.writeFileSync(`${dir}/${fileName}`, file.buffer);
+
       const newFile: CreateFileDto = {
         name: fileName,
         url,
-        type: FILE_TYPE.excel,
+        type: FILE_TYPE[payload.type],
       };
       await this.importQueue.add(
         'import-business',
@@ -61,8 +70,26 @@ export class ImportService {
     const dir = await this.configService.get(ASSETS_CSV_DIR);
     const dirFile = `${dir}/${file.name}`;
     try {
-      const businessList = await this.readCSV(dirFile);
-      console.log('businessList', businessList?.length);
+      let businessList = [];
+      if (file.type === FILE_TYPE.rar) {
+        const archive = await unrar.createExtractorFromFile({
+          filepath: dirFile,
+          targetPath: dir,
+        });
+        const list = archive.getFileList();
+        const fileHeaders = [...list.fileHeaders];
+        const nameFile = fileHeaders?.map((i) => i.name);
+        const extracted = archive.extract({ files: nameFile });
+        const files = [...extracted.files];
+        files[0].fileHeader;
+        files[0].extraction;
+        const newDirFile = `${dir}/${nameFile[0]}`;
+        businessList = await this.readCSV(newDirFile);
+        console.log('listArcHeader', nameFile);
+      }
+      if (file.type === FILE_TYPE.excel)
+        businessList = await this.readCSV(dirFile);
+
       for (const [i, business] of businessList.entries()) {
         console.log('index:', i);
         const newBusiness = {

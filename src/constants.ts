@@ -93,6 +93,8 @@ export enum TABLES {
 export enum FILE_TYPE {
   image = 'image',
   excel = 'excel',
+  json = 'json',
+  rar = 'rar',
 }
 
 export enum SOURCE_SCRATCH {
@@ -108,6 +110,13 @@ export enum GOOGLE_API_INPUT_TYPE {
 export const LINK_SOURCE = {
   yelp: 'https://www.yelp.com',
   yellow: 'https://www.yellowpages.com',
+};
+
+export const FILE_EXTENTSION = {
+  image: '.png',
+  excel: '.csv',
+  json: '.json',
+  rar: '.rar',
 };
 //env
 export const NODE_ENV = 'NODE_ENV';

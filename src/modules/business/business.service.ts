@@ -28,15 +28,11 @@ import { Response } from 'express';
 import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
-import { ZipCodeService } from '../zipCode/zip-code.service';
 
 const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
 @Injectable()
 export class BusinessService {
-  constructor(
-    private prisma: PrismaService,
-    private zipCodeService: ZipCodeService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private readonly include = {
     creator: {

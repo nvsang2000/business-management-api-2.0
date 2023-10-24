@@ -33,28 +33,24 @@ export class ExportBusinessService {
     private filesService: FilesService,
   ) {}
 
-  private readonly include = {
-    creator: {
-      select: {
-        id: true,
-        displayName: true,
-      },
-    },
-    updatedBy: {
-      select: {
-        id: true,
-        displayName: true,
-      },
-    },
-  };
   async findAllExport(fetchDto: FetchBusinessDto, lastId?: string) {
     try {
       const { page, limit } = fetchDto;
       const where = this.businessService.createQuery(fetchDto);
       const result = await this.prisma.business.findMany({
         where,
-        include: {
-          ...this.include,
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          website: true,
+          scratchLink: true,
+          state: true,
+          zipCode: true,
+          city: true,
+          address: true,
+          thumbnailUrl: true,
+          categories: true,
           category: {
             select: {
               id: true,
@@ -81,10 +77,19 @@ export class ExportBusinessService {
     fetchDto: ExportBusinessDto,
     currentUser: UserEntity = null,
   ) {
-    console.log('fetchDto', fetchDto);
+    try {
+      const businessList = await this.handleFindAllData(fetchDto);
+      return await this.createFileExcel(businessList, currentUser);
+    } catch (e) {
+      console.log(e);
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  async handleFindAllData(fetchDto: ExportBusinessDto) {
+    const { isAll } = fetchDto;
     try {
       let businessList = [];
-      const { isAll } = fetchDto;
       if (isAll) {
         let hasMore = true;
         let cursor = null;
@@ -98,10 +103,8 @@ export class ExportBusinessService {
           }
         }
       } else businessList = await this.findAllExport(fetchDto);
-
-      return await this.createFileExcel(businessList, currentUser);
+      return businessList;
     } catch (e) {
-      console.log(e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -137,7 +140,6 @@ export class ExportBusinessService {
 
       return result;
     } catch (e) {
-      console.log('err', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
