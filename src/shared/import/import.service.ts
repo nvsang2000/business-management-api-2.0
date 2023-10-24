@@ -97,6 +97,7 @@ export class ImportService {
           name: String(business?.name),
           phone: String(business?.phone),
           zipCode: String(business?.zipCode),
+          address: String(business?.address),
           categories: business.categories.split(', '),
         };
         const { scratchLink, name, phone, address } = newBusiness;

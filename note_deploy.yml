@@ -33,4 +33,8 @@ FROM business
 GROUP BY phone, name, address
 HAVING COUNT(*) > 1;
 
+
+DELETE FROM business
+WHERE "scratchLink" LIKE '%https://www.yellowpages.com%';
+
 # 78613
