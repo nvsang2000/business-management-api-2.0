@@ -281,7 +281,6 @@ export class BusinessService {
       return result;
     } catch (e) {
       console.log('err', e);
-      throw new UnprocessableEntityException(e.message);
     }
   }
 
@@ -309,7 +308,6 @@ export class BusinessService {
       return result;
     } catch (e) {
       console.log('err', e);
-      throw new UnprocessableEntityException(e?.message);
     }
   }
 }
