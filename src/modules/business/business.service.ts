@@ -17,6 +17,7 @@ import {
 } from './dto';
 import {
   BUSINESS_STATUS,
+  EXPORT_MODE,
   GOOOGLE_VERIFY,
   LINK_SOURCE,
   MESSAGE_ERROR,
@@ -49,7 +50,7 @@ export class BusinessService {
     },
   };
 
-  createQuery(fetchDto: FetchBusinessDto) {
+  createQuery(fetchDto: any) {
     const {
       search,
       statusMarketing,
@@ -60,6 +61,8 @@ export class BusinessService {
       city,
       zipCode,
       source,
+      mode,
+      ids,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const boolGoogleVerify =
@@ -67,6 +70,16 @@ export class BusinessService {
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
     state && (state = []?.concat(state)?.flat(Infinity));
+    if ([EXPORT_MODE.selected].includes(mode)) {
+      if (!ids) {
+        throw new BadRequestException(
+          'Export mode by selected require specify has row select !',
+        );
+      }
+      return {
+        id: { in: ids },
+      };
+    }
 
     return {
       ...(source && { scratchLink: { contains: LINK_SOURCE[source] } }),
@@ -131,6 +144,45 @@ export class BusinessService {
       return result;
     } catch (error) {
       throw new UnprocessableEntityException(error.message);
+    }
+  }
+
+  async findAllExport(fetchDto: FetchBusinessDto, lastId?: string) {
+    try {
+      const { page, limit } = fetchDto;
+      const where = this.createQuery(fetchDto);
+      const result = await this.prisma.business.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          website: true,
+          scratchLink: true,
+          state: true,
+          zipCode: true,
+          city: true,
+          address: true,
+          thumbnailUrl: true,
+          categories: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        take: +limit,
+        skip: (+page - 1) * +limit,
+        ...(lastId && {
+          cursor: { id: lastId },
+        }),
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 

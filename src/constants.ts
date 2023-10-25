@@ -107,6 +107,11 @@ export enum GOOGLE_API_INPUT_TYPE {
   TEXT_QUERY = 'textquery',
 }
 
+export enum EXPORT_MODE {
+  all = 'all',
+  selected = 'selected',
+}
+
 export const LINK_SOURCE = {
   yelp: 'https://www.yelp.com',
   yellow: 'https://www.yellowpages.com',

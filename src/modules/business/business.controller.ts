@@ -18,23 +18,18 @@ import { BusinessService } from './business.service';
 import {
   CreateBusinessDto,
   FetchBusinessDto,
-  ExportBusinessDto,
   UpdateBusinessDto,
   UpdateStatusMarketingBusinessDto,
 } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
-import { ExportBusinessService } from './export-business.service';
 
 @ApiTags('Business')
 @Controller('business')
 @ApiBasicAuth('access-token')
 export class BusinessController {
-  constructor(
-    private businessService: BusinessService,
-    private exportBusinessService: ExportBusinessService,
-  ) {}
+  constructor(private businessService: BusinessService) {}
 
   @Post()
   create(
@@ -50,14 +45,6 @@ export class BusinessController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
     return this.businessService.paginate(fetchDto, res);
-  }
-
-  @Get('export')
-  getExport(
-    @Query() fetchDto: ExportBusinessDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.exportBusinessService.createExport(fetchDto, currentUser);
   }
 
   @Put('status-marketing/:id')

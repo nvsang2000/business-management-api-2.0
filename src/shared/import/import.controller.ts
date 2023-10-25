@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Post,
   UploadedFile,
@@ -10,7 +9,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportService } from './import.service';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
-import { TypeImportDto } from './dto/type-import.dto';
 
 @ApiTags('Imports')
 @ApiBasicAuth('access-token')
@@ -21,10 +19,9 @@ export class ImportController {
   @Post('/business')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
-    @Body() payload: TypeImportDto,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() currentUser: UserEntity,
   ): Promise<any> {
-    return this.importService.createImportBusiness(payload, file, currentUser);
+    return this.importService.createImportBusiness(file, currentUser);
   }
 }
