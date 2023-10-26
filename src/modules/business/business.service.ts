@@ -206,17 +206,6 @@ export class BusinessService {
     }
   }
 
-  async findByGoogleMapId(id: string) {
-    try {
-      const result = await this.prisma.business.findUnique({
-        where: { googleMapId: id },
-      });
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
   async findByScratchLink(scratchLink: string) {
     try {
       const result = await this.prisma.business.findUnique({
@@ -373,10 +362,8 @@ export class BusinessService {
         await this.createScratchBusiness(business);
       else {
         if (checkScratch) {
-          if (source === SOURCE_SCRATCH.YELLOW_PAGES) {
+          if (source === SOURCE_SCRATCH.YELLOW_PAGES)
             delete business.categories;
-            if (checkScratch?.googleVerify) return;
-          }
           await this.updateScratchBusiness(checkScratch?.id, business);
         } else {
           delete business.categories;

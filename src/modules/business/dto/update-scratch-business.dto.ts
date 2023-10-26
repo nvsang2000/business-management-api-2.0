@@ -28,8 +28,7 @@ export class UpdateScratchBusinessDto {
   @BooleanFieldOptional({})
   googleVerify?: boolean;
 
-  @StringFieldOptional({})
-  googleMapId?: string;
+
 
   @StringFieldOptional({})
   scratchLink?: string;

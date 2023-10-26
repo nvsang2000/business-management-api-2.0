@@ -147,6 +147,7 @@ export class AutoSearchYellowService {
   async searchBusiness(keyword: string, zipCode: string) {
     try {
       let page = 0;
+      console.log('zipCode', zipCode);
       while (true) {
         const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await connectPage(url);
