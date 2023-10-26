@@ -37,7 +37,7 @@ export class SearchYellowService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    @InjectQueue('job-queue')
+    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
     private scrapingQueue: Queue,
   ) {}
 

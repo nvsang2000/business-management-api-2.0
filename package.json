@@ -40,6 +40,8 @@
     "@prisma/client": "^5.3.1",
     "@types/cache-manager-redis-store": "^2.0.1",
     "@types/uuid": "^9.0.2",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.3",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.20.2",
     "bull": "^4.11.3",

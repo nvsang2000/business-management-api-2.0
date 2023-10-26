@@ -7,7 +7,7 @@ import { AutoSearchYellowService } from '../service/yellow/auto.service';
 import { AutoSearchYelpService } from '../service/yelp/auto.service';
 import { SearchYelpService } from '../service/yelp/search.service';
 
-@Processor('job-queue')
+@Processor(`job-queue-${process.env.REDIS_SERVER}`)
 export class BullJobQueue {
   constructor(
     private searchYelp: SearchYelpService,

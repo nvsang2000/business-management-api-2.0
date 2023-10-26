@@ -20,7 +20,7 @@ export class ImportService {
     private configService: ConfigService,
     private fileService: FilesService,
     private businessSerivce: BusinessService,
-    @InjectQueue('import-queue')
+    @InjectQueue(`import-queue-${process.env.REDIS_SERVER}`)
     private importQueue: Queue,
   ) {}
   async createImportBusiness(

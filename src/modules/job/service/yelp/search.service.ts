@@ -44,7 +44,7 @@ export class SearchYelpService {
   constructor(
     private businessService: BusinessService,
     private jobService: JobService,
-    @InjectQueue('job-queue')
+    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
     private scrapingQueue: Queue,
   ) {}
 

@@ -50,7 +50,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         },
       }),
     }),
-    BullModule.registerQueue({ name: 'job-queue' }),
+    BullModule.registerQueue({ name: `job-queue-${process.env.REDIS_SERVER}` }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

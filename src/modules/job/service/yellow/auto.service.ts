@@ -36,7 +36,7 @@ export class AutoSearchYellowService {
     private jobService: JobService,
     private zipCodeService: ZipCodeService,
     private businessService: BusinessService,
-    @InjectQueue('job-queue')
+    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
     private scrapingQueue: Queue,
   ) {}
 

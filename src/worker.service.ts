@@ -12,7 +12,8 @@ import { JOB_STATUS, TYPE_JOB } from './constants';
 export class WorkerService {
   constructor(
     private prisma: PrismaService,
-    @InjectQueue('job-queue') private readonly scrapingQueue: Queue,
+    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    private readonly scrapingQueue: Queue,
   ) {}
 
   async onModuleInit() {

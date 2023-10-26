@@ -41,7 +41,7 @@ export class ExportService {
     private fileService: FilesService,
     private businessSerivce: BusinessService,
     private prisma: PrismaService,
-    @InjectQueue('export-queue')
+    @InjectQueue(`export-queue-${process.env.REDIS_SERVER}`)
     private importQueue: Queue,
   ) {}
 

@@ -3,7 +3,7 @@ import { Job } from 'bull';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { ExportService } from '../export.service';
 
-@Processor('export-queue')
+@Processor(`export-queue-${process.env.REDIS_SERVER}`)
 export class BullImportQueue {
   constructor(private exportService: ExportService) {}
 

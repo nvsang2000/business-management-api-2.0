@@ -29,7 +29,7 @@ export class AutoSearchYelpService {
     private searchYelp: SearchYelpService,
     private zipCodeService: ZipCodeService,
     private jobService: JobService,
-    @InjectQueue('job-queue')
+    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
     private scrapingQueue: Queue,
   ) {}
 

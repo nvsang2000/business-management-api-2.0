@@ -12,7 +12,12 @@ import { BullModule } from '@nestjs/bull';
 import { ExportController } from './export.controller';
 
 @Module({
-  imports: [BullModule.registerQueue({ name: 'export-queue' }), FilesModule],
+  imports: [
+    BullModule.registerQueue({
+      name: `export-queue-${process.env.REDIS_SERVER}`,
+    }),
+    FilesModule,
+  ],
   controllers: [ExportController],
   providers: [ExportService, BullImportQueue, BusinessService, ZipCodeService],
   exports: [ExportService],

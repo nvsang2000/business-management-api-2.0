@@ -11,7 +11,12 @@ import { ImportController } from './import.controller';
 import { BusinessService } from 'src/modules/business/business.service';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
 @Module({
-  imports: [BullModule.registerQueue({ name: 'import-queue' }), FilesModule],
+  imports: [
+    BullModule.registerQueue({
+      name: `import-queue-${process.env.REDIS_SERVER}`,
+    }),
+    FilesModule,
+  ],
   controllers: [ImportController],
   providers: [ImportService, BullImportQueue, BusinessService, ZipCodeService],
   exports: [ImportService],

@@ -11,7 +11,10 @@ import { AutoSearchYelpService } from './service/yelp/auto.service';
 import { SearchYelpService } from './service/yelp/search.service';
 
 @Module({
-  imports: [BullModule.registerQueue({ name: 'job-queue' }), BusinessModule],
+  imports: [
+    BullModule.registerQueue({ name: `job-queue-${process.env.REDIS_SERVER}` }),
+    BusinessModule,
+  ],
   controllers: [JobController],
   providers: [
     JobService,
