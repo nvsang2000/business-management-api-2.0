@@ -1,10 +1,7 @@
-import { SOURCE_SCRATCH } from 'src/constants';
-import { EnumField, StringField } from 'src/decorators';
+import { StringField } from 'src/decorators';
+import { SourceScratchDto } from './source.dto';
 
-export class JobAutoDto {
+export class JobAutoDto extends SourceScratchDto {
   @StringField({ swaggerOptions: { example: 'Vietnamese Restaurants' } })
   keyword: string;
-
-  @EnumField(() => SOURCE_SCRATCH)
-  source: string;
 }

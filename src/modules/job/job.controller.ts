@@ -15,7 +15,11 @@ import {
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { FetchDto } from '../../dto/fetch.dto';
-import { JobAutoDto, CreateJobSearchBusinessDto } from './dto';
+import {
+  JobAutoDto,
+  CreateJobSearchBusinessDto,
+  SourceScratchDto,
+} from './dto';
 import { CurrentUser, Roles } from 'src/decorators';
 import { UserEntity } from 'src/entities';
 import { Response } from 'express';
@@ -38,16 +42,16 @@ export class JobController {
     private autoSearchYellow: AutoSearchYellowService,
   ) {}
 
-  @Post('search/:source')
+  @Post('search')
   createJobSearch(
-    @Param('source') source: SOURCE_SCRATCH,
+    @Query() query: SourceScratchDto,
     @Body() payload: CreateJobSearchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    if (source === SOURCE_SCRATCH.YELLOW_PAGES)
+    if (query?.source === SOURCE_SCRATCH.YELLOW_PAGES)
       return this.searchYellow.createJobSearch(payload, currentUser);
 
-    if (source === SOURCE_SCRATCH.YELP)
+    if (query?.source === SOURCE_SCRATCH.YELP)
       return this.searchYelp.createJobSearch(payload, currentUser);
 
     throw new UnprocessableEntityException();
@@ -56,13 +60,13 @@ export class JobController {
   @Get('search/:id')
   createReJobSearch(
     @Param('id') id: string,
-    @Query() payload: JobAutoDto,
+    @Query() query: SourceScratchDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+    if (query?.source === SOURCE_SCRATCH.YELLOW_PAGES)
       return this.searchYellow.reJobSearch(id, currentUser);
 
-    if (payload?.source === SOURCE_SCRATCH.YELP)
+    if (query?.source === SOURCE_SCRATCH.YELP)
       return this.searchYelp.reJobSearch(id, currentUser);
   }
 
@@ -79,17 +83,17 @@ export class JobController {
       return this.autoSearchYelp.createJobAuto(payload, currentUser);
   }
 
-  @Get('re-auto-search/:id')
+  @Get('auto-search/:id')
   @Roles([ROLE.admin])
   createJobReAutoSearch(
     @Param('id') id: string,
-    @Query() payload: JobAutoDto,
+    @Query() query: SourceScratchDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
-    if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+    if (query?.source === SOURCE_SCRATCH.YELLOW_PAGES)
       return this.autoSearchYellow.reJobAuto(id, currentUser);
 
-    if (payload?.source === SOURCE_SCRATCH.YELP)
+    if (query?.source === SOURCE_SCRATCH.YELP)
       return this.autoSearchYelp.reJobAuto(id, currentUser);
   }
 
