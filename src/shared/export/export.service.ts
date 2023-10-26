@@ -32,6 +32,7 @@ export const HEADER_ROW_BUSINESS = [
   'categories',
   'scratchLink',
   'thumbnailUrl',
+  'source',
 ];
 @Injectable()
 export class ExportService {
@@ -77,7 +78,6 @@ export class ExportService {
     try {
       const businessList = await this.handleFindAllData(fetchDto);
       const result = await this.createFileExcel(businessList, currentUser);
-      console.log('result', result);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -102,6 +102,7 @@ export class ExportService {
           i?.categories?.join(', '),
           i?.scratchLink,
           i?.thumbnailUrl,
+          i?.source,
         ];
         return row;
       });

@@ -20,6 +20,9 @@ export class BusinessEntity {
   scratchLink?: string;
 
   @ApiProperty()
+  source?: string;
+
+  @ApiProperty()
   addressZipCode?: string;
 
   @ApiProperty()
