@@ -12,6 +12,7 @@ import {
   JOB_STATUS,
   MAPPING_CATEGORIES,
   REG_FORMAT_ADDRESS,
+  SOURCE_SCRATCH,
   WEBSITE,
 } from 'src/constants';
 import * as cheerio from 'cheerio';
@@ -24,6 +25,7 @@ import { JobService } from '../../job.service';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
+import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 
 interface StatusDataItem {
   zipCode: string;
@@ -178,7 +180,11 @@ export class SearchYelpService {
       const body = await response?.text();
       const $ = cheerio.load(body);
       const detailEl = await this.findElDetail($);
-      const newBusiness = { ...business, ...detailEl };
+      const newBusiness: CreateScratchBusinessDto = {
+        ...business,
+        ...detailEl,
+        source: SOURCE_SCRATCH.YELP,
+      };
 
       if (
         !newBusiness?.phone ||

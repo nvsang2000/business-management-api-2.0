@@ -3,7 +3,7 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { JOB_STATUS, WEBSITE } from 'src/constants';
+import { JOB_STATUS, SOURCE_SCRATCH, WEBSITE } from 'src/constants';
 import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
@@ -147,6 +147,7 @@ export class SearchYellowService {
         for (const business of businessList) {
           const newBusiness = {
             ...business,
+            source: SOURCE_SCRATCH.YELLOW_PAGES,
             scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
             phone: formatPhoneNumber(business.phone),
           };

@@ -29,5 +29,8 @@ export class CreateScratchBusinessDto {
   scratchLink?: string;
 
   @StringFieldOptional({})
+  source?: string;
+
+  @StringFieldOptional({})
   categories?: string[];
 }

@@ -19,7 +19,6 @@ import {
   BUSINESS_STATUS,
   EXPORT_MODE,
   GOOOGLE_VERIFY,
-  LINK_SOURCE,
   MESSAGE_ERROR,
   SOURCE_SCRATCH,
   STRING_BOOLEAN,
@@ -83,7 +82,7 @@ export class BusinessService {
     }
 
     return {
-      ...(source && { scratchLink: { contains: LINK_SOURCE[source] } }),
+      ...(source && { source: { equals: source } }),
       ...(website && {
         website: website === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
@@ -166,6 +165,7 @@ export class BusinessService {
           address: true,
           thumbnailUrl: true,
           categories: true,
+          source: true,
           category: {
             select: {
               id: true,

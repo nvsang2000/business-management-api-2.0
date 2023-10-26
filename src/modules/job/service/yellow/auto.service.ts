@@ -8,7 +8,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
-import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
+import { JOB_STATUS, SOURCE_SCRATCH, TYPE_JOB, WEBSITE } from 'src/constants';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import {
@@ -157,6 +157,7 @@ export class AutoSearchYellowService {
         for (const business of businessList) {
           const newBusiness = {
             ...business,
+            source: SOURCE_SCRATCH.YELLOW_PAGES,
             scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
             phone: formatPhoneNumber(business.phone),
           };

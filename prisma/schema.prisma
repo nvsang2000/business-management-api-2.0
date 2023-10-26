@@ -52,7 +52,7 @@ model LoginHistory {
   userId    String   @db.Uuid
   ipAddress String   @db.VarChar(64)
   createAt  DateTime @default(now()) @db.Timestamptz()
-  user User @relation("loginHistoryToUser", fields: [userId], references: [id])
+  user      User     @relation("loginHistoryToUser", fields: [userId], references: [id])
 
   @@map("login_history")
 }
@@ -78,6 +78,7 @@ model Business {
   email           String?    @db.VarChar(64)
   website         String?    @db.VarChar(800)
   scratchLink     String?    @db.VarChar(400)
+  source          String?    @db.VarChar(128)
   state           String?    @db.VarChar(8)
   zipCode         String?    @db.VarChar(16)
   city            String?    @db.VarChar(128)
