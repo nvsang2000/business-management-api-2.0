@@ -74,32 +74,7 @@ export class ImportService {
           address: String(business?.address),
           categories: business.categories.split(', '),
         };
-        const { scratchLink, name, phone, address } = newBusiness;
-
-        const checkScratch = await this.businessSerivce.findByScratchLink(
-          scratchLink,
-        );
-
-        const checkDuplicate = await this.businessSerivce.findFistOne(
-          name,
-          phone,
-          address,
-        );
-        if (!checkDuplicate && !checkScratch)
-          await this.businessSerivce.createScratchBusiness(newBusiness);
-        else {
-          if (checkScratch)
-            await this.businessSerivce.updateScratchBusiness(
-              checkScratch?.id,
-              newBusiness,
-            );
-          else {
-            await this.businessSerivce.updateScratchBusiness(
-              checkDuplicate?.id,
-              newBusiness,
-            );
-          }
-        }
+        await this.businessSerivce.saveScratchBusiness(newBusiness);
       }
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

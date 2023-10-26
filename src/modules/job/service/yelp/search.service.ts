@@ -40,7 +40,7 @@ interface BusinessForList {
 
 export class SearchYelpService {
   constructor(
-    private business: BusinessService,
+    private businessService: BusinessService,
     private jobService: JobService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
@@ -188,28 +188,7 @@ export class SearchYelpService {
         !newBusiness?.zipCode
       )
         return;
-      const checkScratch = await this.business.findByScratchLink(scratchLink);
-      const checkDuplicate = await this.business.findFistOne(
-        newBusiness?.name,
-        newBusiness?.phone,
-        newBusiness?.address,
-      );
-      if (!checkDuplicate && !checkScratch)
-        await this.business.createScratchBusiness(newBusiness);
-      else {
-        if (checkScratch)
-          await this.business.updateScratchBusiness(
-            checkScratch?.id,
-            newBusiness,
-          );
-        else {
-          delete newBusiness.scratchLink;
-          await this.business.updateScratchBusiness(
-            checkDuplicate?.id,
-            newBusiness,
-          );
-        }
-      }
+      await this.businessService.saveScratchBusiness(newBusiness);
     } catch (e) {
       console.log(e);
     }

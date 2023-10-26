@@ -11,11 +11,16 @@ import { UserEntity } from 'src/entities';
 import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
-import { connectPage, promisesSequentially } from 'src/helper';
+import {
+  connectPage,
+  formatPhoneNumber,
+  promisesSequentially,
+} from 'src/helper';
 import dayjs from 'dayjs';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
 import * as cheerio from 'cheerio';
 import { SearchYellowService } from './search.service';
+import { BusinessService } from 'src/modules/business/business.service';
 
 interface StatusDataItem {
   state: string;
@@ -30,6 +35,7 @@ export class AutoSearchYellowService {
     private searchYellow: SearchYellowService,
     private jobService: JobService,
     private zipCodeService: ZipCodeService,
+    private businessService: BusinessService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
@@ -148,8 +154,14 @@ export class AutoSearchYellowService {
         const $ = cheerio.load(body);
         const businessList = await this.searchYellow.findElDetail($);
         if (businessList?.length === 0) break;
-        await this.searchYellow.saveBusiness(businessList);
-
+        for (const business of businessList) {
+          const newBusiness = {
+            ...business,
+            scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
+            phone: formatPhoneNumber(business.phone),
+          };
+          await this.businessService.saveScratchBusiness(newBusiness);
+        }
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
         page++;

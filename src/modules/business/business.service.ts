@@ -21,6 +21,7 @@ import {
   GOOOGLE_VERIFY,
   LINK_SOURCE,
   MESSAGE_ERROR,
+  SOURCE_SCRATCH,
   STRING_BOOLEAN,
 } from 'src/constants';
 import { UserEntity } from 'src/entities';
@@ -360,6 +361,29 @@ export class BusinessService {
       return result;
     } catch (e) {
       console.log('err', e);
+    }
+  }
+
+  async saveScratchBusiness(business: CreateScratchBusinessDto) {
+    try {
+      const { name, phone, address, scratchLink } = business;
+      const checkScratch = await this.findByScratchLink(scratchLink);
+      const checkDuplicate = await this.findFistOne(name, phone, address);
+      if (!checkDuplicate && !checkScratch)
+        await this.createScratchBusiness(business);
+      else {
+        if (checkScratch) {
+          if (scratchLink?.includes(SOURCE_SCRATCH.YELLOW_PAGES)) {
+            if (checkScratch?.googleVerify) return;
+          }
+          await this.updateScratchBusiness(checkScratch?.id, business);
+        } else {
+          delete business.categories;
+          await this.updateScratchBusiness(checkDuplicate?.id, business);
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 }

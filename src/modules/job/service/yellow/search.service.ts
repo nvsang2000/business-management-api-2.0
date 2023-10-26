@@ -12,7 +12,6 @@ import {
   parseUSAddress,
   promisesSequentially,
 } from 'src/helper';
-import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 import dayjs from 'dayjs';
 import * as cheerio from 'cheerio';
 import { JobService } from '../../job.service';
@@ -21,7 +20,6 @@ import { BullJob } from 'src/interface';
 import { UserEntity } from 'src/entities';
 import { CreateJobSearchBusinessDto } from '../../dto';
 import { InjectQueue } from '@nestjs/bull';
-import { PrismaService } from 'nestjs-prisma';
 
 interface PayloadSearchBusiness {
   keyword: string;
@@ -39,7 +37,6 @@ export class SearchYellowService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    private prisma: PrismaService,
     @InjectQueue('job-queue')
     private scrapingQueue: Queue,
   ) {}
@@ -147,7 +144,14 @@ export class SearchYellowService {
         const $ = cheerio.load(body);
         const businessList = await this.findElDetail($);
         if (businessList?.length === 0) break;
-        await this.saveBusiness(businessList);
+        for (const business of businessList) {
+          const newBusiness = {
+            ...business,
+            scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
+            phone: formatPhoneNumber(business.phone),
+          };
+          await this.businessService.saveScratchBusiness(newBusiness);
+        }
 
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;
@@ -166,28 +170,6 @@ export class SearchYellowService {
     }
   }
 
-  async saveBusiness(businessList: CreateScratchBusinessDto[]) {
-    try {
-      for (const business of businessList) {
-        business.scratchLink = WEBSITE.YELLOW_PAGES.URL + business.scratchLink;
-        business.phone = formatPhoneNumber(business.phone);
-        const checkScratch = await this.businessService.findByScratchLink(
-          business?.scratchLink,
-        );
-        if (!checkScratch)
-          await this.businessService.createScratchBusiness(business);
-        else if (checkScratch) {
-          if (checkScratch?.googleVerify) continue;
-          await this.businessService.updateScratchBusiness(
-            checkScratch?.id,
-            business,
-          );
-        }
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
   async findElDetail($: any) {
     const businessListForPage = [];
     $('[class="search-results organic"] .result')?.map(
