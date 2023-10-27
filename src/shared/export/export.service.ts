@@ -50,10 +50,9 @@ export class ExportService {
     currentUser: UserEntity = null,
   ) {
     try {
-      const where = this.businessSerivce.createQuery(fetchDto);
-      const totalDocs = await this.prisma.business.count({ where });
+      const { mode } = fetchDto;
       const businessList = await this.handleFindAllData(fetchDto);
-      if (totalDocs > 100000) {
+      if (mode === EXPORT_MODE.all) {
         await this.importQueue.add(
           'export-business',
           { fetchDto, currentUser },
@@ -66,7 +65,7 @@ export class ExportService {
         return {
           isProcess: true,
           message:
-            'The data to be processed is too large, the file will be downloaded when you receive a notification!',
+            'The file will be downloaded when you receive a notification!',
         };
       } else return await this.createFileExcel(businessList, currentUser);
     } catch (e) {
