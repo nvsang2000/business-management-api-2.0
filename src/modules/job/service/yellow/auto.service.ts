@@ -79,7 +79,7 @@ export class AutoSearchYellowService {
         {
           removeOnComplete: true,
           removeOnFail: true,
-          attempts: 0,
+          attempts: 20,
         },
       );
 

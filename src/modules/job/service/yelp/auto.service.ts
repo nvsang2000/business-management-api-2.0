@@ -41,7 +41,7 @@ export class AutoSearchYelpService {
         {
           removeOnComplete: true,
           removeOnFail: true,
-          attempts: 0,
+          attempts: 20,
         },
       );
 

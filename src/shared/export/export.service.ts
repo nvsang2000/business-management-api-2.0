@@ -19,7 +19,6 @@ import { Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FilesService } from 'src/modules/files/files.service';
 import { PrismaService } from 'nestjs-prisma';
-import { WebhooksService } from 'src/shared/export/webhooks.service';
 
 export const HEADER_ROW_BUSINESS = [
   'id',
@@ -42,7 +41,6 @@ export class ExportService {
     private fileService: FilesService,
     private businessSerivce: BusinessService,
     private prisma: PrismaService,
-    private webhooksService: WebhooksService,
     @InjectQueue(`export-queue-${process.env.REDIS_SERVER}`)
     private importQueue: Queue,
   ) {}
@@ -62,7 +60,7 @@ export class ExportService {
           {
             removeOnComplete: true,
             removeOnFail: true,
-            attempts: 0,
+            attempts: 20,
           },
         );
         return {
@@ -112,6 +110,7 @@ export class ExportService {
 
       const rawData = [HEADER_ROW_BUSINESS, ...bodyRow];
       const result = await this.exportExcel(rawData);
+      delete result.isProcess;
       await this.fileService.create(
         { ...result, type: FILE_TYPE.excel },
         currentUser,
