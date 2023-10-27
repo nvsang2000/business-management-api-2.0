@@ -10,6 +10,7 @@ import { BusinessService } from 'src/modules/business/business.service';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
 import { BullModule } from '@nestjs/bull';
 import { ExportController } from './export.controller';
+import { WebhooksService } from 'src/shared/export/webhooks.service';
 
 @Module({
   imports: [
@@ -19,7 +20,13 @@ import { ExportController } from './export.controller';
     FilesModule,
   ],
   controllers: [ExportController],
-  providers: [ExportService, BullImportQueue, BusinessService, ZipCodeService],
+  providers: [
+    ExportService,
+    BullImportQueue,
+    BusinessService,
+    ZipCodeService,
+    WebhooksService,
+  ],
   exports: [ExportService],
 })
 export class ExportModule {}

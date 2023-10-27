@@ -28,8 +28,6 @@ export class UpdateScratchBusinessDto {
   @BooleanFieldOptional({})
   googleVerify?: boolean;
 
-
-
   @StringFieldOptional({})
   scratchLink?: string;
 

@@ -19,6 +19,7 @@ import { Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FilesService } from 'src/modules/files/files.service';
 import { PrismaService } from 'nestjs-prisma';
+import { WebhooksService } from 'src/shared/export/webhooks.service';
 
 export const HEADER_ROW_BUSINESS = [
   'id',
@@ -41,6 +42,7 @@ export class ExportService {
     private fileService: FilesService,
     private businessSerivce: BusinessService,
     private prisma: PrismaService,
+    private webhooksService: WebhooksService,
     @InjectQueue(`export-queue-${process.env.REDIS_SERVER}`)
     private importQueue: Queue,
   ) {}
@@ -64,8 +66,9 @@ export class ExportService {
           },
         );
         return {
+          isProcess: true,
           message:
-            'The data to be processed is too large, please check your profile when you receive the notification!',
+            'The data to be processed is too large, the file will be downloaded when you receive a notification!',
         };
       } else return await this.createFileExcel(businessList, currentUser);
     } catch (e) {
@@ -160,6 +163,7 @@ export class ExportService {
       XLSX.writeFile(workbook, tempFilePath);
 
       return {
+        isProcess: false,
         name: fileName,
         url: `${apiHost}assets/csv/${fileName}`,
       };
