@@ -220,7 +220,13 @@ export class BusinessService {
   async findFistOne(name: string, phone: string, address: string) {
     try {
       const result = await this.prisma.business.findFirst({
-        where: { AND: { name, phone, address } },
+        where: {
+          AND: {
+            name: { contains: name, mode: 'insensitive' as any },
+            address: { contains: address, mode: 'insensitive' as any },
+            phone,
+          },
+        },
       });
       return result;
     } catch (e) {
@@ -340,7 +346,7 @@ export class BusinessService {
           ...(categories?.length > 0 && {
             category: {
               connectOrCreate: categories?.map((name) => ({
-                where: { name },
+                where: { slug: generateSlug(name) },
                 create: { name, slug: generateSlug(name) },
               })),
             },
@@ -355,19 +361,18 @@ export class BusinessService {
 
   async saveScratchBusiness(business: CreateScratchBusinessDto) {
     try {
-      const { name, phone, address, scratchLink, source } = business;
+      const { name, phone, address, scratchLink } = business;
       const checkScratch = await this.findByScratchLink(scratchLink);
       const checkDuplicate = await this.findFistOne(name, phone, address);
       if (!checkDuplicate && !checkScratch)
         await this.createScratchBusiness(business);
       else {
-        if (checkScratch) {
-          if (source === SOURCE_SCRATCH.YELLOW_PAGES)
+        if (checkScratch) return;
+        else {
+          if (checkDuplicate.source === SOURCE_SCRATCH.YELLOW_PAGES) {
             delete business.categories;
-          await this.updateScratchBusiness(checkScratch?.id, business);
-        } else {
-          delete business.categories;
-          await this.updateScratchBusiness(checkDuplicate?.id, business);
+            await this.updateScratchBusiness(checkDuplicate?.id, business);
+          }
         }
       }
     } catch (e) {

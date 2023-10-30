@@ -29,6 +29,7 @@ import { ROLE, SOURCE_SCRATCH } from 'src/constants';
 import { AutoSearchYelpService } from './service/yelp/auto.service';
 import { AutoSearchYellowService } from './service/yellow/auto.service';
 import { SearchYelpService } from './service/yelp/search.service';
+import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -40,6 +41,7 @@ export class JobController {
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
     private autoSearchYellow: AutoSearchYellowService,
+    private autoSearchMenufy: AutoSearchMenufySerivce,
   ) {}
 
   @Post('search')
@@ -81,6 +83,9 @@ export class JobController {
 
     if (payload?.source === SOURCE_SCRATCH.YELP)
       return this.autoSearchYelp.createJobAuto(payload, currentUser);
+
+    if (payload?.source === SOURCE_SCRATCH.MENUFY)
+      return this.autoSearchMenufy.createJobAuto(currentUser);
   }
 
   @Get('auto-search/:id')

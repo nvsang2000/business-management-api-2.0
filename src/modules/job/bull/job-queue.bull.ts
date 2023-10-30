@@ -6,6 +6,7 @@ import { BullJob } from 'src/interface';
 import { AutoSearchYellowService } from '../service/yellow/auto.service';
 import { AutoSearchYelpService } from '../service/yelp/auto.service';
 import { SearchYelpService } from '../service/yelp/search.service';
+import { AutoSearchMenufySerivce } from '../service/menufy/auto.service';
 
 @Processor(`job-queue-${process.env.REDIS_SERVER}`)
 export class BullJobQueue {
@@ -14,23 +15,13 @@ export class BullJobQueue {
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
     private autoSearchYellow: AutoSearchYellowService,
+    private autoSearchMenufy: AutoSearchMenufySerivce,
   ) {}
 
   @Process('search-yellow')
   async runBullSearchYellow(bull: Job<BullJob>) {
     try {
-      console.log('bull', bull.data);
       return await this.searchYellow.runJobSearch(bull);
-    } catch (e) {
-      throw new UnprocessableEntityException(e?.message);
-    }
-  }
-
-  @Process('auto-search-yellow')
-  async runBullAutoSearchYellow(bull: Job<BullJob>) {
-    try {
-      console.log('bull', bull.data);
-      return await this.autoSearchYellow.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
@@ -39,8 +30,16 @@ export class BullJobQueue {
   @Process('search-yelp')
   async runBullSearchYelp(bull: Job<BullJob>) {
     try {
-      console.log('bull', bull.data);
       return await this.searchYelp.runJobSearch(bull);
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  @Process('auto-search-yellow')
+  async runBullAutoSearchYellow(bull: Job<BullJob>) {
+    try {
+      return await this.autoSearchYellow.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
@@ -49,8 +48,16 @@ export class BullJobQueue {
   @Process('auto-search-yelp')
   async runBullAutoSearchYelp(bull: Job<BullJob>) {
     try {
-      console.log('bull', bull.data);
       return await this.autoSearchYelp.runJobAuto(bull);
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  @Process('auto-search-menufy')
+  async runBullAutoSearchMenufy(bull: Job<BullJob>) {
+    try {
+      return await this.autoSearchMenufy.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }

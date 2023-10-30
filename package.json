@@ -57,6 +57,7 @@
     "ioredis": "^5.3.2",
     "nestjs-pino": "^3.2.0",
     "nestjs-prisma": "^0.22.0",
+    "parse-address": "^1.1.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

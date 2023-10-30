@@ -100,6 +100,7 @@ export enum FILE_TYPE {
 export enum SOURCE_SCRATCH {
   YELP = 'yelp',
   YELLOW_PAGES = 'yellow',
+  MENUFY = 'menufy',
 }
 
 export enum GOOGLE_API_INPUT_TYPE {
@@ -115,6 +116,7 @@ export enum EXPORT_MODE {
 export const LINK_SOURCE = {
   yelp: 'https://www.yelp.com',
   yellow: 'https://www.yellowpages.com',
+  googeMap: 'https://www.google.com',
 };
 
 export const FILE_EXTENTSION = {
@@ -176,6 +178,9 @@ export const WEBSITE = {
     SEARCH_WHERE: 'input[name="geo_location_terms"]',
     NEXT_PAGE: '.pagination ul li a[class="next ajax-page"]',
   },
+  MENUFY: {
+    URL: 'https://www.menufy.com',
+  },
 };
 
 export const DEFAULT_OPTION_HEADER_FETCH = {
@@ -183,16 +188,10 @@ export const DEFAULT_OPTION_HEADER_FETCH = {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
 };
 
-export const SCRATCH_STATUS = {
-  CREATE_SCRATCH: 'CREATE_SCRATCH',
-  GET_KEYWORD_BUSINESS: 'GET_KEYWORD_BUSINESS',
-  SEARCH_KEYWORD_GOOGLE: 'SEARCH_KEYWORD_GOOGLE',
-  GET_PLACE_LIST: 'GET_PLACE_LIST',
-};
-
 export const MAPPING_CATEGORIES = {
   'American (New)': 'American (New) Restaurants',
   'American (Traditional)': 'American Restaurants',
+  American: 'American Restaurants',
   Seafood: 'Seafood Restaurants',
   Italian: 'Italian Restaurants',
   Vietnamese: 'Vietnamese Restaurants',
@@ -220,6 +219,19 @@ export const MAPPING_CATEGORIES = {
   Brazilian: 'Brazilian Restaurants',
   Vegetarian: 'Vegetarian Restaurants',
   Irish: 'Irish Restaurants',
+  'Health Food': 'Health Food Restaurants',
+  Buffet: 'Buffet Restaurants',
+  Dessert: 'Dessert Restaurants',
+  German: 'German Restaurants',
+  Cuban: 'Cuban Restaurants',
+  Kosher: 'Kosher Restaurants',
+  Vegan: 'Vegan Restaurants',
+  Peruvian: 'Peruvian Restaurants',
+  Fondue: 'Fondue Restaurants',
+  'Pop-Up': 'Pop-Up Restaurants',
+  'Home Cooking': 'Home Cooking Restaurants',
+  'Middle Eastern': 'Middle Eastern Restaurants',
+  BBQ: 'BBQ Restaurants',
   Cafeteria: 'Cafeterias',
 };
 

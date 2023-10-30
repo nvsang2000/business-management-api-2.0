@@ -9,6 +9,7 @@ import { ZipCodeService } from '../zipCode/zip-code.service';
 import { AutoSearchYellowService } from './service/yellow/auto.service';
 import { AutoSearchYelpService } from './service/yelp/auto.service';
 import { SearchYelpService } from './service/yelp/search.service';
+import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SearchYelpService } from './service/yelp/search.service';
     SearchYelpService,
     AutoSearchYellowService,
     AutoSearchYelpService,
+    AutoSearchMenufySerivce,
   ],
   exports: [JobService],
 })
