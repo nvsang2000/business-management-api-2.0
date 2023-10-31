@@ -35,6 +35,24 @@ export class AutoSearchMenufySerivce {
     private scrapingQueue: Queue,
   ) {}
 
+  async reJobAuto(id: string, currentUser: UserEntity) {
+    try {
+      const job = await this.scrapingQueue.add(
+        'auto-search-menufy',
+        { jobId: id, userId: currentUser?.id },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+          attempts: 20,
+        },
+      );
+
+      return job;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
   async createJobAuto(currentUser: UserEntity) {
     try {
       const url = WEBSITE.MENUFY.URL;

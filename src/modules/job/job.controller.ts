@@ -100,6 +100,9 @@ export class JobController {
 
     if (query?.source === SOURCE_SCRATCH.YELP)
       return this.autoSearchYelp.reJobAuto(id, currentUser);
+
+    if (query?.source === SOURCE_SCRATCH.MENUFY)
+      return this.autoSearchMenufy.reJobAuto(id, currentUser);
   }
 
   @Get()
