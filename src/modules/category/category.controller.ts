@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 
@@ -20,5 +20,10 @@ export class CategoryController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findById(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.categoryService.delete(id);
   }
 }

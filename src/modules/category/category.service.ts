@@ -2,10 +2,15 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UserEntity } from 'src/entities';
+import { MESSAGE_ERROR } from 'src/constants';
 
 @Injectable()
 export class CategoryService {
@@ -79,6 +84,17 @@ export class CategoryService {
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      const category = await this.findById(id);
+      if (!category) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
+      const result = await this.prisma.category.delete({ where: { id } });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.response);
     }
   }
 }
