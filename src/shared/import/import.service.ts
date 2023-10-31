@@ -69,12 +69,14 @@ export class ImportService {
         const newBusiness = {
           ...business,
           name: String(business?.name),
-          phone: String(business?.phone),
-          zipCode: String(business?.zipCode),
+          phone: business?.phone?.replace(/"/g, ''),
+          zipCode: business?.zipCode?.replace(/"/g, ''),
           address: String(business?.address),
           categories: business.categories.split(', '),
         };
-        await this.businessSerivce.saveScratchBusiness(newBusiness);
+        console.log('newBusiness', newBusiness);
+
+        //await this.businessSerivce.saveScratchBusiness(newBusiness);
       }
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

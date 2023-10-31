@@ -361,18 +361,19 @@ export class BusinessService {
 
   async saveScratchBusiness(business: CreateScratchBusinessDto) {
     try {
-      const { name, phone, address, scratchLink } = business;
+      const { name, phone, address, scratchLink, source } = business;
       const checkScratch = await this.findByScratchLink(scratchLink);
       const checkDuplicate = await this.findFistOne(name, phone, address);
       if (!checkDuplicate && !checkScratch)
         await this.createScratchBusiness(business);
       else {
-        if (checkScratch) return;
-        else {
-          if (checkDuplicate.source === SOURCE_SCRATCH.YELLOW_PAGES) {
+        if (checkScratch) {
+          if (source === SOURCE_SCRATCH.YELLOW_PAGES)
             delete business.categories;
-            await this.updateScratchBusiness(checkDuplicate?.id, business);
-          }
+          await this.updateScratchBusiness(checkScratch?.id, business);
+        } else {
+          delete business.categories;
+          await this.updateScratchBusiness(checkDuplicate?.id, business);
         }
       }
     } catch (e) {
