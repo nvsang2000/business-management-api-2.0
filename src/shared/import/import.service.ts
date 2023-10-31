@@ -14,6 +14,7 @@ import { CreateFileDto } from 'src/modules/files/dto';
 import { FilesService } from 'src/modules/files/files.service';
 import * as XLSX from 'xlsx-js-style';
 import * as fs from 'fs';
+import { promisesSequentially } from 'src/helper';
 @Injectable()
 export class ImportService {
   constructor(
@@ -63,19 +64,23 @@ export class ImportService {
     const dirFile = `${dir}/${file.name}`;
     try {
       const businessList = await this.readCSV(dirFile);
-
-      for (const [i, business] of businessList.entries()) {
-        console.log('index:', i);
-        const newBusiness = {
-          ...business,
-          name: String(business?.name),
-          phone: business?.phone?.replace(/"/g, ''),
-          zipCode: business?.zipCode?.replace(/"/g, ''),
-          address: String(business?.address),
-          categories: business.categories.split(', '),
+      const promises = businessList?.map((business) => {
+        return async () => {
+          const newBusiness = {
+            ...business,
+            name: String(business?.name),
+            phone: business?.phone?.replace(/"/g, ''),
+            zipCode: business?.zipCode?.replace(/"/g, ''),
+            address: String(business?.address),
+            categories: business?.categories?.split(', '),
+          };
+          return await this.businessSerivce.saveScratchBusiness(newBusiness);
         };
-        await this.businessSerivce.saveScratchBusiness(newBusiness);
-      }
+      });
+      console.log('promises: ', promises?.length);
+      const result = await promisesSequentially(promises, 20);
+      console.log('promises end!');
+      return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }
