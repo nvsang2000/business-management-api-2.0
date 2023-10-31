@@ -147,11 +147,13 @@ export class AutoSearchMenufySerivce {
             return mapping ? mapping : category;
           })
           .filter((i) => i !== '');
-        if (mappingCategories?.length === 0) return;
         const business = {
           website,
           thumbnailUrl,
-          categories: mappingCategories,
+          categories:
+            mappingCategories?.length === 0
+              ? ['Restaurants']
+              : mappingCategories,
         };
         businessList.push(business);
       });
