@@ -74,9 +74,7 @@ export class ImportService {
           address: String(business?.address),
           categories: business.categories.split(', '),
         };
-        console.log('newBusiness', newBusiness);
-
-        //await this.businessSerivce.saveScratchBusiness(newBusiness);
+        await this.businessSerivce.saveScratchBusiness(newBusiness);
       }
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
