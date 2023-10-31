@@ -372,8 +372,8 @@ export class BusinessService {
             delete business.categories;
           await this.updateScratchBusiness(checkScratch?.id, business);
         } else {
-          delete business.categories;
-          await this.updateScratchBusiness(checkDuplicate?.id, business);
+          if (checkDuplicate?.source === SOURCE_SCRATCH.YELLOW_PAGES)
+            await this.updateScratchBusiness(checkDuplicate?.id, business);
         }
       }
     } catch (e) {
