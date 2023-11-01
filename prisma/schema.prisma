@@ -103,6 +103,8 @@ model Business {
   @@unique([scratchLink])
   @@index([categories, state, zipCode, cityId])
   @@index([source])
+  @@index([state])
+  @@index([categories])
   @@map("business")
 }
 

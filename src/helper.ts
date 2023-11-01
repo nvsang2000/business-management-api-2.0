@@ -126,7 +126,7 @@ export const removeDuplicates = (arr: any[]) => {
 
 export const promisesSequentially = async (promises: any[], limit: number) => {
   const results = [];
-  let currentIndex = 0;
+  let currentIndex = 0; // The promise is being fulfilled
 
   async function executeNext() {
     const index = currentIndex;

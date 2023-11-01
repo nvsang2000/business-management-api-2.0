@@ -11,11 +11,48 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UserEntity } from 'src/entities';
 import { MESSAGE_ERROR } from 'src/constants';
+import { FetchDto, PaginationMetaParams } from 'src/dto';
+import { Response } from 'express';
 
 @Injectable()
 export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
+  async paginate(fetchDto: FetchDto, response: Response): Promise<any[]> {
+    try {
+      const { limit, page, search } = fetchDto;
+      const result = await this.prisma.category.findMany({
+        where: {
+          ...(search && {
+            name: { contains: search, mode: 'insensitive' as any },
+          }),
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+        take: +limit,
+        skip: (+page - 1) * +limit,
+      });
+
+      const totalDocs = await this.prisma.category.count();
+
+      if (response.set) {
+        response.set(
+          'meta',
+          JSON.stringify({
+            totalDocs,
+            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+          } as PaginationMetaParams),
+        );
+      }
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
   async list() {
     try {
       const result = await this.prisma.category.findMany({
