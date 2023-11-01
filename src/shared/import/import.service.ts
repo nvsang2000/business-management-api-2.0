@@ -38,9 +38,10 @@ export class ImportService {
       fs.writeFileSync(`${dir}/${fileName}`, file.buffer);
 
       const newFile: CreateFileDto = {
-        name: fileName,
         url,
+        name: fileName,
         type: FILE_TYPE.excel,
+        dirFile: dir,
       };
       await this.importQueue.add(
         'import-business',
@@ -66,6 +67,7 @@ export class ImportService {
       const businessList = await this.readCSV(dirFile);
       const promises = businessList?.map((business) => {
         return async () => {
+          delete business?.id;
           const newBusiness = {
             ...business,
             name: String(business?.name),
@@ -78,7 +80,7 @@ export class ImportService {
         };
       });
       console.log('promises: ', promises?.length);
-      const result = await promisesSequentially(promises, 50);
+      const result = await promisesSequentially(promises, 100);
       console.log('promises end!');
       return result;
     } catch (e) {

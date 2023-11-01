@@ -146,6 +146,7 @@ model File {
   name      String   @db.VarChar(128)
   type      String   @db.VarChar(20)
   url       String   @db.VarChar(800)
+  dirFile   String?   @db.VarChar(128)
   creatorId String?  @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz()
   updatedAt DateTime @updatedAt @db.Timestamptz()

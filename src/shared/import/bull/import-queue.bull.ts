@@ -10,6 +10,7 @@ export class BullImportQueue {
   @Process('import-business')
   async importBusiness(bull: Job<any>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.importSerivce.runImportBusiness(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

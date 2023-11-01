@@ -1,4 +1,4 @@
-import { StringField } from 'src/decorators';
+import { StringField, StringFieldOptional } from 'src/decorators';
 export class CreateFileDto {
   @StringField({})
   name: string;
@@ -8,4 +8,7 @@ export class CreateFileDto {
 
   @StringField({})
   url: string;
+
+  @StringFieldOptional({})
+  dirFile?: string;
 }

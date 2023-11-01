@@ -21,6 +21,7 @@ export class BullJobQueue {
   @Process('search-yellow')
   async runBullSearchYellow(bull: Job<BullJob>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.searchYellow.runJobSearch(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -30,6 +31,7 @@ export class BullJobQueue {
   @Process('search-yelp')
   async runBullSearchYelp(bull: Job<BullJob>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.searchYelp.runJobSearch(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -39,6 +41,7 @@ export class BullJobQueue {
   @Process('auto-search-yellow')
   async runBullAutoSearchYellow(bull: Job<BullJob>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.autoSearchYellow.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -48,6 +51,7 @@ export class BullJobQueue {
   @Process('auto-search-yelp')
   async runBullAutoSearchYelp(bull: Job<BullJob>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.autoSearchYelp.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -57,6 +61,7 @@ export class BullJobQueue {
   @Process('auto-search-menufy')
   async runBullAutoSearchMenufy(bull: Job<BullJob>) {
     try {
+      console.log('job id: ', bull?.id);
       return await this.autoSearchMenufy.runJobAuto(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

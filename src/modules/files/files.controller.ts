@@ -4,7 +4,9 @@ https://docs.nestjs.com/controllers#controllers
 
 import {
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Query,
   Res,
@@ -37,8 +39,19 @@ export class FilesController {
   @Get('/')
   paginate(
     @Query() fetchDto: FetchDto,
+    @CurrentUser() currentUser: UserEntity,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.filesService.paginate(fetchDto, res);
+    return this.filesService.paginate(fetchDto, currentUser, res);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.filesService.findById(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.filesService.delete(id);
   }
 }

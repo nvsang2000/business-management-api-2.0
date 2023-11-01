@@ -204,8 +204,10 @@ export class SearchYelpService {
     const itemList = [];
     $(WEBSITE.YELP.ITEM_LIST)?.map((i: number, el: Element) => {
       const name = $(el)?.find('h3 span a')?.text();
-      const thumbnailUrl = $(el)?.find('.css-eqfjza a img')?.attr('src');
-      const url = $(el)?.find('.css-eqfjza a')?.attr('href');
+      const thumbnailUrl = $(el)
+        ?.find('[aria-label="Slideshow"] a img')
+        ?.attr('src');
+      const url = $(el)?.find('.css-1egxyvc a')?.attr('href');
       const scratchLink = `${WEBSITE.YELP.URL}${url}`;
       const item = { name, thumbnailUrl, scratchLink };
       itemList.push(item);

@@ -2,9 +2,19 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { API_HOST, ASSETS_THUMNAIL_DIR, FILE_TYPE } from 'src/constants';
+import {
+  API_HOST,
+  ASSETS_THUMNAIL_DIR,
+  FILE_TYPE,
+  MESSAGE_ERROR,
+  ROLE,
+} from 'src/constants';
 import { UserEntity } from 'src/entities';
 import * as fs from 'fs';
 import { PaginationMetaParams } from 'src/dto/paginationMeta.dto';
@@ -50,6 +60,7 @@ export class FilesService {
           url,
           name: image.originalname,
           type: FILE_TYPE.image,
+          dirFile: dir,
           creatorId: currentUser?.id,
         },
       });
@@ -75,15 +86,23 @@ export class FilesService {
     }
   }
 
-  async paginate(fetchDto: FetchDto, response: Response): Promise<any[]> {
+  async paginate(
+    fetchDto: FetchDto,
+    currentUser: UserEntity = null,
+    response: Response,
+  ): Promise<any[]> {
     try {
       const { search, limit, page } = fetchDto;
+      const isAdmin = currentUser?.role === ROLE.admin;
       const where = {
         ...(search && { name: { search: transformTextSearch(search) } }),
       };
 
       const result = await this.prisma.file.findMany({
-        where,
+        where: {
+          ...where,
+          ...(!isAdmin && { creatorId: { equals: currentUser?.id } }),
+        },
         take: +limit,
         skip: (+page - 1) * +limit,
         orderBy: { createdAt: 'desc' },
@@ -112,6 +131,31 @@ export class FilesService {
       return result;
     } catch (error) {
       throw new UnprocessableEntityException(error.message);
+    }
+  }
+
+  async findById(id: string) {
+    try {
+      const result = await this.prisma.file.findUnique({
+        where: { id },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      const file = await this.findById(id);
+      if (!file) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
+      fs.unlink(`${file?.dirFile}/${file?.name}`, (err) => {
+        if (err) throw new BadRequestException('File does not exist!');
+      });
+      const result = await this.prisma.file.delete({ where: { id } });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.response);
     }
   }
 }

@@ -15,10 +15,10 @@ import * as XLSX from 'xlsx-js-style';
 import { ExportBusinessDto } from './dto/export-business.dto';
 import { BusinessEntity, UserEntity } from 'src/entities';
 import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FilesService } from 'src/modules/files/files.service';
-import { PrismaService } from 'nestjs-prisma';
+import { BullExport } from 'src/interface';
 
 export const HEADER_ROW_BUSINESS = [
   'id',
@@ -40,7 +40,6 @@ export class ExportService {
     private configService: ConfigService,
     private fileService: FilesService,
     private businessSerivce: BusinessService,
-    private prisma: PrismaService,
     @InjectQueue(`export-queue-${process.env.REDIS_SERVER}`)
     private importQueue: Queue,
   ) {}
@@ -58,7 +57,7 @@ export class ExportService {
           {
             removeOnComplete: true,
             removeOnFail: true,
-            attempts: 20,
+            attempts: 0,
           },
         );
         return {
@@ -75,13 +74,14 @@ export class ExportService {
     }
   }
 
-  async runExportBusiness(bull) {
+  async runExportBusiness(bull: Job<BullExport>) {
     const { fetchDto, currentUser } = bull.data;
     try {
       const businessList = await this.handleFindAllData(fetchDto);
       const result = await this.createFileExcel(businessList, currentUser);
       return result;
     } catch (e) {
+      console.log('e', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -118,6 +118,7 @@ export class ExportService {
       );
       return result;
     } catch (e) {
+      console.log('e', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -129,6 +130,7 @@ export class ExportService {
       if (mode === EXPORT_MODE.all) {
         let hasMore = true;
         let cursor = null;
+        let index = 0;
         fetchDto.limit = '10000';
         while (hasMore) {
           const businessMore = await this.businessSerivce.findAllExport(
@@ -140,6 +142,8 @@ export class ExportService {
             businessList = businessList.concat(businessMore);
             cursor = businessMore[businessMore.length - 1].id;
           }
+          index++;
+          console.log('cursor: ', index, cursor);
         }
       } else businessList = await this.businessSerivce.findAllExport(fetchDto);
       return businessList;
@@ -166,6 +170,7 @@ export class ExportService {
         isProcess: false,
         name: fileName,
         url: `${apiHost}assets/csv/${fileName}`,
+        dirFile: dir,
       };
     } catch (e) {
       throw new UnprocessableEntityException(e.message);

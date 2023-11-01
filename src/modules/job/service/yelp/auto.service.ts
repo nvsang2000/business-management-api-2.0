@@ -126,7 +126,7 @@ export class AutoSearchYelpService {
         };
       });
       console.log('prosmises', prosmisesZipCode?.length);
-      await promisesSequentially(prosmisesZipCode, 10);
+      await promisesSequentially(prosmisesZipCode, 1);
     } catch (e) {
       console.log(e);
     } finally {
@@ -152,7 +152,7 @@ export class AutoSearchYelpService {
         if (!nextPage) break;
         page++;
       }
-      console.log(businessListForPage?.length, zipCode);
+      console.log(businessListForPage);
       if (businessListForPage?.length === 0) return;
       else {
         const promiseGetDetail = businessListForPage?.map((business) => {
