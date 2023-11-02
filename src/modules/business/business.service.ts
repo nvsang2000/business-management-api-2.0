@@ -20,6 +20,7 @@ import {
   EXPORT_MODE,
   GOOOGLE_VERIFY,
   MESSAGE_ERROR,
+  ROLE,
   SOURCE_SCRATCH,
   STRING_BOOLEAN,
 } from 'src/constants';
@@ -50,11 +51,10 @@ export class BusinessService {
     },
   };
 
-  createQuery(fetchDto: any) {
+  createQuery(fetchDto: any, currentUser?: UserEntity) {
     const {
       search,
       statusMarketing,
-      userMarketingId,
       googleVerify,
       website,
       address,
@@ -65,20 +65,19 @@ export class BusinessService {
       ids,
     } = fetchDto;
     let { categories, state } = fetchDto;
+    const isAdmin = currentUser?.role === ROLE.admin;
     const boolGoogleVerify =
       googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
 
     categories && (categories = []?.concat(categories)?.flat(Infinity));
     state && (state = []?.concat(state)?.flat(Infinity));
     if ([EXPORT_MODE.selected].includes(mode)) {
-      if (!ids) {
+      if (!ids)
         throw new BadRequestException(
           'Export mode by selected require specify has row select !',
         );
-      }
-      return {
-        id: { in: ids },
-      };
+
+      return { id: { in: ids } };
     }
 
     return {
@@ -89,13 +88,11 @@ export class BusinessService {
       ...(googleVerify && {
         googleVerify: { equals: boolGoogleVerify },
       }),
-      ...(userMarketingId &&
-        statusUser?.includes(statusMarketing) && {
-          userMarketingId: { equals: userMarketingId },
-          statusMarketing: { equals: statusMarketing },
-        }),
-      ...(!statusUser?.includes(statusMarketing) && {
+      ...(statusUser?.includes(statusMarketing) && {
         statusMarketing: { equals: statusMarketing },
+        ...(!isAdmin && {
+          userMarketingId: { equals: currentUser?.id },
+        }),
       }),
       ...(categories && { categories: { hasSome: categories } }),
       ...(state && { state: { in: state, mode: 'insensitive' as any } }),
@@ -117,10 +114,11 @@ export class BusinessService {
   async paginate(
     fetchDto: FetchBusinessDto,
     response: Response,
+    currentUser: UserEntity,
   ): Promise<any[]> {
     try {
       const { limit, page, sortBy, sortDirection } = fetchDto;
-      const where = this.createQuery(fetchDto);
+      const where = this.createQuery(fetchDto, currentUser);
       const result = await this.prisma.business.findMany({
         where,
         select: {

@@ -80,7 +80,7 @@ export class ImportService {
         };
       });
       console.log('promises: ', promises?.length);
-      const result = await promisesSequentially(promises, 100);
+      const result = await promisesSequentially(promises, 50);
       console.log('promises end!');
       return result;
     } catch (e) {

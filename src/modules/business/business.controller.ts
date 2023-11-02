@@ -43,8 +43,9 @@ export class BusinessController {
   paginate(
     @Query() fetchDto: FetchBusinessDto,
     @Res({ passthrough: true }) res: Response,
+    @CurrentUser() currentUser: UserEntity,
   ): Promise<any> {
-    return this.businessService.paginate(fetchDto, res);
+    return this.businessService.paginate(fetchDto, res, currentUser);
   }
 
   @Put('status-marketing/:id')

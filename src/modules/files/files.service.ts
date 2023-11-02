@@ -150,7 +150,7 @@ export class FilesService {
       const file = await this.findById(id);
       if (!file) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       fs.unlink(`${file?.dirFile}/${file?.name}`, (err) => {
-        if (err) throw new BadRequestException('File does not exist!');
+        if (err) console.log(err);
       });
       const result = await this.prisma.file.delete({ where: { id } });
       return result;

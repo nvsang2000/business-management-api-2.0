@@ -1,6 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsUUID } from 'class-validator';
-import { UUID } from 'crypto';
 import {
   GOOOGLE_VERIFY,
   SOURCE_SCRATCH,
@@ -37,9 +34,4 @@ export class FetchBusinessDto extends FetchDto {
 
   @EnumFieldOptional(() => STATUS_MARKETING)
   statusMarketing?: STATUS_MARKETING;
-
-  @IsUUID()
-  @ApiProperty({ required: false })
-  @IsOptional()
-  userMarketingId?: UUID;
 }
