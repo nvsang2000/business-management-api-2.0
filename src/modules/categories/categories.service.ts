@@ -21,7 +21,7 @@ export class CategoriesService {
 
   async paginate(fetchDto: FetchDto, response: Response): Promise<any[]> {
     try {
-      const { limit, page, search } = fetchDto;
+      const { limit, page, search, sortBy, sortDirection } = fetchDto;
       const where = {
         ...(search && {
           name: { contains: search, mode: 'insensitive' as any },
@@ -31,6 +31,7 @@ export class CategoriesService {
         where,
         take: +limit,
         skip: (+page - 1) * +limit,
+        orderBy: { [sortBy]: sortDirection },
       });
 
       const totalDocs = await this.prisma.category.count({ where });
@@ -101,16 +102,6 @@ export class CategoriesService {
     updateCategory: UpdateCategoryDto,
     currentUser: UserEntity = null,
   ) {
-    const { name, slug } = updateCategory;
-    const checkId = await this.findById(id);
-    if (!checkId) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
-    const checkName = await this.findByName(name);
-    if (checkName)
-      throw new BadRequestException('Name category already exists!');
-
-    const checkSlug = await this.findBySlug(slug);
-    if (checkSlug)
-      throw new BadRequestException('Slug category already exists!');
     try {
       const result = await this.prisma.category.update({
         where: { id },
