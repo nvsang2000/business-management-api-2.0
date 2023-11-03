@@ -156,7 +156,7 @@ export class ExportService {
     try {
       const dir = await this.configService.get(ASSETS_CSV_DIR);
       const apiHost = await this.configService.get(API_HOST);
-      const fileName = `BUSINESS_${dayjs().format(
+      const fileName = `EXPORT_${dayjs().format(
         'DD-MM-YYYY',
       )}_${Date.now().toString()}.csv`;
       const tempFilePath = `${dir}/${fileName}`;

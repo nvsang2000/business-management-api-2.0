@@ -31,7 +31,7 @@ export class ImportService {
     try {
       const dir = await this.configService.get(ASSETS_CSV_DIR);
       const apiHost = await this.configService.get(API_HOST);
-      const fileName = `BUSINESS_${dayjs().format(
+      const fileName = `IMPORT_${dayjs().format(
         'DD-MM-YYYY',
       )}_${Date.now().toString()}.csv`;
       const url = `${apiHost}assets/csv/${fileName}`;

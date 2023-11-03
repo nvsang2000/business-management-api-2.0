@@ -2,7 +2,7 @@ import { ImportModule } from './shared/import/import.module';
 import { ExportModule } from './shared/export/export.module';
 import { FilesModule } from './modules/files/files.module';
 import { WorkerService } from './worker.service';
-import { CategoryModule } from './modules/category/category.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import { PolicyModule } from './modules/policy/policy.module';
 import { BusinessModule } from './modules/business/business.module';
 import { UsersModule } from './modules/users/users.module';
@@ -81,7 +81,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     AuthModule,
     UsersModule,
     BusinessModule,
-    CategoryModule,
+    CategoriesModule,
     ZipCodeModule,
     JobModule,
   ],

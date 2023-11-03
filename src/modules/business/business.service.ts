@@ -254,6 +254,8 @@ export class BusinessService {
     updateBusiness: UpdateBusinessDto | any,
     currentUser: UserEntity,
   ) {
+    const checkId = await this.findById(id);
+    if (!checkId) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
     try {
       const result = await this.prisma.business.update({
         where: { id },
@@ -288,9 +290,9 @@ export class BusinessService {
   }
 
   async delete(id: string) {
+    const business = await this.findById(id);
+    if (!business) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
     try {
-      const business = await this.findById(id);
-      if (!business) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const result = await this.prisma.business.delete({ where: { id } });
       return result;
     } catch (e) {
