@@ -22,17 +22,18 @@ export class CategoriesService {
   async paginate(fetchDto: FetchDto, response: Response): Promise<any[]> {
     try {
       const { limit, page, search } = fetchDto;
+      const where = {
+        ...(search && {
+          name: { contains: search, mode: 'insensitive' as any },
+        }),
+      };
       const result = await this.prisma.category.findMany({
-        where: {
-          ...(search && {
-            name: { contains: search, mode: 'insensitive' as any },
-          }),
-        },
+        where,
         take: +limit,
         skip: (+page - 1) * +limit,
       });
 
-      const totalDocs = await this.prisma.category.count();
+      const totalDocs = await this.prisma.category.count({ where });
 
       if (response.set) {
         response.set(
