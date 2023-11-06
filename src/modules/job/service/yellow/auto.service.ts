@@ -102,7 +102,7 @@ export class AutoSearchYellowService {
           };
         },
       );
-      const result = await promisesSequentially(promisesState, 2);
+      const result = await promisesSequentially(promisesState, 1);
       if (result) {
         const job: JobEntity = await this.jobService.findById(jobId);
         const statusUnFinish = Object?.values(job?.statusData)?.filter(
@@ -135,7 +135,7 @@ export class AutoSearchYellowService {
         };
       });
       console.log('prosmises', prosmisesZipCode?.length);
-      await promisesSequentially(prosmisesZipCode, 20);
+      await promisesSequentially(prosmisesZipCode, 14);
     } catch (e) {
       console.log(e);
     } finally {
