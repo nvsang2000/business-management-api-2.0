@@ -32,5 +32,8 @@ export class CreateScratchBusinessDto {
   source?: string;
 
   @StringFieldOptional({})
+  keyword: string;
+
+  @StringFieldOptional({})
   categories?: string[];
 }

@@ -158,6 +158,7 @@ export class AutoSearchYellowService {
         for (const business of businessList) {
           const newBusiness = {
             ...business,
+            keyword,
             source: SOURCE_SCRATCH.YELLOW_PAGES,
             scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
             phone: formatPhoneNumber(business.phone),

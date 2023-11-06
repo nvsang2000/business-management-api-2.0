@@ -214,7 +214,7 @@ export class AutoSearchMenufySerivce {
         if (addressOrPhone?.includes('tel:')) phone = $(el).text();
       });
       if (!name || !address || !city || !state || !zipCode) return;
-      const newBusiness = {
+      const newBusiness: any = {
         ...business,
         name: name?.replace('Online Ordering Menu', '').trim(),
         phone: formatPhoneNumber(phone),

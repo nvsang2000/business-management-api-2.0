@@ -25,7 +25,6 @@ import { JobService } from '../../job.service';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
-import { CreateScratchBusinessDto } from 'src/modules/business/dto';
 
 interface StatusDataItem {
   zipCode: string;
@@ -180,7 +179,7 @@ export class SearchYelpService {
       const body = await response?.text();
       const $ = cheerio.load(body);
       const detailEl = await this.findElDetail($);
-      const newBusiness: CreateScratchBusinessDto = {
+      const newBusiness: any = {
         ...business,
         ...detailEl,
         source: SOURCE_SCRATCH.YELP,

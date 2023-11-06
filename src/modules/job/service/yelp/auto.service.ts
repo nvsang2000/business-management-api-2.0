@@ -17,12 +17,6 @@ import { JobEntity } from 'src/entities/job.entity';
 import dayjs from 'dayjs';
 import { SearchYelpService } from './search.service';
 
-interface BusinessForList {
-  name: string;
-  thumbnailUrl: string;
-  scratchLink: string;
-}
-
 @Injectable()
 export class AutoSearchYelpService {
   constructor(
@@ -41,7 +35,7 @@ export class AutoSearchYelpService {
         {
           removeOnComplete: true,
           removeOnFail: true,
-          attempts: 20,
+          attempts: 0,
         },
       );
 
@@ -126,7 +120,7 @@ export class AutoSearchYelpService {
         };
       });
       console.log('prosmises', prosmisesZipCode?.length);
-      await promisesSequentially(prosmisesZipCode, 1);
+      await promisesSequentially(prosmisesZipCode, 10);
     } catch (e) {
       console.log(e);
     } finally {
@@ -138,7 +132,7 @@ export class AutoSearchYelpService {
   async searchWithZipCode(keyword: string, zipCode: string): Promise<any> {
     try {
       let page = 0;
-      const businessListForPage: BusinessForList[] = [];
+      const businessListForPage = [];
       while (true) {
         const url = `${WEBSITE.YELP.URL}search?find_desc=${keyword}&find_loc=${zipCode}&start=${page}0`;
         const response = await connectPage(url);
@@ -152,12 +146,12 @@ export class AutoSearchYelpService {
         if (!nextPage) break;
         page++;
       }
-      console.log(businessListForPage);
+      console.log(businessListForPage?.length, zipCode, keyword);
       if (businessListForPage?.length === 0) return;
       else {
         const promiseGetDetail = businessListForPage?.map((business) => {
           return async () => {
-            return await this.searchYelp.saveBusiness(business);
+            return await this.searchYelp.saveBusiness({ ...business, keyword });
           };
         });
         await promisesSequentially(promiseGetDetail, 10);

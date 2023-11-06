@@ -50,6 +50,9 @@ export class BusinessEntity {
   googleVerify?: boolean;
 
   @ApiProperty()
+  keyword?: string;
+
+  @ApiProperty()
   googleMapId?: string;
 
   @ApiProperty()
