@@ -102,6 +102,15 @@ export class CategoriesService {
     updateCategory: UpdateCategoryDto,
     currentUser: UserEntity = null,
   ) {
+    const { name, slug } = updateCategory;
+    const checkName = await this.prisma.category.findFirst({ where: { name } });
+    if (id !== checkName?.id)
+      throw new BadRequestException('Name already exists!');
+
+    const checkSlug = await this.prisma.category.findFirst({ where: { slug } });
+    if (id !== checkSlug?.id)
+      throw new BadRequestException('Slug already exists!');
+
     try {
       const result = await this.prisma.category.update({
         where: { id },
@@ -139,6 +148,14 @@ export class CategoriesService {
     createCategory: CreateCategoryDto,
     currentUser: UserEntity = null,
   ) {
+    const { name, slug } = createCategory;
+    const checkName = await this.findByName(name);
+    if (checkName)
+      throw new BadRequestException('Name category already exists!');
+
+    const checkSlug = await this.findBySlug(slug);
+    if (checkSlug)
+      throw new BadRequestException('Slug category already exists!');
     try {
       const result = await this.prisma.category.create({
         data: {

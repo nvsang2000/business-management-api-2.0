@@ -86,7 +86,7 @@ export enum TABLES {
   User = 'User',
   Business = 'Business',
   Category = 'Category',
-  Scratch = 'Scratch',
+  Search = 'Search',
   Setting = 'Setting',
 }
 
@@ -110,6 +110,7 @@ export enum GOOGLE_API_INPUT_TYPE {
 
 export enum EXPORT_MODE {
   all = 'all',
+  filter = 'filter',
   selected = 'selected',
 }
 
