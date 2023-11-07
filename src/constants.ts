@@ -68,7 +68,7 @@ export enum METHOD {
 export enum PERMISSION_SUBJECTS {
   Business = 'Business',
   Category = 'Category',
-  Scratch = 'Scratch',
+  Search = 'Search',
 }
 
 export enum ACTION {

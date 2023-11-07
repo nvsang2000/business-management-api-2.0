@@ -15,6 +15,7 @@ import { FilesService } from 'src/modules/files/files.service';
 import * as XLSX from 'xlsx-js-style';
 import * as fs from 'fs';
 import { promisesSequentially } from 'src/helper';
+import { ImportBusinessDto } from './dto/import-business.dto';
 @Injectable()
 export class ImportService {
   constructor(
@@ -26,6 +27,7 @@ export class ImportService {
   ) {}
   async createImportBusiness(
     file: Express.Multer.File,
+    payload: ImportBusinessDto,
     currentUser: UserEntity,
   ) {
     try {
@@ -45,7 +47,7 @@ export class ImportService {
       };
       await this.importQueue.add(
         'import-business',
-        { file: newFile },
+        { file: newFile, payload },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -60,7 +62,7 @@ export class ImportService {
   }
 
   async runImportBusiness(bull: Job<any>) {
-    const { file } = bull.data;
+    const { file, payload } = bull.data;
     const dir = await this.configService.get(ASSETS_CSV_DIR);
     const dirFile = `${dir}/${file.name}`;
     try {
@@ -79,8 +81,8 @@ export class ImportService {
           return await this.businessSerivce.saveScratchBusiness(newBusiness);
         };
       });
-      console.log('promises: ', promises?.length);
-      const result = await promisesSequentially(promises, 50);
+      console.log('promises: ', promises?.length, payload);
+      const result = await promisesSequentially(promises, payload?.limit);
       console.log('promises end!');
       return result;
     } catch (e) {

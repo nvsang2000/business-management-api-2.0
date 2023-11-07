@@ -34,6 +34,7 @@ export const HEADER_ROW_BUSINESS = [
   'scratchLink',
   'thumbnailUrl',
   'source',
+  'keyword',
 ];
 @Injectable()
 export class ExportService {
@@ -110,6 +111,7 @@ export class ExportService {
           i?.scratchLink,
           i?.thumbnailUrl,
           i?.source,
+          i?.keyword,
         ];
         return row;
       });

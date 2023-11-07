@@ -187,6 +187,7 @@ export class BusinessService {
           thumbnailUrl: true,
           categories: true,
           source: true,
+          keyword: true,
           category: {
             select: {
               id: true,
