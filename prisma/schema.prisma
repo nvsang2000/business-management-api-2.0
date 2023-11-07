@@ -62,6 +62,7 @@ model Category {
   id          String     @id @default(uuid()) @db.Uuid
   name        String     @unique(map: "category_name_key") @db.VarChar(128)
   slug        String     @unique(map: "category_slug_key") @db.VarChar(128)
+  properties  String[]   @db.VarChar(128)
   creatorId   String?    @db.Uuid
   updatedById String?    @db.Uuid
   createdAt   DateTime?  @default(now()) @db.Timestamptz()

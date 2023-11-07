@@ -14,6 +14,7 @@ import {
   UpdateBusinessDto,
   UpdateScratchBusinessDto,
   UpdateStatusMarketingBusinessDto,
+  VerifyBusinessDto,
 } from './dto';
 import {
   BUSINESS_STATUS,
@@ -161,10 +162,16 @@ export class BusinessService {
     }
   }
 
-  async findAllExport(fetchDto: FetchBusinessDto, lastId?: string) {
+  async findAllExport(
+    fetchDto: FetchBusinessDto,
+    isAdmin: boolean,
+    lastId?: string,
+  ) {
     try {
-      const { page, limit } = fetchDto;
+      let { limit } = fetchDto;
+      const { page, sortBy, sortDirection } = fetchDto;
       const where = this.createQuery(fetchDto);
+      limit = isAdmin ? limit : '50';
       const result = await this.prisma.business.findMany({
         where,
         select: {
@@ -192,7 +199,7 @@ export class BusinessService {
         ...(lastId && {
           cursor: { id: lastId },
         }),
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortDirection },
       });
 
       return result;
@@ -297,6 +304,25 @@ export class BusinessService {
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.response);
+    }
+  }
+
+  async verify(
+    id: string,
+    verify: VerifyBusinessDto,
+    currentUser: UserEntity = null,
+  ) {
+    try {
+      const result = await this.prisma.business.update({
+        where: { id },
+        data: {
+          ...verify,
+          updatedBy: { connect: { id: currentUser?.id } },
+        },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e.message);
     }
   }
 

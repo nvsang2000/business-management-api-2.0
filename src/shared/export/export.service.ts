@@ -10,6 +10,7 @@ import {
   ASSETS_CSV_DIR,
   EXPORT_MODE,
   FILE_TYPE,
+  ROLE,
 } from 'src/constants';
 import * as XLSX from 'xlsx-js-style';
 import { ExportBusinessDto } from './dto/export-business.dto';
@@ -50,7 +51,8 @@ export class ExportService {
   ) {
     try {
       const { mode } = fetchDto;
-      if (mode === EXPORT_MODE.all) {
+      const isAdmin = currentUser?.role === ROLE.admin;
+      if (mode === EXPORT_MODE.all && isAdmin) {
         await this.importQueue.add(
           'export-business',
           { fetchDto, currentUser },
@@ -66,7 +68,10 @@ export class ExportService {
             'The file will be downloaded when you receive a notification!',
         };
       } else {
-        const businessList = await this.handleFindAllData(fetchDto);
+        const businessList = await this.handleFindAllData(
+          fetchDto,
+          currentUser,
+        );
         return await this.createFileExcel(businessList, currentUser);
       }
     } catch (e) {
@@ -77,7 +82,7 @@ export class ExportService {
   async runExportBusiness(bull: Job<BullExport>) {
     const { fetchDto, currentUser } = bull.data;
     try {
-      const businessList = await this.handleFindAllData(fetchDto);
+      const businessList = await this.handleFindAllData(fetchDto, currentUser);
       const result = await this.createFileExcel(businessList, currentUser);
       return result;
     } catch (e) {
@@ -123,11 +128,15 @@ export class ExportService {
     }
   }
 
-  async handleFindAllData(fetchDto: ExportBusinessDto) {
+  async handleFindAllData(
+    fetchDto: ExportBusinessDto,
+    currentUser: UserEntity = null,
+  ) {
     const { mode } = fetchDto;
+    const isAdmin = currentUser?.role === ROLE.admin;
     try {
       let businessList = [];
-      if (mode === EXPORT_MODE.all) {
+      if (mode === EXPORT_MODE.all && isAdmin) {
         let hasMore = true;
         let cursor = null;
         let index = 0;
@@ -135,6 +144,7 @@ export class ExportService {
         while (hasMore) {
           const businessMore = await this.businessSerivce.findAllExport(
             fetchDto,
+            isAdmin,
             cursor,
           );
           if (businessMore.length === 1) hasMore = false;
@@ -145,7 +155,11 @@ export class ExportService {
           index++;
           console.log('cursor: ', index, cursor);
         }
-      } else businessList = await this.businessSerivce.findAllExport(fetchDto);
+      } else
+        businessList = await this.businessSerivce.findAllExport(
+          fetchDto,
+          isAdmin,
+        );
       return businessList;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);

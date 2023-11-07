@@ -20,6 +20,7 @@ import {
   FetchBusinessDto,
   UpdateBusinessDto,
   UpdateStatusMarketingBusinessDto,
+  VerifyBusinessDto,
 } from './dto';
 import { CurrentUser } from 'src/decorators';
 import { UserEntity } from 'src/entities';
@@ -46,6 +47,15 @@ export class BusinessController {
     @CurrentUser() currentUser: UserEntity,
   ): Promise<any> {
     return this.businessService.paginate(fetchDto, res, currentUser);
+  }
+
+  @Put('verify/:id')
+  updateVerify(
+    @Param('id') id: string,
+    @Body() payload: VerifyBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.businessService.verify(id, payload, currentUser);
   }
 
   @Put('status-marketing/:id')
