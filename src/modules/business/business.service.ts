@@ -228,35 +228,6 @@ export class BusinessService {
     }
   }
 
-  async findByScratchLink(scratchLink: string) {
-    try {
-      const result = await this.prisma.business.findUnique({
-        where: { scratchLink },
-      });
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
-  async findFistOne(name: string, phone: string, address: string) {
-    try {
-      const result = await this.prisma.business.findFirst({
-        where: {
-          AND: {
-            name: { contains: name, mode: 'insensitive' as any },
-            address: { contains: address, mode: 'insensitive' as any },
-            phone,
-          },
-        },
-      });
-      return result;
-    } catch (e) {
-      console.log('err', e);
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
   async update(
     id: string,
     updateBusiness: UpdateBusinessDto | any,
@@ -347,6 +318,42 @@ export class BusinessService {
     }
   }
 
+  // Scratch business
+  async findByScratchLink(scratchLink: string) {
+    try {
+      const result = await this.prisma.business.findUnique({
+        where: { scratchLink },
+        select: {
+          id: true,
+        },
+      });
+      return result;
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
+  async findFistOne(name: string, phone: string, address: string) {
+    try {
+      const result = await this.prisma.business.findFirst({
+        where: {
+          AND: {
+            name: { contains: name, mode: 'insensitive' as any },
+            address: { contains: address, mode: 'insensitive' as any },
+            phone,
+          },
+        },
+        select: {
+          id: true,
+          source: true,
+        },
+      });
+      return result;
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
   async updateScratchBusiness(
     id: string,
     updateBusiness: UpdateScratchBusinessDto,
@@ -368,10 +375,13 @@ export class BusinessService {
             },
           }),
         },
+        select: {
+          id: true,
+        },
       });
       return result;
     } catch (e) {
-      console.log('err', e);
+      console.log(e.message);
     }
   }
 
@@ -395,32 +405,35 @@ export class BusinessService {
             },
           }),
         },
+        select: {
+          id: true,
+        },
       });
       return result;
     } catch (e) {
-      console.log('err', e);
+      console.log(e.message);
     }
   }
 
   async saveScratchBusiness(business: CreateScratchBusinessDto) {
     try {
-      const { name, phone, address, scratchLink, source } = business;
+      const { name, phone, address, scratchLink } = business;
       const checkScratch = await this.findByScratchLink(scratchLink);
       const checkDuplicate = await this.findFistOne(name, phone, address);
       if (!checkDuplicate && !checkScratch)
-        await this.createScratchBusiness(business);
+        return await this.createScratchBusiness(business);
       else {
-        if (checkScratch) {
-          if (source === SOURCE_SCRATCH.YELLOW_PAGES)
-            delete business.categories;
-          await this.updateScratchBusiness(checkScratch?.id, business);
-        } else {
+        if (checkScratch) return;
+        else {
           if (checkDuplicate?.source === SOURCE_SCRATCH.YELLOW_PAGES)
-            await this.updateScratchBusiness(checkDuplicate?.id, business);
+            return await this.updateScratchBusiness(
+              checkDuplicate?.id,
+              business,
+            );
         }
       }
     } catch (e) {
-      console.log(e);
+      console.log(e.message);
     }
   }
 }

@@ -106,10 +106,15 @@ model Business {
   updatedBy       User?      @relation("updatedByBusiness", fields: [updatedById], references: [id])
 
   @@unique([scratchLink])
-  @@index([categories, state, zipCode, cityId])
+  @@index([name])
+  @@index([phone])
+  @@index([categories])
+  @@index([website])
   @@index([source])
   @@index([state])
-  @@index([categories])
+  @@index([zipCode])
+  @@index([city])
+  @@index([address])
   @@map("business")
 }
 

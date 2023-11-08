@@ -121,25 +121,7 @@ export class CategoriesService {
       });
       return result;
     } catch (e) {
-      throw new UnprocessableEntityException(e.message);
-    }
-  }
-
-  async upsert(
-    upsertCategories: CreateCategoryDto,
-    currentUser: UserEntity = null,
-  ) {
-    try {
-      const result = await this.prisma.category.upsert({
-        where: { name: upsertCategories.name },
-        create: {
-          ...upsertCategories,
-          creator: { connect: { id: currentUser?.id } },
-        },
-        update: upsertCategories,
-      });
-      return result;
-    } catch (e) {
+      console.log('e', e);
       throw new UnprocessableEntityException(e.message);
     }
   }
@@ -149,6 +131,7 @@ export class CategoriesService {
     currentUser: UserEntity = null,
   ) {
     const { name, slug } = createCategory;
+    console.log('createCategory', createCategory);
     const checkName = await this.findByName(name);
     if (checkName)
       throw new BadRequestException('Name category already exists!');
@@ -165,6 +148,7 @@ export class CategoriesService {
       });
       return result;
     } catch (e) {
+      console.log(e);
       throw new UnprocessableEntityException(e.message);
     }
   }

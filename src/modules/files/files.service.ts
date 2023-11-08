@@ -92,20 +92,18 @@ export class FilesService {
     response: Response,
   ): Promise<any[]> {
     try {
-      const { search, limit, page } = fetchDto;
+      const { search, limit, page, sortBy, sortDirection } = fetchDto;
       const isAdmin = currentUser?.role === ROLE.admin;
       const where = {
         ...(search && { name: { search: transformTextSearch(search) } }),
+        ...(!isAdmin && { creatorId: { equals: currentUser?.id } }),
       };
 
       const result = await this.prisma.file.findMany({
-        where: {
-          ...where,
-          ...(!isAdmin && { creatorId: { equals: currentUser?.id } }),
-        },
+        where,
         take: +limit,
         skip: (+page - 1) * +limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortDirection },
         include: {
           creator: {
             select: {

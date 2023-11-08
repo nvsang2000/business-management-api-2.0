@@ -193,7 +193,7 @@ export class SearchYelpService {
         !newBusiness?.zipCode
       )
         return;
-      await this.businessService.saveScratchBusiness(newBusiness);
+      return await this.businessService.saveScratchBusiness(newBusiness);
     } catch (e) {
       console.log(e);
     }

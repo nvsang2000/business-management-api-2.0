@@ -119,10 +119,10 @@ export class AutoSearchYelpService {
           return await this.searchWithZipCode(keyword, zipCode);
         };
       });
-      console.log('prosmises', prosmisesZipCode?.length);
-      await promisesSequentially(prosmisesZipCode, 10);
+      console.log(stateCode, prosmisesZipCode?.length);
+      return await promisesSequentially(prosmisesZipCode, 10);
     } catch (e) {
-      console.log(e);
+      console.log(e?.message);
     } finally {
       statusData[stateCode].isFinish = true;
       return await this.jobService.update(id, { statusData });
@@ -146,7 +146,7 @@ export class AutoSearchYelpService {
         if (!nextPage) break;
         page++;
       }
-      console.log(businessListForPage?.length, zipCode, keyword);
+      console.log(zipCode, businessListForPage?.length);
       if (businessListForPage?.length === 0) return;
       else {
         const promiseGetDetail = businessListForPage?.map((business) => {
