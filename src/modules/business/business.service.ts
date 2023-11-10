@@ -64,6 +64,7 @@ export class BusinessService {
       source,
       mode,
       ids,
+      keyword,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const isAdmin = currentUser?.role === ROLE.admin;
@@ -82,6 +83,9 @@ export class BusinessService {
     }
 
     return {
+      ...(keyword && {
+        keyword: { contains: keyword, mode: 'insensitive' as any },
+      }),
       ...(source && { source: { equals: source } }),
       ...(website && {
         website: website === STRING_BOOLEAN.TRUE ? { not: null } : null,

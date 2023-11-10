@@ -32,6 +32,9 @@ export class FetchBusinessDto extends FetchDto {
   @StringFieldOptional({})
   address?: string;
 
+  @StringFieldOptional({})
+  keyword?: string;
+
   @EnumFieldOptional(() => STATUS_MARKETING)
   statusMarketing?: STATUS_MARKETING;
 }
