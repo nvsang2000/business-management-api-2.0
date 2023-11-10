@@ -128,19 +128,15 @@ export const FILE_EXTENTSION = {
 };
 //env
 export const NODE_ENV = 'NODE_ENV';
-export const BUSINESS_LIST = 'BUSINESS_LIST';
-export const GOOGLE_EMAIL = 'GOOGLE_EMAIL';
-export const GOOGLE_PASSWORD = 'GOOGLE_PASSWORD';
 export const JWT_SECRET = 'JWT_SECRET';
 export const REDIS_URL = 'REDIS_URL';
 export const REDIS_HOST = 'REDIS_HOST';
 export const REDIS_POST = 'REDIS_POST';
-export const BROWSER_USER_DATA_DIR = 'BROWSER_USER_DATA_DIR';
 export const ASSETS_CSV_DIR = 'ASSETS_CSV_DIR';
 export const ASSETS_THUMNAIL_DIR = 'ASSETS_THUMNAIL_DIR';
-export const GOOGLE_MAP_URL = 'GOOGLE_MAP_URL';
-export const GOOGLE_MAP_KEY = 'GOOGLE_MAP_KEY';
 export const API_HOST = 'API_HOST';
+export const EXPORT_CHUNK_LENGTH = 'EXPORT_CHUNK_LENGTH';
+export const EXPORT_ALL_LIMIT = 'EXPORT_ALL_LIMIT';
 export const SECONDS_OF_DAY = 86400000;
 
 //class for website

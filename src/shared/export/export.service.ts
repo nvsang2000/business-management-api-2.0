@@ -8,6 +8,8 @@ import dayjs from 'dayjs';
 import {
   API_HOST,
   ASSETS_CSV_DIR,
+  EXPORT_ALL_LIMIT,
+  EXPORT_CHUNK_LENGTH,
   EXPORT_MODE,
   FILE_TYPE,
   ROLE,
@@ -20,6 +22,7 @@ import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FilesService } from 'src/modules/files/files.service';
 import { BullExport } from 'src/interface';
+import { chunkArray, promisesSequentially } from 'src/helper';
 
 export const HEADER_ROW_BUSINESS = [
   'id',
@@ -87,7 +90,6 @@ export class ExportService {
       const result = await this.createFileExcel(businessList, currentUser);
       return result;
     } catch (e) {
-      console.log('e', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -96,36 +98,49 @@ export class ExportService {
     businessList: BusinessEntity[],
     currentUser: UserEntity,
   ) {
+    const chunkLength = await this.configService.get(EXPORT_CHUNK_LENGTH);
     try {
-      const bodyRow = businessList?.map((i: BusinessEntity) => {
-        const row = [
-          i?.id,
-          i?.name,
-          i?.phone ? `"${i?.phone}"` : undefined,
-          i?.website,
-          i?.address,
-          i?.city,
-          i?.state,
-          i?.zipCode ? `"${i?.zipCode}"` : undefined,
-          i?.categories?.join(', '),
-          i?.scratchLink,
-          i?.thumbnailUrl,
-          i?.source,
-          i?.keyword,
-        ];
-        return row;
-      });
-
-      const rawData = [HEADER_ROW_BUSINESS, ...bodyRow];
-      const result = await this.exportExcel(rawData);
-      delete result.isProcess;
-      await this.fileService.create(
-        { ...result, type: FILE_TYPE.excel },
-        currentUser,
+      const chunkData = chunkArray(businessList, chunkLength);
+      const promiseExport = chunkData?.map(
+        (data: BusinessEntity[], index: number) => {
+          return async () => {
+            try {
+              const bodyRow = data?.map((i: BusinessEntity) => {
+                const row = [
+                  i?.id,
+                  i?.name,
+                  i?.phone ? `"${i?.phone}"` : undefined,
+                  i?.website,
+                  i?.address,
+                  i?.city,
+                  i?.state,
+                  i?.zipCode ? `"${i?.zipCode}"` : undefined,
+                  i?.categories?.join(', '),
+                  i?.scratchLink,
+                  i?.thumbnailUrl,
+                  i?.source,
+                  i?.keyword,
+                ];
+                return row;
+              });
+              const rawData = [HEADER_ROW_BUSINESS, ...bodyRow];
+              const result = await this.exportExcel(rawData, String(index));
+              delete result.isProcess;
+              await this.fileService.create(
+                { ...result, type: FILE_TYPE.excel },
+                currentUser,
+              );
+              return result;
+            } catch (e) {
+              throw new UnprocessableEntityException(e?.message);
+            }
+          };
+        },
       );
+
+      const result = await promisesSequentially(promiseExport, 10);
       return result;
     } catch (e) {
-      console.log('e', e);
       throw new UnprocessableEntityException(e?.message);
     }
   }
@@ -136,16 +151,16 @@ export class ExportService {
   ) {
     const { mode } = fetchDto;
     const isAdmin = currentUser?.role === ROLE.admin;
+    const allLimit = await this.configService.get(EXPORT_ALL_LIMIT);
     try {
       let businessList = [];
       if (mode === EXPORT_MODE.all && isAdmin) {
         let hasMore = true;
         let cursor = null;
         let index = 0;
-        fetchDto.limit = '10000';
         while (hasMore) {
           const businessMore = await this.businessSerivce.findAllExport(
-            fetchDto,
+            { ...fetchDto, limit: allLimit },
             isAdmin,
             cursor,
           );
@@ -168,11 +183,11 @@ export class ExportService {
     }
   }
 
-  async exportExcel(rawDatas: any) {
+  async exportExcel(rawDatas: any, subName?: string) {
     try {
       const dir = await this.configService.get(ASSETS_CSV_DIR);
       const apiHost = await this.configService.get(API_HOST);
-      const fileName = `EXPORT_${dayjs().format(
+      const fileName = `EXPORT${subName ? `_${subName}` : ''}_${dayjs().format(
         'DD-MM-YYYY',
       )}_${Date.now().toString()}.csv`;
       const tempFilePath = `${dir}/${fileName}`;

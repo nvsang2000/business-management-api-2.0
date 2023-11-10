@@ -16,7 +16,6 @@ kubernetes.io/ingress.provider 		: nginx
 # reset database redis
 # redis-cli FLUSHDB
 
-# https://maps.google.com/maps/place/?q=place_id:ChIJEc_ZpK0C24gRBO5c5hcEo1M
 
 DELETE FROM business
 WHERE id IN (
@@ -41,4 +40,18 @@ WHERE "scratchLink" LIKE '%https://www.yellowpages.com%';
 UPDATE business
 SET source = 'yelp'
 WHERE "scratchLink" LIKE '%https://www.yelp.com%';
-# 78613
+
+SELECT COUNT(*) AS total_records
+FROM business
+where keyword = 'Restaurants'
+
+UPDATE business
+SET categories = array_cat(categories, ARRAY['Restaurants'])
+WHERE keyword = 'Restaurants'
+AND NOT 'Restaurants' = ANY(categories);
+
+
+UPDATE business
+SET categories = array_cat(categories, ARRAY['Restaurants'])
+WHERE ARRAY['Vietnamese Restaurants']::varchar[] <@ categories
+AND NOT 'Restaurants' = ANY(categories);

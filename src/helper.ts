@@ -192,3 +192,13 @@ export const connectPage = async (url: string) => {
     }
   }
 };
+
+export const chunkArray = (arrayOfObjects: any[], chunkSize: number) => {
+  return Array.from(
+    { length: Math.ceil(arrayOfObjects.length / chunkSize) },
+    (_, index) =>
+      arrayOfObjects
+        .slice(index * chunkSize, (index + 1) * chunkSize)
+        .map((item) => ({ ...item })),
+  );
+};

@@ -24,6 +24,7 @@ export class BullImportQueue {
 
   @OnQueueCompleted()
   async onComplated(bull: Job<BullExport>) {
+    console.log('result: ', bull.returnvalue);
     return this.webhooksService.sendEvent({ data: bull.returnvalue });
   }
 }
