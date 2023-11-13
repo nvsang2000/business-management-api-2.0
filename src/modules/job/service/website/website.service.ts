@@ -55,6 +55,7 @@ export class WebsiteSerivce {
         isWebsite: false,
         limit: '10000',
       } as FetchBusinessDto;
+      console.log('newFetch', newFetch);
       const businessList = await this.businessService.findAllExport(newFetch);
       const promiseCreateBrowser = businessList?.map((data) => {
         return async () => {
@@ -72,7 +73,7 @@ export class WebsiteSerivce {
   async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook)) return;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: 'new',
+      headless: false,
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',

@@ -55,3 +55,8 @@ UPDATE business
 SET categories = array_cat(categories, ARRAY['Restaurants'])
 WHERE ARRAY['Vietnamese Restaurants']::varchar[] <@ categories
 AND NOT 'Restaurants' = ANY(categories);
+
+UPDATE business
+SET categories = array_cat(categories, ARRAY['Restaurants'])
+WHERE keyword = 'Vietnamese Restaurants'
+AND NOT 'Restaurants' = ANY(categories);
