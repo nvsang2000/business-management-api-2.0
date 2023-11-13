@@ -30,6 +30,8 @@ import { AutoSearchYelpService } from './service/yelp/auto.service';
 import { AutoSearchYellowService } from './service/yellow/auto.service';
 import { SearchYelpService } from './service/yelp/search.service';
 import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
+import { WebsiteSerivce } from './service/website/website.service';
+import { FetchBusinessDto } from '../business/dto';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -37,6 +39,7 @@ import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 export class JobController {
   constructor(
     private jobService: JobService,
+    private websiteService: WebsiteSerivce,
     private searchYelp: SearchYelpService,
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
@@ -103,6 +106,12 @@ export class JobController {
 
     if (query?.source === SOURCE_SCRATCH.MENUFY)
       return this.autoSearchMenufy.reJobAuto(id, currentUser);
+  }
+
+  @Get('screenshots')
+  @Roles([ROLE.admin])
+  createJobScreenshot(@Query() fetchDto: FetchBusinessDto) {
+    return this.websiteService.createJob(fetchDto);
   }
 
   @Get()

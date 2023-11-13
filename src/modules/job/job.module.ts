@@ -10,11 +10,14 @@ import { AutoSearchYellowService } from './service/yellow/auto.service';
 import { AutoSearchYelpService } from './service/yelp/auto.service';
 import { SearchYelpService } from './service/yelp/search.service';
 import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
+import { WebsiteSerivce } from './service/website/website.service';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: `job-queue-${process.env.REDIS_SERVER}` }),
     BusinessModule,
+    FilesModule,
   ],
   controllers: [JobController],
   providers: [
@@ -26,6 +29,7 @@ import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
     AutoSearchYellowService,
     AutoSearchYelpService,
     AutoSearchMenufySerivce,
+    WebsiteSerivce,
   ],
   exports: [JobService],
 })

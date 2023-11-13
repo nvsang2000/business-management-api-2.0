@@ -7,10 +7,12 @@ import { AutoSearchYellowService } from '../service/yellow/auto.service';
 import { AutoSearchYelpService } from '../service/yelp/auto.service';
 import { SearchYelpService } from '../service/yelp/search.service';
 import { AutoSearchMenufySerivce } from '../service/menufy/auto.service';
+import { WebsiteSerivce } from '../service/website/website.service';
 
 @Processor(`job-queue-${process.env.REDIS_SERVER}`)
 export class BullJobQueue {
   constructor(
+    private website: WebsiteSerivce,
     private searchYelp: SearchYelpService,
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
@@ -63,6 +65,16 @@ export class BullJobQueue {
     try {
       console.log('job id: ', bull?.id);
       return await this.autoSearchMenufy.runJobAuto(bull);
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
+  @Process('screenshots')
+  async runBullScreenshots(bull: Job<BullJob>) {
+    try {
+      console.log('job id: ', bull?.id);
+      return await this.website.runJob(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }

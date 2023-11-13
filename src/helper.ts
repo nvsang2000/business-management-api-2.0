@@ -2,7 +2,6 @@ import slugify from 'slugify';
 import * as fs from 'fs-extra';
 import {
   DEFAULT_OPTION_HEADER_FETCH,
-  LINK_SOURCE,
   METHOD,
   REG_IS_STATE,
   REG_IS_STRESS,
@@ -97,19 +96,6 @@ export const parseUSAddress = (
   }
 
   return { state, zipCode, city, address: addressStreet };
-};
-
-export const parseWebsite = (links: string[]) => {
-  return links.map((link: string) => {
-    let type = null;
-    for (const key in LINK_SOURCE) {
-      if (link.startsWith(LINK_SOURCE[key])) {
-        type = key;
-        break;
-      }
-    }
-    return { link, type };
-  });
 };
 
 export const removeDuplicates = (arr: any[]) => {

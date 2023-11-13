@@ -14,6 +14,9 @@ export class FetchBusinessDto extends FetchDto {
   @EnumFieldOptional(() => STRING_BOOLEAN)
   website?: string;
 
+  @EnumFieldOptional(() => STRING_BOOLEAN)
+  thumbnailUrl?: string;
+
   @EnumFieldOptional(() => GOOOGLE_VERIFY)
   googleVerify?: string;
 

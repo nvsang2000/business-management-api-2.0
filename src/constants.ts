@@ -114,10 +114,8 @@ export enum EXPORT_MODE {
   selected = 'selected',
 }
 
-export const LINK_SOURCE = {
-  yelp: 'https://www.yelp.com',
-  yellow: 'https://www.yellowpages.com',
-  googeMap: 'https://www.google.com',
+export const DOMAIN_LINK = {
+  facebook: 'https://www.facebook.com',
 };
 
 export const FILE_EXTENTSION = {

@@ -65,6 +65,7 @@ export class BusinessService {
       mode,
       ids,
       keyword,
+      thumbnailUrl,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const isAdmin = currentUser?.role === ROLE.admin;
@@ -87,6 +88,10 @@ export class BusinessService {
         keyword: { contains: keyword, mode: 'insensitive' as any },
       }),
       ...(source && { source: { equals: source } }),
+      ...(thumbnailUrl && {
+        thumbnailUrl:
+          thumbnailUrl === STRING_BOOLEAN.TRUE ? { not: null } : null,
+      }),
       ...(website && {
         website: website === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
@@ -119,7 +124,7 @@ export class BusinessService {
   async paginate(
     fetchDto: FetchBusinessDto,
     response: Response,
-    currentUser: UserEntity,
+    currentUser?: UserEntity,
   ): Promise<any[]> {
     try {
       const { limit, page, sortBy, sortDirection } = fetchDto;
@@ -168,7 +173,7 @@ export class BusinessService {
 
   async findAllExport(
     fetchDto: FetchBusinessDto,
-    isAdmin: boolean,
+    isAdmin?: boolean,
     lastId?: string,
   ) {
     try {
