@@ -73,7 +73,7 @@ export class WebsiteSerivce {
   async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook)) return;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: false,
+      headless: 'new',
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',

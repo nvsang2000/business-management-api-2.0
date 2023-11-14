@@ -138,6 +138,14 @@ export const EXPORT_ALL_LIMIT = 'EXPORT_ALL_LIMIT';
 export const SECONDS_OF_DAY = 86400000;
 
 //class for website
+export const THUMBNAIL_DEFAULT = [
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-1.svg?1197807',
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-2.svg?1197807',
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-3.svg?1197807',
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-4.svg?1197807',
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-5.svg?1197807',
+  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-6.svg?1197807',
+];
 export const WEBSITE = {
   GOOGLE: {
     URL: 'https://www.google.com',
