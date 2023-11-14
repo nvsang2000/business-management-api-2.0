@@ -72,7 +72,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 4);
+      const result = await promisesSequentially(promiseCreateBrowser, 10);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -82,7 +82,7 @@ export class WebsiteSerivce {
   async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook)) return;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: false,
+      headless: 'new',
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',

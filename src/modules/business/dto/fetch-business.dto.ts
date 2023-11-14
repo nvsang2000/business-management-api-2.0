@@ -4,7 +4,11 @@ import {
   STATUS_MARKETING,
   STRING_BOOLEAN,
 } from 'src/constants';
-import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
+import {
+  EnumFieldOptional,
+  NumberFieldOptional,
+  StringFieldOptional,
+} from 'src/decorators';
 import { FetchDto } from 'src/dto/fetch.dto';
 
 export class FetchBusinessDto extends FetchDto {
@@ -16,6 +20,9 @@ export class FetchBusinessDto extends FetchDto {
 
   @EnumFieldOptional(() => STRING_BOOLEAN)
   thumbnailUrl?: string;
+
+  @NumberFieldOptional({})
+  statusWebsite?: number;
 
   @EnumFieldOptional(() => GOOOGLE_VERIFY)
   googleVerify?: string;
