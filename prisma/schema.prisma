@@ -90,7 +90,7 @@ model Business {
   status          String[]   @db.VarChar(24)
   categories      String[]   @db.VarChar(128)
   thumbnailUrl    String?    @db.VarChar(400)
-  isWebsite       Boolean?   @default(false)
+  statusWebsite   Int?       @default(1)
   keyword         String?    @db.VarChar(128)
   googleVerify    Boolean?   @default(false)
   statusMarketing String?    @default("NOT_ACCEPT") @db.VarChar(24)

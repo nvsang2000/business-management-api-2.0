@@ -114,16 +114,6 @@ export enum EXPORT_MODE {
   selected = 'selected',
 }
 
-export const DOMAIN_LINK = {
-  facebook: 'https://www.facebook.com',
-};
-
-export const FILE_EXTENTSION = {
-  image: '.png',
-  excel: '.csv',
-  json: '.json',
-  rar: '.rar',
-};
 //env
 export const NODE_ENV = 'NODE_ENV';
 export const JWT_SECRET = 'JWT_SECRET';
@@ -137,15 +127,27 @@ export const EXPORT_CHUNK_LENGTH = 'EXPORT_CHUNK_LENGTH';
 export const EXPORT_ALL_LIMIT = 'EXPORT_ALL_LIMIT';
 export const SECONDS_OF_DAY = 86400000;
 
-//class for website
-export const THUMBNAIL_DEFAULT = [
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-1.svg?1197807',
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-2.svg?1197807',
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-3.svg?1197807',
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-4.svg?1197807',
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-5.svg?1197807',
-  '//i4.ypcdn.com/ypu/images/default-thumbnails/thumbnail-6.svg?1197807',
-];
+export const DOMAIN_LINK = {
+  facebook: 'facebook.com',
+};
+
+export const FILE_EXTENTSION = {
+  image: '.png',
+  excel: '.csv',
+  json: '.json',
+  rar: '.rar',
+};
+
+export const STATUS_WEBSITE = {
+  unVerify: 1,
+  verify: 2,
+  faild: 3,
+};
+
+export const THUMBNAIL_DEFAULT = {
+  YELLOW: 'ypcdn.com/ypu/images/default-thumbnails',
+  YELP: 'assets/img/default_avatars/business_medium_square.png',
+};
 export const WEBSITE = {
   GOOGLE: {
     URL: 'https://www.google.com',
@@ -264,7 +266,10 @@ export const CATEGORY_SORT_BY = ['name', 'isActive', 'createdAt'];
 
 //regex
 export const REG_FORMAT_ADDRESS = /([^,]+),\s([A-Z]{2})\s(\d{5})/;
-export const REG_IS_WEBSITE = /([a-zA-Z0-9.-]+)\(\d+\)/;
+export const REG_IS_WEBSITE =
+  /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+export const REG_IS_EMAIL =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 export const REG_IS_STRESS = /^[0-9]+ [a-zA-Z0-9\s,.'-]+$/;
 export const REG_IS_STATE = /^\d+$/;
 export const REGEX_PHONE_NUMBER =

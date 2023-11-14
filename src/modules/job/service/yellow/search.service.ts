@@ -3,7 +3,12 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { JOB_STATUS, SOURCE_SCRATCH, WEBSITE } from 'src/constants';
+import {
+  JOB_STATUS,
+  SOURCE_SCRATCH,
+  THUMBNAIL_DEFAULT,
+  WEBSITE,
+} from 'src/constants';
 import { Job, Queue } from 'bull';
 import { BusinessService } from 'src/modules/business/business.service';
 import {
@@ -205,7 +210,9 @@ export class SearchYellowService {
           scratchLink,
           name,
           categories,
-          thumbnailUrl,
+          thumbnailUrl: !thumbnailUrl?.includes(THUMBNAIL_DEFAULT.YELLOW)
+            ? thumbnailUrl
+            : undefined,
           phone,
           zipCode,
           state,

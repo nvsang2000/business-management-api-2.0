@@ -110,8 +110,11 @@ export class JobController {
 
   @Get('screenshots')
   @Roles([ROLE.admin])
-  createJobScreenshot(@Query() fetchDto: FetchBusinessDto) {
-    return this.websiteService.createJob(fetchDto);
+  createJobScreenshot(
+    @Query() fetchDto: FetchBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.websiteService.createJob(fetchDto, currentUser);
   }
 
   @Get()

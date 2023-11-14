@@ -13,6 +13,7 @@ import {
   MAPPING_CATEGORIES,
   REG_FORMAT_ADDRESS,
   SOURCE_SCRATCH,
+  THUMBNAIL_DEFAULT,
   WEBSITE,
 } from 'src/constants';
 import * as cheerio from 'cheerio';
@@ -208,7 +209,13 @@ export class SearchYelpService {
         ?.attr('src');
       const url = $(el)?.find('.css-1egxyvc a')?.attr('href');
       const scratchLink = `${WEBSITE.YELP.URL}${url}`;
-      const item = { name, thumbnailUrl, scratchLink };
+      const item = {
+        name,
+        thumbnailUrl: !thumbnailUrl?.includes(THUMBNAIL_DEFAULT.YELP)
+          ? thumbnailUrl
+          : undefined,
+        scratchLink,
+      };
       itemList.push(item);
     });
     return itemList;

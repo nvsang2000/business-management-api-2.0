@@ -12,9 +12,13 @@ import {
   ASSETS_THUMNAIL_DIR,
   DOMAIN_LINK,
   FILE_TYPE,
+  REG_IS_EMAIL,
+  REG_IS_WEBSITE,
+  ROLE,
+  STATUS_WEBSITE,
 } from 'src/constants';
-import { BusinessEntity } from 'src/entities';
-import { promisesSequentially } from 'src/helper';
+import { BusinessEntity, UserEntity } from 'src/entities';
+import { promisesSequentially, setDelay } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -29,11 +33,11 @@ export class WebsiteSerivce {
     private scrapingQueue: Queue,
   ) {}
 
-  async createJob(fetch: FetchBusinessDto) {
+  async createJob(fetch: FetchBusinessDto, currentUser: UserEntity) {
     try {
       const result = await this.scrapingQueue.add(
         'screenshots',
-        { fetch },
+        { fetch, currentUser },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -46,7 +50,8 @@ export class WebsiteSerivce {
     }
   }
   async runJob(bull: Job<any>) {
-    const { fetch } = bull.data;
+    const { fetch, currentUser } = bull.data;
+    const isAdmin = currentUser?.role === ROLE.admin;
     try {
       const newFetch = {
         ...fetch,
@@ -54,26 +59,30 @@ export class WebsiteSerivce {
         thumbnailUrl: 'false',
         isWebsite: false,
         limit: '10000',
+        statusWebsite: 1,
       } as FetchBusinessDto;
-      console.log('newFetch', newFetch);
-      const businessList = await this.businessService.findAllExport(newFetch);
+
+      const businessList = await this.businessService.findAllExport(
+        newFetch,
+        isAdmin,
+      );
+      console.log('businessList', businessList?.length);
       const promiseCreateBrowser = businessList?.map((data) => {
         return async () => {
           return await this.createBrowser(data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 10);
-      console.log('end job screenshots');
+      const result = await promisesSequentially(promiseCreateBrowser, 4);
       return result;
     } catch (e) {
-      console.log(e);
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 
   async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook)) return;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: 'new',
+      headless: false,
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',
@@ -94,13 +103,13 @@ export class WebsiteSerivce {
       const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
       const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
       const response = await this.connectPage(business?.website, browser, page);
-      if (!response) return;
-      const title = await page.title();
-      const bodyEl = await page.$('body');
-      const bodyContent = await page
-        .evaluate((el: Element) => el.textContent, bodyEl)
-        .catch(() => undefined);
-      if (!title && bodyContent?.length < 2000) return;
+      await setDelay(5000);
+      if (!response) {
+        return await this.prisma.business.update({
+          where: { id: business?.id },
+          data: { statusWebsite: STATUS_WEBSITE.faild },
+        });
+      }
       await page.screenshot({
         path: `${dir}/${fileName}`,
       });
@@ -113,16 +122,55 @@ export class WebsiteSerivce {
           dirFile: dir,
         },
       });
+      await this.scrollToEndOfPage(page);
+      let email: string;
+      email = await page
+        ?.$eval('a[href^="mailto:"]', (el: Element) => el.textContent.trim())
+        .catch(() => undefined);
 
+      email = email?.match(REG_IS_EMAIL) ? email : undefined;
+
+      if (!email) {
+        const contactUrls = await page.$$eval('a', (links) => {
+          return links
+            ?.filter((link) => {
+              const linkText = link.textContent?.toLowerCase();
+              return linkText && linkText.includes('contact');
+            })
+            ?.map((link) => link.href);
+        });
+        const matchContactUrl = contactUrls?.filter((url) => {
+          const match = url?.match(REG_IS_WEBSITE);
+          return match && url;
+        });
+        if (matchContactUrl?.length > 0) {
+          await page.goto(matchContactUrl[0], {
+            waitUntil: 'domcontentloaded',
+          });
+          email = await page
+            ?.$eval('a[href^="mailto:"]', (el: Element) =>
+              el.textContent.trim(),
+            )
+            .catch(() => undefined);
+
+          email = email?.match(REG_IS_EMAIL) ? email : undefined;
+        }
+      }
+
+      const newBusiness = { email, thumbnailUrl: url };
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { thumbnailUrl: url, isWebsite: true },
+        data: { ...newBusiness, statusWebsite: STATUS_WEBSITE.verify },
       });
 
-      console.log('url', url);
+      console.log('newBusiness', newBusiness);
       return result;
     } catch (e) {
       console.log(e);
+      await this.prisma.business.update({
+        where: { id: business?.id },
+        data: { statusWebsite: STATUS_WEBSITE.faild },
+      });
     } finally {
       await page.close();
       await browser.close();
@@ -130,14 +178,20 @@ export class WebsiteSerivce {
   }
 
   async connectPage(url: string, browser: Browser, page: Page) {
-    try {
-      const response = await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: 10000,
-      });
-      if (response.ok && response.status() === 200) return response;
-    } catch (e) {
-      console.log(e);
+    const response = await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 10000,
+    });
+    if (response.ok && response.status() === 200) return response;
+  }
+
+  async scrollToEndOfPage(page: Page) {
+    let previousHeight;
+    let currentHeight = await page.evaluate('document.body.scrollHeight');
+    while (previousHeight !== currentHeight) {
+      previousHeight = currentHeight;
+      await page.evaluate('window.scrollBy(0, document.body.scrollHeight)');
+      currentHeight = await page.evaluate('document.body.scrollHeight');
     }
   }
 }
