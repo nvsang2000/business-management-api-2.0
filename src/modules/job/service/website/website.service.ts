@@ -52,7 +52,7 @@ export class WebsiteSerivce {
     const { fetch, currentUser } = bull.data;
     const isAdmin = currentUser?.role === ROLE.admin;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: false,
+      headless: 'new',
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',
@@ -84,7 +84,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 4);
+      const result = await promisesSequentially(promiseCreateBrowser, 10);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
