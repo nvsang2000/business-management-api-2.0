@@ -11,6 +11,7 @@ import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
   DOMAIN_LINK,
+  OPTION_BROWSER,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
   ROLE,
@@ -51,21 +52,7 @@ export class WebsiteSerivce {
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
     const isAdmin = currentUser?.role === ROLE.admin;
-    const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: 'new',
-      args: [
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--disable-setuid-sandbox',
-        '--no-first-run',
-        '--no-sandbox',
-        '--no-zygote',
-        '--deterministic-fetch',
-        '--disable-features=IsolateOrigins',
-        '--disable-site-isolation-trials',
-      ],
-      ignoreDefaultArgs: ['--disable-extensions'],
-    });
+    const browser = await puppeteer.use(StealthPlugin()).launch(OPTION_BROWSER);
     try {
       const newFetch = {
         ...fetch,
@@ -84,7 +71,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 10);
+      const result = await promisesSequentially(promiseCreateBrowser, 5);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -194,7 +181,7 @@ export class WebsiteSerivce {
   async connectPage(url: string, page: Page) {
     const response = await page.goto(url, {
       waitUntil: 'domcontentloaded',
-      timeout: 5000,
+      timeout: 10000,
     });
     await setDelay(4000);
     if (response.ok && response.status() === 200) return response;

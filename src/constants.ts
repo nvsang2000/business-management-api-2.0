@@ -1,3 +1,5 @@
+import { PuppeteerLaunchOptions } from 'puppeteer';
+
 // enum
 export enum OPTION_NODE_ENV {
   DEVELOPMENT = 'development',
@@ -243,6 +245,22 @@ export const MAPPING_CATEGORIES = {
 export const PRISMA_ERROR_CODE = {
   DUPLICATE: 'P2002',
   CONSTRAINT_NOT_FOUND: 'P2025',
+};
+
+export const OPTION_BROWSER: PuppeteerLaunchOptions = {
+  headless: 'new',
+  args: [
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-setuid-sandbox',
+    '--no-first-run',
+    '--no-sandbox',
+    '--no-zygote',
+    '--deterministic-fetch',
+    '--disable-features=IsolateOrigins',
+    '--disable-site-isolation-trials',
+  ],
+  ignoreDefaultArgs: ['--disable-extensions'],
 };
 
 export const MESSAGE_ERROR = {
