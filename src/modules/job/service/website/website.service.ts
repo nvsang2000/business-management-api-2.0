@@ -10,6 +10,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
+  BROWSER_USER_DATA_DIR,
   DOMAIN_LINK,
   OPTION_BROWSER,
   REG_IS_EMAIL,
@@ -52,7 +53,11 @@ export class WebsiteSerivce {
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
     const isAdmin = currentUser?.role === ROLE.admin;
-    const browser = await puppeteer.use(StealthPlugin()).launch(OPTION_BROWSER);
+    const userDataDir = await this.configService.get(BROWSER_USER_DATA_DIR);
+    const browser = await puppeteer.use(StealthPlugin()).launch({
+      ...OPTION_BROWSER,
+      userDataDir,
+    });
     try {
       const newFetch = {
         ...fetch,
