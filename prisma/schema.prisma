@@ -111,6 +111,7 @@ model Business {
   @@index([phone])
   @@index([categories])
   @@index([website])
+  @@index([email])
   @@index([source])
   @@index([state])
   @@index([zipCode])

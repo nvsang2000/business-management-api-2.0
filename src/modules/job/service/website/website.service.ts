@@ -35,7 +35,7 @@ export class WebsiteSerivce {
   async createJob(fetch: FetchBusinessDto, currentUser: UserEntity) {
     try {
       const result = await this.scrapingQueue.add(
-        'screenshots',
+        'website',
         { fetch, currentUser },
         {
           removeOnComplete: true,
@@ -106,7 +106,7 @@ export class WebsiteSerivce {
       let email: string, thumbnailUrl: string;
       email = business?.email;
       thumbnailUrl = business?.thumbnailUrl;
-      const response = await this.connectPage(business?.website, browser, page);
+      const response = await this.connectPage(business?.website, page);
       if (!response)
         return await this.prisma.business.update({
           where: { id: business?.id },
@@ -134,7 +134,9 @@ export class WebsiteSerivce {
       //scroll and page, search email
       await this.scrollToEndOfPage(page);
       email = await page
-        ?.$eval('a[href^="mailto:"]', (el: Element) => el.textContent.trim())
+        ?.$eval('a[href^="mailto:"]', (el: Element) => {
+          return el?.getAttribute('href')?.trim()?.replace('mailto:', '');
+        })
         .catch(() => undefined);
 
       email = email?.match(REG_IS_EMAIL) ? email : undefined;
@@ -161,9 +163,9 @@ export class WebsiteSerivce {
           ]);
 
           email = await page
-            ?.$eval('a[href^="mailto:"]', (el: Element) =>
-              el.textContent.trim(),
-            )
+            ?.$eval('a[href^="mailto:"]', (el: Element) => {
+              return el?.getAttribute('href')?.trim()?.replace('mailto:', '');
+            })
             .catch(() => undefined);
 
           email = email?.match(REG_IS_EMAIL) ? email : undefined;
@@ -189,12 +191,12 @@ export class WebsiteSerivce {
     }
   }
 
-  async connectPage(url: string, browser: Browser, page: Page) {
+  async connectPage(url: string, page: Page) {
     const response = await page.goto(url, {
       waitUntil: 'domcontentloaded',
-      timeout: 10000,
+      timeout: 5000,
     });
-    await setDelay(5000);
+    await setDelay(4000);
     if (response.ok && response.status() === 200) return response;
   }
 

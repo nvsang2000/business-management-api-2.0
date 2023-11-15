@@ -19,6 +19,9 @@ export class FetchBusinessDto extends FetchDto {
   website?: string;
 
   @EnumFieldOptional(() => STRING_BOOLEAN)
+  email?: string;
+
+  @EnumFieldOptional(() => STRING_BOOLEAN)
   thumbnailUrl?: string;
 
   @NumberFieldOptional({})

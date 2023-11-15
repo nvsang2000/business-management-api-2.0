@@ -67,6 +67,7 @@ export class BusinessService {
       keyword,
       thumbnailUrl,
       statusWebsite,
+      email,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const isAdmin = currentUser?.role === ROLE.admin;
@@ -84,6 +85,9 @@ export class BusinessService {
       return { id: { in: ids } };
     }
     return {
+      ...(email && {
+        email: email === STRING_BOOLEAN.TRUE ? { not: null } : null,
+      }),
       ...(statusWebsite && { statusWebsite: { equals: statusWebsite } }),
       ...(keyword && {
         keyword: { contains: keyword, mode: 'insensitive' as any },

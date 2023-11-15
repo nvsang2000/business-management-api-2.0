@@ -70,7 +70,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('screenshots')
+  @Process('website')
   async runBullScreenshots(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
