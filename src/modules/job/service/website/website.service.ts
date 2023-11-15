@@ -11,7 +11,6 @@ import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
   DOMAIN_LINK,
-  FILE_TYPE,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
   ROLE,
@@ -52,37 +51,8 @@ export class WebsiteSerivce {
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
     const isAdmin = currentUser?.role === ROLE.admin;
-    try {
-      const newFetch = {
-        ...fetch,
-        website: 'true',
-        thumbnailUrl: 'false',
-        isWebsite: false,
-        limit: '10000',
-        statusWebsite: 1,
-      } as FetchBusinessDto;
-
-      const businessList = await this.businessService.findAllExport(
-        newFetch,
-        isAdmin,
-      );
-      console.log('businessList', businessList?.length);
-      const promiseCreateBrowser = businessList?.map((data) => {
-        return async () => {
-          return await this.createBrowser(data);
-        };
-      });
-      const result = await promisesSequentially(promiseCreateBrowser, 10);
-      return result;
-    } catch (e) {
-      throw new UnprocessableEntityException(e?.message);
-    }
-  }
-
-  async createBrowser(business: BusinessEntity) {
-    if (business?.website?.includes(DOMAIN_LINK.facebook)) return;
     const browser = await puppeteer.use(StealthPlugin()).launch({
-      headless: 'new',
+      headless: false,
       args: [
         '--disable-gpu',
         '--disable-dev-shm-usage',
@@ -96,40 +66,80 @@ export class WebsiteSerivce {
       ],
       ignoreDefaultArgs: ['--disable-extensions'],
     });
+    try {
+      const newFetch = {
+        ...fetch,
+        website: 'true',
+        limit: '10000',
+        statusWebsite: 1,
+      } as FetchBusinessDto;
+
+      const businessList = await this.businessService.findAllExport(
+        newFetch,
+        isAdmin,
+      );
+      console.log('businessList', businessList?.length);
+      const promiseCreateBrowser = businessList?.map((data) => {
+        return async () => {
+          return await this.createBrowser(browser, data);
+        };
+      });
+      const result = await promisesSequentially(promiseCreateBrowser, 4);
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    } finally {
+      await browser.close();
+    }
+  }
+
+  async createBrowser(browser: Browser, business: BusinessEntity) {
+    if (business?.website?.includes(DOMAIN_LINK.facebook))
+      return await this.prisma.business.update({
+        where: { id: business?.id },
+        data: { statusWebsite: STATUS_WEBSITE.faild },
+      });
+
     const page = await browser.newPage();
     await page.setViewport({ width: 1000, height: 800 });
     try {
-      const apiHost = await this.configService.get(API_HOST);
-      const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
-      const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
+      let email: string, thumbnailUrl: string;
+      email = business?.email;
+      thumbnailUrl = business?.thumbnailUrl;
       const response = await this.connectPage(business?.website, browser, page);
-      await setDelay(5000);
-      if (!response) {
+      if (!response)
         return await this.prisma.business.update({
           where: { id: business?.id },
           data: { statusWebsite: STATUS_WEBSITE.faild },
         });
+
+      if (!thumbnailUrl) {
+        const apiHost = await this.configService.get(API_HOST);
+        const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
+        const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
+        const screen = await page
+          .screenshot({
+            path: `${dir}/${fileName}`,
+            type: 'png',
+          })
+          .catch(() => undefined);
+        thumbnailUrl = `${apiHost}assets/thumnail/${fileName}`;
+        if (!screen)
+          return await this.prisma.business.update({
+            where: { id: business?.id },
+            data: { statusWebsite: STATUS_WEBSITE.faild },
+          });
       }
-      await page.screenshot({
-        path: `${dir}/${fileName}`,
-      });
-      const url = `${apiHost}assets/thumnail/${fileName}`;
-      await this.prisma.file.create({
-        data: {
-          url,
-          name: fileName,
-          type: FILE_TYPE.image,
-          dirFile: dir,
-        },
-      });
+
+      //scroll and page, search email
       await this.scrollToEndOfPage(page);
-      let email: string;
       email = await page
         ?.$eval('a[href^="mailto:"]', (el: Element) => el.textContent.trim())
         .catch(() => undefined);
 
       email = email?.match(REG_IS_EMAIL) ? email : undefined;
 
+      //not email current page
       if (!email) {
         const contactUrls = await page.$$eval('a', (links) => {
           return links
@@ -144,9 +154,12 @@ export class WebsiteSerivce {
           return match && url;
         });
         if (matchContactUrl?.length > 0) {
-          await page.goto(matchContactUrl[0], {
-            waitUntil: 'domcontentloaded',
-          });
+          await Promise.all([
+            await page.goto(matchContactUrl[0], {
+              waitUntil: 'domcontentloaded',
+            }),
+          ]);
+
           email = await page
             ?.$eval('a[href^="mailto:"]', (el: Element) =>
               el.textContent.trim(),
@@ -157,7 +170,7 @@ export class WebsiteSerivce {
         }
       }
 
-      const newBusiness = { email, thumbnailUrl: url };
+      const newBusiness = { email, thumbnailUrl };
       const result = await this.prisma.business.update({
         where: { id: business?.id },
         data: { ...newBusiness, statusWebsite: STATUS_WEBSITE.verify },
@@ -173,7 +186,6 @@ export class WebsiteSerivce {
       });
     } finally {
       await page.close();
-      await browser.close();
     }
   }
 
@@ -182,11 +194,12 @@ export class WebsiteSerivce {
       waitUntil: 'domcontentloaded',
       timeout: 10000,
     });
+    await setDelay(5000);
     if (response.ok && response.status() === 200) return response;
   }
 
   async scrollToEndOfPage(page: Page) {
-    let previousHeight;
+    let previousHeight: any;
     let currentHeight = await page.evaluate('document.body.scrollHeight');
     while (previousHeight !== currentHeight) {
       previousHeight = currentHeight;

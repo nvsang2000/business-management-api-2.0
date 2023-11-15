@@ -108,7 +108,7 @@ export class JobController {
       return this.autoSearchMenufy.reJobAuto(id, currentUser);
   }
 
-  @Get('screenshots')
+  @Get('website')
   @Roles([ROLE.admin])
   createJobScreenshot(
     @Query() fetchDto: FetchBusinessDto,
