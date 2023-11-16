@@ -4,6 +4,8 @@ kubernetes.io/ingress.class		: nginx
 kubernetes.io/ingress.provider 		: nginx
 
 ---
+# docker postgresql
+docker pull postgres
 # docker build image 
 #docker build -t image_name:tag .
 #docker run image

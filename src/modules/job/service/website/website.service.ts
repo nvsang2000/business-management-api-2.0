@@ -10,7 +10,6 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
-  BROWSER_USER_DATA_DIR,
   DOMAIN_LINK,
   OPTION_BROWSER,
   REG_IS_EMAIL,
@@ -53,10 +52,8 @@ export class WebsiteSerivce {
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
     const isAdmin = currentUser?.role === ROLE.admin;
-    const userDataDir = await this.configService.get(BROWSER_USER_DATA_DIR);
     const browser = await puppeteer.use(StealthPlugin()).launch({
       ...OPTION_BROWSER,
-      userDataDir,
     });
     try {
       const newFetch = {
@@ -76,7 +73,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 5);
+      const result = await promisesSequentially(promiseCreateBrowser, 10);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -148,7 +145,6 @@ export class WebsiteSerivce {
           return match && url;
         });
         if (matchContactUrl?.length > 0) {
-          console.log('matchContactUrl', matchContactUrl);
           await Promise.all([
             await page
               .goto(matchContactUrl[0], {
@@ -190,7 +186,7 @@ export class WebsiteSerivce {
     const response = await page
       .goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 10000,
+        timeout: 20000,
       })
       .catch(() => undefined);
     await setDelay(4000);

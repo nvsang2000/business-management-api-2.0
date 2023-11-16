@@ -12,7 +12,7 @@ ENV JWT_SECRET = '7oxynxujKs7b1DYwClPyR1ExggfEzOP'
 ENV DATABASE_URL = 'postgres://nvsang2000:pKV4QgmclO1r@ep-dawn-wildflower-022942.ap-southeast-1.aws.neon.tech/neondb'
 
 # Install Google Chrome
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get install -y --no-install-recommends \
     libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
