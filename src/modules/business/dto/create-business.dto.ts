@@ -13,6 +13,9 @@ export class CreateBusinessDto {
   @StringFieldOptional({})
   website?: string;
 
+  @StringFieldOptional({})
+  email?: string;
+
   @StringField({})
   address: string;
 
