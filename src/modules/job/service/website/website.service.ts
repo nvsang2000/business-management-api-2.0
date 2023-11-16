@@ -148,10 +148,13 @@ export class WebsiteSerivce {
           return match && url;
         });
         if (matchContactUrl?.length > 0) {
+          console.log('matchContactUrl', matchContactUrl);
           await Promise.all([
-            await page.goto(matchContactUrl[0], {
-              waitUntil: 'domcontentloaded',
-            }),
+            await page
+              .goto(matchContactUrl[0], {
+                waitUntil: 'domcontentloaded',
+              })
+              .catch(() => undefined),
           ]);
 
           email = await page
@@ -184,12 +187,14 @@ export class WebsiteSerivce {
   }
 
   async connectPage(url: string, page: Page) {
-    const response = await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-      timeout: 10000,
-    });
+    const response = await page
+      .goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 10000,
+      })
+      .catch(() => undefined);
     await setDelay(4000);
-    if (response.ok && response.status() === 200) return response;
+    if (response?.ok && response?.status() === 200) return response;
   }
 
   async scrollToEndOfPage(page: Page) {
