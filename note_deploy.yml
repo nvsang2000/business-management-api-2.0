@@ -62,3 +62,7 @@ UPDATE business
 SET categories = array_cat(categories, ARRAY['Restaurants'])
 WHERE keyword = 'Vietnamese Restaurants'
 AND NOT 'Restaurants' = ANY(categories);
+
+UPDATE business
+SET name = REPLACE(name, 'Õ', '`s')
+WHERE name LIKE '%Õ%';

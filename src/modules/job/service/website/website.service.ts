@@ -11,6 +11,7 @@ import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
   DOMAIN_LINK,
+  EXPORT_ALL_LIMIT,
   OPTION_BROWSER,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
@@ -51,7 +52,6 @@ export class WebsiteSerivce {
   }
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
-    const isAdmin = currentUser?.role === ROLE.admin;
     const browser = await puppeteer.use(StealthPlugin()).launch({
       ...OPTION_BROWSER,
     });
@@ -59,14 +59,10 @@ export class WebsiteSerivce {
       const newFetch = {
         ...fetch,
         website: 'true',
-        limit: '10000',
         statusWebsite: 1,
       } as FetchBusinessDto;
 
-      const businessList = await this.businessService.findAllExport(
-        newFetch,
-        isAdmin,
-      );
+      const businessList = await this.handleFindAllData(newFetch, currentUser);
       console.log('businessList', businessList?.length);
       const promiseCreateBrowser = businessList?.map((data) => {
         return async () => {
@@ -79,6 +75,37 @@ export class WebsiteSerivce {
       throw new UnprocessableEntityException(e?.message);
     } finally {
       await browser.close();
+    }
+  }
+
+  async handleFindAllData(
+    fetchDto: FetchBusinessDto,
+    currentUser: UserEntity = null,
+  ) {
+    const isAdmin = currentUser?.role === ROLE.admin;
+    const allLimit = await this.configService.get(EXPORT_ALL_LIMIT);
+    try {
+      let businessList = [],
+        hasMore = true,
+        cursor = null,
+        index = 0;
+      while (hasMore) {
+        const businessMore = await this.businessService.findAllExport(
+          { ...fetchDto, limit: allLimit },
+          isAdmin,
+          cursor,
+        );
+        if (businessMore.length === 1) hasMore = false;
+        else {
+          businessList = businessList.concat(businessMore);
+          cursor = businessMore[businessMore.length - 1].id;
+        }
+        index++;
+        console.log('cursor: ', index, cursor);
+      }
+      return businessList;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 
@@ -186,7 +213,7 @@ export class WebsiteSerivce {
     const response = await page
       .goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 20000,
+        timeout: 10000,
       })
       .catch(() => undefined);
     await setDelay(4000);
