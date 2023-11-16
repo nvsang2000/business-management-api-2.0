@@ -145,6 +145,7 @@ export class SearchYelpService {
       while (true) {
         const url = `${WEBSITE.YELP.URL}search?find_desc=${keyword}&find_loc=${zipCode}&start=${page}0`;
         const response = await connectPage(url);
+        if (!response) return;
         const body = await response?.text();
         const $ = cheerio.load(body);
 
@@ -177,6 +178,7 @@ export class SearchYelpService {
     const { scratchLink } = business;
     try {
       const response = await connectPage(scratchLink);
+      if (!response) return;
       const body = await response?.text();
       const $ = cheerio.load(body);
       const detailEl = await this.findElDetail($);

@@ -145,6 +145,7 @@ export class SearchYellowService {
       while (true) {
         const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await connectPage(url);
+        if (!response) return;
         const body = await response?.text();
         const $ = cheerio.load(body);
         const businessList = await this.findElDetail($);

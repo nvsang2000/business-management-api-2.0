@@ -133,6 +133,7 @@ export class WebsiteSerivce {
         const apiHost = await this.configService.get(API_HOST);
         const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
         const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
+        await setDelay(4000);
         const screen = await page
           .screenshot({
             path: `${dir}/${fileName}`,
@@ -216,7 +217,6 @@ export class WebsiteSerivce {
         timeout: 10000,
       })
       .catch(() => undefined);
-    await setDelay(4000);
     if (response?.ok && response?.status() === 200) return response;
   }
 

@@ -168,8 +168,8 @@ export const connectPage = async (url: string) => {
       const response = await fetch(url, {
         method: METHOD.GET,
         headers: DEFAULT_OPTION_HEADER_FETCH,
-      });
-      if (response.ok) return response;
+      }).catch(() => undefined);
+      if (response?.ok) return response;
       tryCount++;
     } catch {
       tryCount++;
