@@ -43,6 +43,7 @@ export class WebsiteSerivce {
           removeOnComplete: true,
           removeOnFail: true,
           attempts: 0,
+          timeout: 1000,
         },
       );
       return result;
@@ -54,6 +55,7 @@ export class WebsiteSerivce {
     const { fetch, currentUser } = bull.data;
     const browser = await puppeteer.use(StealthPlugin()).launch({
       ...OPTION_BROWSER,
+      slowMo: 50,
     });
     try {
       const newFetch = {
@@ -123,17 +125,19 @@ export class WebsiteSerivce {
       email = business?.email;
       thumbnailUrl = business?.thumbnailUrl;
       const response = await this.connectPage(business?.website, page);
-      if (!response)
+      if (!response) {
+        console.log('error: ', business?.website);
         return await this.prisma.business.update({
           where: { id: business?.id },
           data: { statusWebsite: STATUS_WEBSITE.faild },
         });
+      }
 
       if (!thumbnailUrl) {
+        await setDelay(4000);
         const apiHost = await this.configService.get(API_HOST);
         const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
         const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
-        await setDelay(4000);
         const screen = await page
           .screenshot({
             path: `${dir}/${fileName}`,
@@ -177,6 +181,7 @@ export class WebsiteSerivce {
             await page
               .goto(matchContactUrl[0], {
                 waitUntil: 'domcontentloaded',
+                timeout: 10000,
               })
               .catch(() => undefined),
           ]);
@@ -191,17 +196,16 @@ export class WebsiteSerivce {
         }
       }
 
-      const newBusiness = { email, thumbnailUrl };
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { ...newBusiness, statusWebsite: STATUS_WEBSITE.verify },
+        data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.verify },
       });
 
-      console.log('newBusiness', newBusiness);
+      email && console.log('email:', email);
       return result;
     } catch (e) {
       console.log(e);
-      await this.prisma.business.update({
+      return await this.prisma.business.update({
         where: { id: business?.id },
         data: { statusWebsite: STATUS_WEBSITE.faild },
       });
