@@ -71,7 +71,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 10);
+      const result = await promisesSequentially(promiseCreateBrowser, 50);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
