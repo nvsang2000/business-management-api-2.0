@@ -188,3 +188,13 @@ export const chunkArray = (arrayOfObjects: any[], chunkSize: number) => {
         .map((item) => ({ ...item })),
   );
 };
+
+export const executeWithTimeout = async (fn: () => void, time: number) => {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(console.log('Time out!'));
+    }, time);
+  });
+
+  return await Promise.race([fn(), timeoutPromise]);
+};
