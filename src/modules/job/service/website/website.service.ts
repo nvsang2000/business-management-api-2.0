@@ -2,14 +2,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job, Queue } from 'bull';
-import dayjs from 'dayjs';
+//import dayjs from 'dayjs';
 import { PrismaService } from 'nestjs-prisma';
 import { Browser, Page } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {
-  API_HOST,
-  ASSETS_THUMNAIL_DIR,
+  // API_HOST,
+  // ASSETS_THUMNAIL_DIR,
   BROWSER_HEADLESS,
   DOMAIN_LINK,
   EXPORT_ALL_LIMIT,
@@ -21,10 +21,10 @@ import {
   STATUS_WEBSITE,
 } from 'src/constants';
 import { BusinessEntity, UserEntity } from 'src/entities';
-import { promisesSequentially, setDelay } from 'src/helper';
+import { promisesSequentially } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WebsiteSerivce {
@@ -126,9 +126,9 @@ export class WebsiteSerivce {
     const page = await browser.newPage();
     await page.setViewport({ width: 1000, height: 800 });
     try {
-      let email: string, thumbnailUrl: string;
+      let email: string;
       email = business?.email;
-      thumbnailUrl = business?.thumbnailUrl;
+      //thumbnailUrl = business?.thumbnailUrl;
       const response = await this.connectPage(business?.website, page);
       if (!response) {
         console.log('error: ', business?.website);
@@ -138,24 +138,24 @@ export class WebsiteSerivce {
         });
       }
 
-      if (!thumbnailUrl) {
-        await setDelay(4000);
-        const apiHost = await this.configService.get(API_HOST);
-        const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
-        const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
-        const screen = await page
-          .screenshot({
-            path: `${dir}/${fileName}`,
-            type: 'png',
-          })
-          .catch(() => undefined);
-        thumbnailUrl = `${apiHost}assets/thumnail/${fileName}`;
-        if (!screen)
-          return await this.prisma.business.update({
-            where: { id: business?.id },
-            data: { statusWebsite: STATUS_WEBSITE.faild },
-          });
-      }
+      // if (!thumbnailUrl) {
+      //   await setDelay(4000);
+      //   const apiHost = await this.configService.get(API_HOST);
+      //   const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
+      //   const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
+      //   const screen = await page
+      //     .screenshot({
+      //       path: `${dir}/${fileName}`,
+      //       type: 'png',
+      //     })
+      //     .catch(() => undefined);
+      //   thumbnailUrl = `${apiHost}assets/thumnail/${fileName}`;
+      //   if (!screen)
+      //     return await this.prisma.business.update({
+      //       where: { id: business?.id },
+      //       data: { statusWebsite: STATUS_WEBSITE.faild },
+      //     });
+      // }
 
       //scroll and page, search email
       await this.scrollToEndOfPage(page);
@@ -203,7 +203,7 @@ export class WebsiteSerivce {
 
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.verify },
+        data: { email, statusWebsite: STATUS_WEBSITE.verify },
       });
 
       console.log('email:', email, business?.website);
