@@ -10,9 +10,11 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {
   API_HOST,
   ASSETS_THUMNAIL_DIR,
+  BROWSER_HEADLESS,
   DOMAIN_LINK,
   EXPORT_ALL_LIMIT,
   OPTION_BROWSER,
+  PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
   ROLE,
@@ -53,8 +55,11 @@ export class WebsiteSerivce {
   }
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
+    const limit = await this.configService.get(PROMISE_WEBSITE_LIMIT);
+    const headless = await this.configService.get(BROWSER_HEADLESS);
     const browser = await puppeteer.use(StealthPlugin()).launch({
       ...OPTION_BROWSER,
+      headless: headless === 'new' ? 'new' : false,
       slowMo: 50,
     });
     try {
@@ -71,7 +76,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, 50);
+      const result = await promisesSequentially(promiseCreateBrowser, limit);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -201,7 +206,7 @@ export class WebsiteSerivce {
         data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.verify },
       });
 
-      email && console.log('email:', email);
+      console.log('email:', email, business?.website);
       return result;
     } catch (e) {
       console.log(e);

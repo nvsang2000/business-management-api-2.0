@@ -128,6 +128,8 @@ export const API_HOST = 'API_HOST';
 export const EXPORT_CHUNK_LENGTH = 'EXPORT_CHUNK_LENGTH';
 export const EXPORT_ALL_LIMIT = 'EXPORT_ALL_LIMIT';
 export const BROWSER_USER_DATA_DIR = 'BROWSER_USER_DATA_DIR';
+export const PROMISE_WEBSITE_LIMIT = 'PROMISE_WEBSITE_LIMIT';
+export const BROWSER_HEADLESS = 'BROWSER_HEADLESS';
 export const SECONDS_OF_DAY = 86400000;
 
 export const DOMAIN_LINK = {
@@ -249,7 +251,6 @@ export const PRISMA_ERROR_CODE = {
 };
 
 export const OPTION_BROWSER: PuppeteerLaunchOptions = {
-  headless: 'new',
   args: [
     '--disable-gpu',
     '--disable-dev-shm-usage',

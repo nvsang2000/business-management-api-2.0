@@ -135,7 +135,7 @@ export class AutoSearchYellowService {
         };
       });
       console.log(stateCode, prosmisesZipCode?.length);
-      return await promisesSequentially(prosmisesZipCode, 14);
+      return await promisesSequentially(prosmisesZipCode, 20);
     } catch (e) {
       console.log(e);
     } finally {
