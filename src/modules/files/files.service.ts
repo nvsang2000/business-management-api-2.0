@@ -101,8 +101,8 @@ export class FilesService {
 
       const result = await this.prisma.file.findMany({
         where,
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: { [sortBy]: sortDirection },
         include: {
           creator: {
@@ -121,7 +121,7 @@ export class FilesService {
           'meta',
           JSON.stringify({
             totalDocs,
-            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+            totalPages: Math.ceil(totalDocs / (limit || 10)),
           } as PaginationMetaParams),
         );
       }

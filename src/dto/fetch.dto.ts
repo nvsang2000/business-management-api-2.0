@@ -1,14 +1,18 @@
 import { CATEGORY_SORT_BY, SORT_DIRECTION } from 'src/constants';
-import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
+import {
+  EnumFieldOptional,
+  NumberFieldOptional,
+  StringFieldOptional,
+} from 'src/decorators';
 export class FetchDto {
   @StringFieldOptional({})
   search?: string = '';
 
-  @StringFieldOptional({ number: true })
-  page?: string = '1';
+  @NumberFieldOptional({})
+  page?: number = 1;
 
-  @StringFieldOptional({ number: true })
-  limit?: string = '10';
+  @NumberFieldOptional({ maximum: 500, minimum: 10 })
+  limit?: number = 10;
 
   @EnumFieldOptional(() => CATEGORY_SORT_BY)
   sortBy?: string = 'createdAt';

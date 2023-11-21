@@ -74,3 +74,12 @@ WHERE categories = ARRAY[]::varchar[];
 SELECT *
 FROM business
 WHERE categories IS NULL and keyword = 'Retail'
+
+UPDATE business
+SET categories = array_cat(categories, ARRAY['Health'])
+WHERE ARRAY[
+  'Alternative Medicine & Health Practitioners',
+  'Eldercare-Home Health Services',
+  'Animal Health Products'
+]::varchar[] && categories
+AND NOT 'Health' = ANY(categories);

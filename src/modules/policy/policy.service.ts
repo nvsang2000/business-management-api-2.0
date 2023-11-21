@@ -74,8 +74,8 @@ export class PolicyService {
 
       const result = await this.prismaService.policy.findMany({
         where,
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: { createdAt: 'desc' },
       });
 
@@ -86,7 +86,7 @@ export class PolicyService {
           'meta',
           JSON.stringify({
             totalDocs,
-            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+            totalPages: Math.ceil(totalDocs / (limit || 10)),
           } as PaginationMetaParams),
         );
       }

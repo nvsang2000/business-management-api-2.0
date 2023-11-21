@@ -134,6 +134,10 @@ export class BusinessService {
     try {
       const { limit, page, sortBy, sortDirection } = fetchDto;
       const where = this.createQuery(fetchDto, currentUser);
+      const notWhere = Object?.values(where)?.length === 0;
+      if (page !== 1 && notWhere)
+        throw new BadRequestException('Please filter when switching pages !');
+
       const result = await this.prisma.business.findMany({
         where,
         select: {
@@ -153,8 +157,8 @@ export class BusinessService {
           createdAt: true,
           updatedAt: true,
         },
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: notWhere ? 0 : (page - 1) * limit,
         orderBy: { [sortBy]: sortDirection },
       });
 
@@ -165,7 +169,7 @@ export class BusinessService {
           'meta',
           JSON.stringify({
             totalDocs,
-            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+            totalPages: Math.ceil(totalDocs / (limit || 10)),
           } as PaginationMetaParams),
         );
       }
@@ -185,7 +189,7 @@ export class BusinessService {
       let { limit } = fetchDto;
       const { page, sortBy, sortDirection } = fetchDto;
       const where = this.createQuery(fetchDto);
-      limit = isAdmin ? limit : '50';
+      limit = isAdmin ? limit : 50;
       const result = await this.prisma.business.findMany({
         where,
         select: {
@@ -211,8 +215,8 @@ export class BusinessService {
             },
           },
         },
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: (page - 1) * limit,
         ...(lastId && {
           cursor: { id: lastId },
         }),

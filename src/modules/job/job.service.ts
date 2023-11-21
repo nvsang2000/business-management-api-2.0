@@ -46,8 +46,8 @@ export class JobService {
           createdAt: true,
           ...this.include,
         },
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: { [sortBy]: sortDirection },
       });
 
@@ -58,7 +58,7 @@ export class JobService {
           'meta',
           JSON.stringify({
             totalDocs,
-            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+            totalPages: Math.ceil(totalDocs / (limit || 10)),
           } as PaginationMetaParams),
         );
       }

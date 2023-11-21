@@ -29,8 +29,8 @@ export class CategoriesService {
       };
       const result = await this.prisma.category.findMany({
         where,
-        take: +limit,
-        skip: (+page - 1) * +limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: { [sortBy]: sortDirection },
       });
 
@@ -41,7 +41,7 @@ export class CategoriesService {
           'meta',
           JSON.stringify({
             totalDocs,
-            totalPages: Math.ceil(totalDocs / (+limit || 10)),
+            totalPages: Math.ceil(totalDocs / (limit || 10)),
           } as PaginationMetaParams),
         );
       }
