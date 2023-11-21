@@ -1,4 +1,8 @@
-import { BooleanFieldOptional, StringFieldOptional } from 'src/decorators';
+import {
+  BooleanFieldOptional,
+  NumberFieldOptional,
+  StringFieldOptional,
+} from 'src/decorators';
 
 export class UpdateScratchBusinessDto {
   @StringFieldOptional({})
@@ -9,6 +13,12 @@ export class UpdateScratchBusinessDto {
 
   @StringFieldOptional({ url: true })
   website?: string;
+
+  @StringFieldOptional({})
+  email?: string;
+
+  @NumberFieldOptional({})
+  statusWebsite?: number;
 
   @StringFieldOptional({})
   address?: string;

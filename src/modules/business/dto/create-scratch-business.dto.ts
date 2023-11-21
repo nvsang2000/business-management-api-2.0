@@ -1,4 +1,8 @@
-import { StringField, StringFieldOptional } from 'src/decorators';
+import {
+  NumberFieldOptional,
+  StringField,
+  StringFieldOptional,
+} from 'src/decorators';
 
 export class CreateScratchBusinessDto {
   @StringField({})
@@ -24,6 +28,12 @@ export class CreateScratchBusinessDto {
 
   @StringFieldOptional({})
   thumbnailUrl?: string;
+
+  @StringFieldOptional({})
+  email?: string;
+
+  @NumberFieldOptional({})
+  statusWebsite?: number;
 
   @StringFieldOptional({})
   scratchLink?: string;

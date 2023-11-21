@@ -66,3 +66,11 @@ AND NOT 'Restaurants' = ANY(categories);
 UPDATE business
 SET name = REPLACE(name, 'Õ', '`s')
 WHERE name LIKE '%Õ%';
+
+SELECT count(*) as totail
+FROM business
+WHERE categories = ARRAY[]::varchar[];
+
+SELECT *
+FROM business
+WHERE categories IS NULL and keyword = 'Retail'

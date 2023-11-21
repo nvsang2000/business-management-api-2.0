@@ -162,7 +162,7 @@ export class AutoSearchYellowService {
             scratchLink: WEBSITE.YELLOW_PAGES.URL + business.scratchLink,
             phone: formatPhoneNumber(business.phone),
           };
-          await this.businessService.saveScratchBusiness(newBusiness);
+          await this.businessService.saveScratchBusiness(newBusiness, false);
         }
         const nextPage = $(WEBSITE.YELLOW_PAGES.NEXT_PAGE).attr('href');
         if (!nextPage) break;

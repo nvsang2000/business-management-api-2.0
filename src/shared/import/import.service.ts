@@ -78,7 +78,10 @@ export class ImportService {
             address: String(business?.address),
             categories: business?.categories?.split(', '),
           };
-          return await this.businessSerivce.saveScratchBusiness(newBusiness);
+          return await this.businessSerivce.saveScratchBusiness(
+            newBusiness,
+            true,
+          );
         };
       });
       console.log('promises: ', promises?.length, payload);

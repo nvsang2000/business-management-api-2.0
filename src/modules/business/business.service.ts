@@ -202,6 +202,8 @@ export class BusinessService {
           categories: true,
           source: true,
           keyword: true,
+          email: true,
+          statusWebsite: true,
           category: {
             select: {
               id: true,
@@ -339,6 +341,13 @@ export class BusinessService {
         where: { scratchLink },
         select: {
           id: true,
+          categories: true,
+          website: true,
+          name: true,
+          phone: true,
+          email: true,
+          thumbnailUrl: true,
+          statusWebsite: true,
         },
       });
       return result;
@@ -429,16 +438,33 @@ export class BusinessService {
     }
   }
 
-  async saveScratchBusiness(business: CreateScratchBusinessDto) {
+  async saveScratchBusiness(
+    business: CreateScratchBusinessDto,
+    isImport: boolean,
+  ) {
     try {
-      const { name, phone, address, scratchLink } = business;
+      const { name, phone, address, scratchLink, statusWebsite } = business;
       const checkScratch = await this.findByScratchLink(scratchLink);
       const checkDuplicate = await this.findFistOne(name, phone, address);
       if (!checkDuplicate && !checkScratch)
         return await this.createScratchBusiness(business);
       else {
-        if (checkScratch) return;
-        else {
+        if (checkScratch) {
+          if (isImport) {
+            const newBusiness: any = { statusWebsite };
+            if (!checkScratch?.email) newBusiness.email = business?.email;
+            if (!checkScratch?.name) newBusiness.name = business?.name;
+            if (!checkScratch?.phone) newBusiness.phone = business?.phone;
+            if (!checkScratch?.thumbnailUrl)
+              newBusiness.thumbnailUrl = business?.thumbnailUrl;
+            if (!checkScratch?.website) newBusiness.website = business?.website;
+            if (Object?.values(newBusiness)?.length > 0)
+              return await this.updateScratchBusiness(
+                checkDuplicate?.id,
+                newBusiness,
+              );
+          } else return;
+        } else {
           if (checkDuplicate?.source === SOURCE_SCRATCH.YELLOW_PAGES)
             return await this.updateScratchBusiness(
               checkDuplicate?.id,

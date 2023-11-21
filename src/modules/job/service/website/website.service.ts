@@ -194,7 +194,7 @@ export class WebsiteSerivce {
         data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.verify },
       });
 
-      console.log('email:', email, thumbnailUrl);
+      console.log('result:', email, business?.website);
       return result;
     } catch (e) {
       console.log(e);

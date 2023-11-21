@@ -225,7 +225,7 @@ export class AutoSearchMenufySerivce {
         zipCode,
         state,
       };
-      return await this.businessService.saveScratchBusiness(newBusiness);
+      return await this.businessService.saveScratchBusiness(newBusiness, false);
     } catch (e) {
       console.log(e);
     }

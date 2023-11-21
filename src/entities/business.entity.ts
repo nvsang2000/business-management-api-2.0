@@ -17,6 +17,9 @@ export class BusinessEntity {
   website?: string;
 
   @ApiProperty()
+  statusWebsite?: number;
+
+  @ApiProperty()
   scratchLink?: string;
 
   @ApiProperty()

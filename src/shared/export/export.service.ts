@@ -39,6 +39,7 @@ export const HEADER_ROW_BUSINESS = [
   'thumbnailUrl',
   'source',
   'keyword',
+  'statusWebsite',
 ];
 @Injectable()
 export class ExportService {
@@ -122,6 +123,7 @@ export class ExportService {
                   i?.thumbnailUrl,
                   i?.source,
                   i?.keyword,
+                  i?.statusWebsite,
                 ];
                 return row;
               });
