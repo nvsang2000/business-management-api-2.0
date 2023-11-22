@@ -25,7 +25,7 @@ export class FetchBusinessDto extends FetchDto {
   thumbnailUrl?: string;
 
   @NumberFieldOptional({})
-  statusWebsite?: number = 1;
+  statusWebsite?: number;
 
   @EnumFieldOptional(() => GOOOGLE_VERIFY)
   googleVerify?: string;

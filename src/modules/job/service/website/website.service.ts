@@ -52,6 +52,7 @@ export class WebsiteSerivce {
       const newFetch = {
         ...fetch,
         website: 'true',
+        statusWebsite: 1,
       } as FetchBusinessDto;
 
       const businessList = await this.handleFindAllData(newFetch, currentUser);
