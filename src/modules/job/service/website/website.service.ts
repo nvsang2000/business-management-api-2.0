@@ -2,18 +2,10 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job, Queue } from 'bull';
-import dayjs from 'dayjs';
 import { PrismaService } from 'nestjs-prisma';
-import { Browser, Page } from 'puppeteer';
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import {
-  API_HOST,
-  ASSETS_THUMNAIL_DIR,
-  BROWSER_HEADLESS,
   DOMAIN_LINK,
   EXPORT_ALL_LIMIT,
-  OPTION_BROWSER,
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
@@ -21,10 +13,10 @@ import {
   STATUS_WEBSITE,
 } from 'src/constants';
 import { BusinessEntity, UserEntity } from 'src/entities';
-import { executeWithTimeout, promisesSequentially, setDelay } from 'src/helper';
+import { connectPage, promisesSequentially } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
-import { v4 as uuidv4 } from 'uuid';
+import * as cheerio from 'cheerio';
 
 @Injectable()
 export class WebsiteSerivce {
@@ -56,32 +48,23 @@ export class WebsiteSerivce {
   async runJob(bull: Job<any>) {
     const { fetch, currentUser } = bull.data;
     const limit = await this.configService.get(PROMISE_WEBSITE_LIMIT);
-    const headless = await this.configService.get(BROWSER_HEADLESS);
-    const browser = await puppeteer.use(StealthPlugin()).launch({
-      ...OPTION_BROWSER,
-      headless: headless === 'new' ? 'new' : false,
-      slowMo: 50,
-    });
     try {
       const newFetch = {
         ...fetch,
         website: 'true',
-        statusWebsite: 1,
       } as FetchBusinessDto;
 
       const businessList = await this.handleFindAllData(newFetch, currentUser);
       console.log('businessList', businessList?.length);
       const promiseCreateBrowser = businessList?.map((data) => {
         return async () => {
-          return await this.createBrowser(browser, data);
+          return await this.createBrowser(data);
         };
       });
       const result = await promisesSequentially(promiseCreateBrowser, +limit);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
-    } finally {
-      await browser.close();
     }
   }
 
@@ -116,20 +99,17 @@ export class WebsiteSerivce {
     }
   }
 
-  async createBrowser(browser: Browser, business: BusinessEntity) {
+  async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook))
       return await this.prisma.business.update({
         where: { id: business?.id },
         data: { statusWebsite: STATUS_WEBSITE.faild },
       });
 
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1000, height: 800 });
     try {
       let email: string, thumbnailUrl: any;
       email = business?.email;
-      thumbnailUrl = business?.thumbnailUrl;
-      const response = await this.connectPage(business?.website, page);
+      const response = await connectPage(business?.website);
       if (!response) {
         console.log('error: ', business?.website);
         return await this.prisma.business.update({
@@ -137,56 +117,21 @@ export class WebsiteSerivce {
           data: { statusWebsite: STATUS_WEBSITE.faild },
         });
       }
+      const body = await response?.text();
+      const $ = cheerio.load(body);
+      const links = await this.findInforBusiness(business, $);
 
-      if (!thumbnailUrl) {
-        thumbnailUrl = await executeWithTimeout(
-          () => this.screenshot(page),
-          10000,
-        );
-      }
-
-      //scroll and page, search email
-      await this.scrollToEndOfPage(page);
-      email = await page
-        ?.$eval('a[href^="mailto:"]', (el: Element) => {
-          return el?.getAttribute('href')?.trim()?.replace('mailto:', '');
-        })
-        .catch(() => undefined);
-
-      email = email?.match(REG_IS_EMAIL) ? email : undefined;
-
-      //not email current page
-      if (!email) {
-        const contactUrls = await page.$$eval('a', (links) => {
-          return links
-            ?.filter((link) => {
-              const linkText = link.textContent?.toLowerCase();
-              return linkText && linkText.includes('contact');
-            })
-            ?.map((link) => link.href);
-        });
-        const matchContactUrl = contactUrls?.filter((url) => {
-          const match = url?.match(REG_IS_WEBSITE);
-          return match && url;
-        });
-        if (matchContactUrl?.length > 0) {
-          await Promise.all([
-            await page
-              .goto(matchContactUrl[0], {
-                waitUntil: 'domcontentloaded',
-                timeout: 10000,
-              })
-              .catch(() => undefined),
-          ]);
-
-          email = await page
-            ?.$eval('a[href^="mailto:"]', (el: Element) => {
-              return el?.getAttribute('href')?.trim()?.replace('mailto:', '');
-            })
-            .catch(() => undefined);
-
-          email = email?.match(REG_IS_EMAIL) ? email : undefined;
-        }
+      const emails = links?.filter((link) => link?.email);
+      const contacts = links?.filter((link) => link?.contact);
+      if (emails?.length > 0) email = emails?.[0]?.email;
+      else if (contacts?.length > 0) {
+        const response = await connectPage(contacts?.[0]?.contact);
+        if (!response) return;
+        const body = await response?.text();
+        const $ = cheerio.load(body);
+        const contactLink = await this.findInforBusiness(business, $);
+        const emailToContact = contactLink?.filter((link) => link?.email);
+        if (emailToContact?.length > 0) email = emailToContact?.[0]?.email;
       }
 
       const result = await this.prisma.business.update({
@@ -202,41 +147,29 @@ export class WebsiteSerivce {
         where: { id: business?.id },
         data: { statusWebsite: STATUS_WEBSITE.faild },
       });
-    } finally {
-      await page.close();
     }
   }
 
-  async connectPage(url: string, page: Page) {
-    const response = await page
-      .goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: 10000,
-      })
-      .catch(() => undefined);
-    if (response?.ok && response?.status() === 200) return response;
-  }
-
-  async scrollToEndOfPage(page: Page) {
-    let previousHeight: any;
-    let currentHeight = await page.evaluate('document.body.scrollHeight');
-    while (previousHeight !== currentHeight) {
-      previousHeight = currentHeight;
-      await page.evaluate('window.scrollBy(0, document.body.scrollHeight)');
-      currentHeight = await page.evaluate('document.body.scrollHeight');
-    }
-  }
-
-  async screenshot(page: Page) {
-    const apiHost = await this.configService.get(API_HOST);
-    const dir = await this.configService.get(ASSETS_THUMNAIL_DIR);
-    const fileName = `${dayjs().format('DD-MM-YYYY')}_${uuidv4()}.png`;
-    await setDelay(4000);
-    await page.screenshot({
-      path: `${dir}/${fileName}`,
-      type: 'png',
+  async findInforBusiness(business: BusinessEntity, $: any) {
+    const links = [];
+    $('a')?.map((i: number, els: any) => {
+      const link = $(els)?.attr('href')?.trim();
+      const text = $(els)?.text()?.toLowerCase()?.trim();
+      if (link?.includes('mailto:')) {
+        const email = link?.replace('mailto:', '');
+        if (email?.match(REG_IS_EMAIL)) {
+          const object = { email };
+          return links?.push(object);
+        }
+      }
+      if (text?.includes('contact')) {
+        const match = link?.match(REG_IS_WEBSITE);
+        const object = {
+          contact: match ? link : `${business?.website}${link}`,
+        };
+        return links?.push(object);
+      }
     });
-    const thumbnailUrl = `${apiHost}assets/thumnail/${fileName}`;
-    return thumbnailUrl;
+    return links;
   }
 }

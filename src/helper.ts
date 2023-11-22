@@ -162,9 +162,9 @@ export const isAddressStreet = (street: string) => {
 
 export const connectPage = async (url: string) => {
   let tryCount = 0;
-  while (tryCount < 5) {
+  while (tryCount < 3) {
     try {
-      tryCount > 0 && console.log('tryCount', tryCount);
+      tryCount > 0 && console.log('tryCount', tryCount, url);
       const response = await fetch(url, {
         method: METHOD.GET,
         headers: DEFAULT_OPTION_HEADER_FETCH,
