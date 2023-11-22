@@ -32,7 +32,7 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 
-const statusUser = ['ACCEPT', 'PROCESSING', 'CUSTOMER', 'CANCEL'];
+const statusUser = [2, 3, 4, 5];
 @Injectable()
 export class BusinessService {
   constructor(private prisma: PrismaService) {}
@@ -134,9 +134,6 @@ export class BusinessService {
     try {
       const { limit, page, sortBy, sortDirection } = fetchDto;
       const where = this.createQuery(fetchDto, currentUser);
-      const notWhere = Object?.values(where)?.length === 0;
-      if (page !== 1 && notWhere)
-        throw new BadRequestException('Please filter when switching pages !');
 
       const result = await this.prisma.business.findMany({
         where,
@@ -158,7 +155,7 @@ export class BusinessService {
           updatedAt: true,
         },
         take: limit,
-        skip: notWhere ? 0 : (page - 1) * limit,
+        skip: (page - 1) * limit,
         orderBy: { [sortBy]: sortDirection },
       });
 

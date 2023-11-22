@@ -102,7 +102,7 @@ export class ExportService {
   ) {
     const chunkLength = await this.configService.get(EXPORT_CHUNK_LENGTH);
     try {
-      const chunkData = chunkArray(businessList, chunkLength);
+      const chunkData = chunkArray(businessList, +chunkLength);
       const promiseExport = chunkData?.map(
         (data: BusinessEntity[], index: number) => {
           return async () => {
@@ -164,7 +164,7 @@ export class ExportService {
         let index = 0;
         while (hasMore) {
           const businessMore = await this.businessSerivce.findAllExport(
-            { ...fetchDto, limit: allLimit },
+            { ...fetchDto, limit: +allLimit },
             isAdmin,
             cursor,
           );

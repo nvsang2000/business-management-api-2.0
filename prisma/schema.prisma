@@ -93,7 +93,7 @@ model Business {
   statusWebsite   Int?       @default(1)
   keyword         String?    @db.VarChar(128)
   googleVerify    Boolean?   @default(false)
-  statusMarketing String?    @default("NOT_ACCEPT") @db.VarChar(24)
+  statusMarketing Int?       @default(1)
   userMarketingId String?    @db.Uuid
   cityId          String?    @db.Uuid
   creatorId       String?    @db.Uuid
@@ -110,6 +110,8 @@ model Business {
   @@index([name])
   @@index([phone])
   @@index([categories])
+  @@index([statusMarketing])
+  @@index([createdAt])
   @@index([website])
   @@index([email])
   @@index([source])

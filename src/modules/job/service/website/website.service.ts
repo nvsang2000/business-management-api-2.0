@@ -76,7 +76,7 @@ export class WebsiteSerivce {
           return await this.createBrowser(browser, data);
         };
       });
-      const result = await promisesSequentially(promiseCreateBrowser, limit);
+      const result = await promisesSequentially(promiseCreateBrowser, +limit);
       return result;
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
@@ -98,7 +98,7 @@ export class WebsiteSerivce {
         index = 0;
       while (hasMore) {
         const businessMore = await this.businessService.findAllExport(
-          { ...fetchDto, limit: allLimit },
+          { ...fetchDto, limit: +allLimit },
           isAdmin,
           cursor,
         );
