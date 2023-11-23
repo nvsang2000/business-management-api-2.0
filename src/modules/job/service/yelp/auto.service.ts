@@ -137,6 +137,7 @@ export class AutoSearchYelpService {
         const url = `${WEBSITE.YELP.URL}search?find_desc=${keyword}&find_loc=${zipCode}&start=${page}0`;
         const response = await connectPage(url);
         const body = await response?.text();
+        if (!body) break;
         const $ = cheerio.load(body);
 
         const businessList = await this.searchYelp.findElList($);
@@ -158,6 +159,8 @@ export class AutoSearchYelpService {
       }
     } catch (e) {
       console.log(e);
+    } finally {
+      console.log('End zipcode:', zipCode);
     }
   }
 }

@@ -164,7 +164,7 @@ export const connectPage = async (url: string) => {
   let tryCount = 0;
   while (tryCount < 3) {
     try {
-      tryCount > 0 && console.log('tryCount', tryCount, url);
+      tryCount > 0 && console.log('tryCount', tryCount);
       const response = await fetch(url, {
         method: METHOD.GET,
         headers: DEFAULT_OPTION_HEADER_FETCH,

@@ -2,13 +2,10 @@ import {
   GOOOGLE_VERIFY,
   SOURCE_SCRATCH,
   STATUS_MARKETING,
+  STATUS_WEBSITE,
   STRING_BOOLEAN,
 } from 'src/constants';
-import {
-  EnumFieldOptional,
-  NumberFieldOptional,
-  StringFieldOptional,
-} from 'src/decorators';
+import { EnumFieldOptional, StringFieldOptional } from 'src/decorators';
 import { FetchDto } from 'src/dto/fetch.dto';
 
 export class FetchBusinessDto extends FetchDto {
@@ -24,11 +21,14 @@ export class FetchBusinessDto extends FetchDto {
   @EnumFieldOptional(() => STRING_BOOLEAN)
   thumbnailUrl?: string;
 
-  @NumberFieldOptional({})
-  statusWebsite?: number;
+  @EnumFieldOptional(() => STATUS_WEBSITE, { swaggerOptions: { example: 1 } })
+  statusWebsite?: STATUS_WEBSITE;
 
   @EnumFieldOptional(() => GOOOGLE_VERIFY)
   googleVerify?: string;
+
+  @EnumFieldOptional(() => STATUS_MARKETING)
+  statusMarketing?: STATUS_MARKETING;
 
   @StringFieldOptional({ each: true })
   categories?: string[];
@@ -47,7 +47,4 @@ export class FetchBusinessDto extends FetchDto {
 
   @StringFieldOptional({})
   keyword?: string;
-
-  @EnumFieldOptional(() => STATUS_MARKETING)
-  statusMarketing?: STATUS_MARKETING;
 }

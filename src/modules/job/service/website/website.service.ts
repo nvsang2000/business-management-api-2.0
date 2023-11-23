@@ -8,7 +8,6 @@ import {
   EXPORT_ALL_LIMIT,
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
-  REG_IS_WEBSITE,
   ROLE,
   STATUS_WEBSITE,
 } from 'src/constants';
@@ -17,7 +16,7 @@ import { connectPage, promisesSequentially } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
 import * as cheerio from 'cheerio';
-
+import * as url from 'url';
 @Injectable()
 export class WebsiteSerivce {
   constructor(
@@ -52,7 +51,6 @@ export class WebsiteSerivce {
       const newFetch = {
         ...fetch,
         website: 'true',
-        statusWebsite: 1,
       } as FetchBusinessDto;
 
       const businessList = await this.handleFindAllData(newFetch, currentUser);
@@ -104,7 +102,7 @@ export class WebsiteSerivce {
     if (business?.website?.includes(DOMAIN_LINK.facebook))
       return await this.prisma.business.update({
         where: { id: business?.id },
-        data: { statusWebsite: STATUS_WEBSITE.faild },
+        data: { statusWebsite: STATUS_WEBSITE.FAILD },
       });
 
     try {
@@ -112,10 +110,10 @@ export class WebsiteSerivce {
       email = business?.email;
       const response = await connectPage(business?.website);
       if (!response) {
-        console.log('error: ', business?.website);
+        console.log('error website: ', business?.website);
         return await this.prisma.business.update({
           where: { id: business?.id },
-          data: { statusWebsite: STATUS_WEBSITE.faild },
+          data: { statusWebsite: STATUS_WEBSITE.FAILD },
         });
       }
       const body = await response?.text();
@@ -129,6 +127,7 @@ export class WebsiteSerivce {
         const response = await connectPage(contacts?.[0]?.contact);
         if (!response) return;
         const body = await response?.text();
+        if (!body) console.log('body:', email, body);
         const $ = cheerio.load(body);
         const contactLink = await this.findInforBusiness(business, $);
         const emailToContact = contactLink?.filter((link) => link?.email);
@@ -137,7 +136,7 @@ export class WebsiteSerivce {
 
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.verify },
+        data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.VERIFY },
       });
 
       console.log('result:', email, business?.website);
@@ -146,7 +145,7 @@ export class WebsiteSerivce {
       console.log(e);
       return await this.prisma.business.update({
         where: { id: business?.id },
-        data: { statusWebsite: STATUS_WEBSITE.faild },
+        data: { statusWebsite: STATUS_WEBSITE.FAILD },
       });
     }
   }
@@ -154,7 +153,7 @@ export class WebsiteSerivce {
   async findInforBusiness(business: BusinessEntity, $: any) {
     const links = [];
     $('a')?.map((i: number, els: any) => {
-      const link = $(els)?.attr('href')?.trim();
+      const link = $(els)?.attr('href')?.toLowerCase()?.trim();
       const text = $(els)?.text()?.toLowerCase()?.trim();
       if (link?.includes('mailto:')) {
         const email = link?.replace('mailto:', '');
@@ -164,9 +163,12 @@ export class WebsiteSerivce {
         }
       }
       if (text?.includes('contact')) {
-        const match = link?.match(REG_IS_WEBSITE);
+        const parsedUrl = url.parse(link);
+        const parsedWebsite = url.parse(business?.website);
         const object = {
-          contact: match ? link : `${business?.website}${link}`,
+          contact: parsedUrl?.hostname
+            ? link
+            : `${parsedWebsite?.hostname}${parsedUrl?.pathname}`,
         };
         return links?.push(object);
       }

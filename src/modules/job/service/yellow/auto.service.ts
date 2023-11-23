@@ -151,6 +151,7 @@ export class AutoSearchYellowService {
         const url = `${WEBSITE.YELLOW_PAGES.URL}/search?search_terms=${keyword}&geo_location_terms=${zipCode}&page=${page}`;
         const response = await connectPage(url);
         const body = await response?.text();
+        if (!body) break;
         const $ = cheerio.load(body);
         const businessList = await this.searchYellow.findElDetail($);
         if (businessList?.length === 0) break;
@@ -170,6 +171,8 @@ export class AutoSearchYellowService {
       }
     } catch (e) {
       console.log(e);
+    } finally {
+      console.log('End zipcode:', zipCode);
     }
   }
 }

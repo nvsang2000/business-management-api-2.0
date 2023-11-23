@@ -61,6 +61,12 @@ export enum STATUS_MARKETING {
   CANCEL = 5,
 }
 
+export enum STATUS_WEBSITE {
+  UN_VERIFY = 1,
+  VERIFY = 2,
+  FAILD = 3,
+}
+
 export enum METHOD {
   GET = 'GET',
   UPDATE = 'UPDATE',
@@ -141,12 +147,6 @@ export const FILE_EXTENTSION = {
   excel: '.csv',
   json: '.json',
   rar: '.rar',
-};
-
-export const STATUS_WEBSITE = {
-  unVerify: 1,
-  verify: 2,
-  faild: 3,
 };
 
 export const THUMBNAIL_DEFAULT = {
