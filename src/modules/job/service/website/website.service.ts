@@ -8,6 +8,7 @@ import {
   EXPORT_ALL_LIMIT,
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
+  REG_IS_WEBSITE,
   ROLE,
   STATUS_WEBSITE,
 } from 'src/constants';
@@ -154,6 +155,7 @@ export class WebsiteSerivce {
     $('a')?.map((i: number, els: any) => {
       const link = $(els)?.attr('href')?.toLowerCase()?.trim();
       const text = $(els)?.text()?.toLowerCase()?.trim();
+      const match = link?.match(REG_IS_WEBSITE);
       if (link?.includes('mailto:')) {
         const email = link?.replace('mailto:', '');
         if (email?.match(REG_IS_EMAIL)) {
@@ -161,7 +163,7 @@ export class WebsiteSerivce {
           return links?.push(object);
         }
       }
-      if (text?.includes('contact')) {
+      if (match && text?.includes('contact')) {
         const parsedUrl = url.parse(link);
         const parsedWebsite = url.parse(business?.website);
         const object = {

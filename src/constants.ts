@@ -1,6 +1,3 @@
-// import { PuppeteerLaunchOptions } from 'puppeteer';
-
-// enum
 export enum OPTION_NODE_ENV {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production',
