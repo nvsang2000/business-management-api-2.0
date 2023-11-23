@@ -4,6 +4,8 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import {
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
   JOB_STATUS,
   SOURCE_SCRATCH,
   THUMBNAIL_DEFAULT,
@@ -42,14 +44,14 @@ export class SearchYellowService {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async reJobSearch(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'search-yellow',
+        JOB_QUEUE_CHILD.SEARCH_YELLOW,
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -87,7 +89,7 @@ export class SearchYellowService {
       );
 
       await this.scrapingQueue.add(
-        'search-yellow',
+        JOB_QUEUE_CHILD.SEARCH_YELLOW,
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,

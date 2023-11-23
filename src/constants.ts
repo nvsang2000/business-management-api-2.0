@@ -1,3 +1,23 @@
+//job
+export const JOB_EXPORT = `export-queue-${process.env.REDIS_SERVER}`;
+export const JOB_EXPORT_CHILD = {
+  EXPORT_BUSINESS: 'export-business',
+};
+export const JOB_IMPORT = `import-queue-${process.env.REDIS_SERVER}`;
+export const JOB_IMPORT_CHILD = {
+  IMPORT_BUSINESS: 'import-business',
+};
+export const JOB_QUEUE = `job-queue-${process.env.REDIS_SERVER}`;
+export const JOB_QUEUE_CHILD = {
+  WEBSITE: 'website',
+  SEARCH_YELLOW: 'search-yellow',
+  SEARCH_YELP: 'search-yelp',
+  AUTO_SEARCH_YELLOW: 'auto-search-yellow',
+  AUTO_SEARCH_YELP: 'auto-search-yelp',
+  AUTO_SEARCH_MENUFY: 'auto-search-menufy',
+};
+
+//enum
 export enum OPTION_NODE_ENV {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production',

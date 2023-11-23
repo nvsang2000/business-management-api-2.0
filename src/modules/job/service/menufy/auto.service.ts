@@ -4,6 +4,8 @@ import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { BusinessEntity, UserEntity } from 'src/entities';
 import {
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
   JOB_STATUS,
   MAPPING_CATEGORIES,
   SOURCE_SCRATCH,
@@ -31,14 +33,14 @@ export class AutoSearchMenufySerivce {
   constructor(
     private jobService: JobService,
     private businessService: BusinessService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async reJobAuto(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-search-menufy',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_MENUFY,
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -76,7 +78,7 @@ export class AutoSearchMenufySerivce {
       );
 
       await this.scrapingQueue.add(
-        'auto-search-menufy',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_MENUFY,
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,

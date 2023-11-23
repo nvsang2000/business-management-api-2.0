@@ -10,7 +10,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
-import { REDIS_HOST, REDIS_POST, REDIS_URL, SECONDS_OF_DAY } from './constants';
+import {
+  JOB_QUEUE,
+  REDIS_HOST,
+  REDIS_POST,
+  REDIS_URL,
+  SECONDS_OF_DAY,
+} from './constants';
 import { PrismaModule } from 'nestjs-prisma';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import * as redisStore from 'cache-manager-redis-store';
@@ -50,7 +56,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         },
       }),
     }),
-    BullModule.registerQueue({ name: `job-queue-${process.env.REDIS_SERVER}` }),
+    BullModule.registerQueue({ name: JOB_QUEUE }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

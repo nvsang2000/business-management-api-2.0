@@ -8,8 +8,9 @@ import { AutoSearchYelpService } from '../service/yelp/auto.service';
 import { SearchYelpService } from '../service/yelp/search.service';
 import { AutoSearchMenufySerivce } from '../service/menufy/auto.service';
 import { WebsiteSerivce } from '../service/website/website.service';
+import { JOB_QUEUE, JOB_QUEUE_CHILD } from 'src/constants';
 
-@Processor(`job-queue-${process.env.REDIS_SERVER}`)
+@Processor(JOB_QUEUE)
 export class BullJobQueue {
   constructor(
     private website: WebsiteSerivce,
@@ -20,7 +21,7 @@ export class BullJobQueue {
     private autoSearchMenufy: AutoSearchMenufySerivce,
   ) {}
 
-  @Process('search-yellow')
+  @Process(JOB_QUEUE_CHILD.SEARCH_YELLOW)
   async runBullSearchYellow(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
@@ -30,7 +31,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('search-yelp')
+  @Process(JOB_QUEUE_CHILD.SEARCH_YELP)
   async runBullSearchYelp(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
@@ -40,7 +41,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('auto-search-yellow')
+  @Process(JOB_QUEUE_CHILD.AUTO_SEARCH_YELLOW)
   async runBullAutoSearchYellow(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
@@ -50,7 +51,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('auto-search-yelp')
+  @Process(JOB_QUEUE_CHILD.AUTO_SEARCH_YELP)
   async runBullAutoSearchYelp(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
@@ -60,7 +61,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('auto-search-menufy')
+  @Process(JOB_QUEUE_CHILD.AUTO_SEARCH_MENUFY)
   async runBullAutoSearchMenufy(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);
@@ -70,7 +71,7 @@ export class BullJobQueue {
     }
   }
 
-  @Process('website')
+  @Process(JOB_QUEUE_CHILD.WEBSITE)
   async runBullScreenshots(bull: Job<BullJob>) {
     try {
       console.log('job id: ', bull?.id);

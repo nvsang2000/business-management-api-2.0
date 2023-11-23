@@ -12,6 +12,8 @@ import {
   EXPORT_CHUNK_LENGTH,
   EXPORT_MODE,
   FILE_TYPE,
+  JOB_EXPORT,
+  JOB_EXPORT_CHILD,
   ROLE,
 } from 'src/constants';
 import * as XLSX from 'xlsx-js-style';
@@ -47,7 +49,7 @@ export class ExportService {
     private configService: ConfigService,
     private fileService: FilesService,
     private businessSerivce: BusinessService,
-    @InjectQueue(`export-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_EXPORT)
     private importQueue: Queue,
   ) {}
 
@@ -60,7 +62,7 @@ export class ExportService {
       const isAdmin = currentUser?.role === ROLE.admin;
       if (mode === EXPORT_MODE.all && isAdmin) {
         await this.importQueue.add(
-          'export-business',
+          JOB_EXPORT_CHILD.EXPORT_BUSINESS,
           { fetchDto, currentUser },
           {
             removeOnComplete: true,

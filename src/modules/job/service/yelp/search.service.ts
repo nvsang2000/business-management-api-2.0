@@ -9,6 +9,8 @@ import { BusinessService } from 'src/modules/business/business.service';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import {
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
   JOB_STATUS,
   MAPPING_CATEGORIES,
   REG_FORMAT_ADDRESS,
@@ -44,14 +46,14 @@ export class SearchYelpService {
   constructor(
     private businessService: BusinessService,
     private jobService: JobService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async reJobSearch(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'search-yelp',
+        JOB_QUEUE_CHILD.SEARCH_YELP,
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -89,7 +91,7 @@ export class SearchYelpService {
       );
 
       await this.scrapingQueue.add(
-        'search-yelp',
+        JOB_QUEUE_CHILD.SEARCH_YELP,
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,

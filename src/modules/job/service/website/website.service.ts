@@ -6,6 +6,8 @@ import { PrismaService } from 'nestjs-prisma';
 import {
   DOMAIN_LINK,
   EXPORT_ALL_LIMIT,
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
@@ -24,14 +26,14 @@ export class WebsiteSerivce {
     private prisma: PrismaService,
     private businessService: BusinessService,
     private configService: ConfigService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async createJob(fetch: FetchBusinessDto, currentUser: UserEntity) {
     try {
       const result = await this.scrapingQueue.add(
-        'website',
+        JOB_QUEUE_CHILD.WEBSITE,
         { fetch, currentUser },
         {
           removeOnComplete: true,

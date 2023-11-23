@@ -7,7 +7,13 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job, Queue } from 'bull';
 import dayjs from 'dayjs';
-import { API_HOST, ASSETS_CSV_DIR, FILE_TYPE } from 'src/constants';
+import {
+  API_HOST,
+  ASSETS_CSV_DIR,
+  FILE_TYPE,
+  JOB_IMPORT,
+  JOB_IMPORT_CHILD,
+} from 'src/constants';
 import { UserEntity } from 'src/entities';
 import { BusinessService } from 'src/modules/business/business.service';
 import { CreateFileDto } from 'src/modules/files/dto';
@@ -22,7 +28,7 @@ export class ImportService {
     private configService: ConfigService,
     private fileService: FilesService,
     private businessSerivce: BusinessService,
-    @InjectQueue(`import-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_IMPORT)
     private importQueue: Queue,
   ) {}
   async createImportBusiness(
@@ -46,7 +52,7 @@ export class ImportService {
         dirFile: dir,
       };
       await this.importQueue.add(
-        'import-business',
+        JOB_IMPORT_CHILD.IMPORT_BUSINESS,
         { file: newFile, payload },
         {
           removeOnComplete: true,

@@ -7,7 +7,13 @@ import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { JOB_STATUS, TYPE_JOB, WEBSITE } from 'src/constants';
+import {
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
+  JOB_STATUS,
+  TYPE_JOB,
+  WEBSITE,
+} from 'src/constants';
 import * as cheerio from 'cheerio';
 import { connectPage, promisesSequentially } from 'src/helper';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
@@ -23,14 +29,14 @@ export class AutoSearchYelpService {
     private searchYelp: SearchYelpService,
     private zipCodeService: ZipCodeService,
     private jobService: JobService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async reJobAuto(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-search-yelp',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_YELP,
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -61,7 +67,7 @@ export class AutoSearchYelpService {
       );
 
       await this.scrapingQueue.add(
-        'auto-search-yelp',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_YELP,
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,
@@ -147,7 +153,6 @@ export class AutoSearchYelpService {
         if (!nextPage) break;
         page++;
       }
-      console.log(zipCode, businessListForPage?.length);
       if (businessListForPage?.length === 0) return;
       else {
         const promiseGetDetail = businessListForPage?.map((business) => {

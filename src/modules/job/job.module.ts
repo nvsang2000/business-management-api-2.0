@@ -12,10 +12,11 @@ import { SearchYelpService } from './service/yelp/search.service';
 import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 import { WebsiteSerivce } from './service/website/website.service';
 import { FilesModule } from '../files/files.module';
+import { JOB_QUEUE } from 'src/constants';
 
 @Module({
   imports: [
-    BullModule.registerQueue({ name: `job-queue-${process.env.REDIS_SERVER}` }),
+    BullModule.registerQueue({ name: JOB_QUEUE }),
     BusinessModule,
     FilesModule,
   ],

@@ -6,13 +6,13 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { PrismaService } from 'nestjs-prisma';
-import { JOB_STATUS, TYPE_JOB } from './constants';
+import { JOB_QUEUE, JOB_STATUS, TYPE_JOB } from './constants';
 
 @Injectable()
 export class WorkerService {
   constructor(
     private prisma: PrismaService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private readonly scrapingQueue: Queue,
   ) {}
 

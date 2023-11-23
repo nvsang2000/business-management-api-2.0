@@ -5,24 +5,20 @@ https://docs.nestjs.com/modules
 import { Module } from '@nestjs/common';
 import { ExportService } from './export.service';
 import { FilesModule } from 'src/modules/files/files.module';
-import { BullImportQueue } from './bull/export-queue';
+import { BullExportQueue } from './bull/export-queue';
 import { BusinessService } from 'src/modules/business/business.service';
 import { ZipCodeService } from 'src/modules/zipCode/zip-code.service';
 import { BullModule } from '@nestjs/bull';
 import { ExportController } from './export.controller';
 import { WebhooksService } from 'src/shared/export/webhooks.service';
+import { JOB_EXPORT } from 'src/constants';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({
-      name: `export-queue-${process.env.REDIS_SERVER}`,
-    }),
-    FilesModule,
-  ],
+  imports: [BullModule.registerQueue({ name: JOB_EXPORT }), FilesModule],
   controllers: [ExportController],
   providers: [
     ExportService,
-    BullImportQueue,
+    BullExportQueue,
     BusinessService,
     ZipCodeService,
     WebhooksService,

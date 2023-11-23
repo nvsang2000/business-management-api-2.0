@@ -8,7 +8,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { JobAutoDto } from '../../dto';
 import { UserEntity } from 'src/entities';
-import { JOB_STATUS, SOURCE_SCRATCH, TYPE_JOB, WEBSITE } from 'src/constants';
+import {
+  JOB_QUEUE,
+  JOB_QUEUE_CHILD,
+  JOB_STATUS,
+  SOURCE_SCRATCH,
+  TYPE_JOB,
+  WEBSITE,
+} from 'src/constants';
 import { BullJob } from 'src/interface';
 import { JobEntity } from 'src/entities/job.entity';
 import {
@@ -36,14 +43,14 @@ export class AutoSearchYellowService {
     private jobService: JobService,
     private zipCodeService: ZipCodeService,
     private businessService: BusinessService,
-    @InjectQueue(`job-queue-${process.env.REDIS_SERVER}`)
+    @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
   async reJobAuto(id: string, currentUser: UserEntity) {
     try {
       const job = await this.scrapingQueue.add(
-        'auto-search-yellow',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_YELLOW,
         { jobId: id, userId: currentUser?.id },
         {
           removeOnComplete: true,
@@ -74,7 +81,7 @@ export class AutoSearchYellowService {
       );
 
       await this.scrapingQueue.add(
-        'auto-search-yellow',
+        JOB_QUEUE_CHILD.AUTO_SEARCH_YELLOW,
         { jobId: result?.id, userId },
         {
           removeOnComplete: true,
