@@ -119,19 +119,18 @@ export class WebsiteSerivce {
       const body = await response?.text();
       const $ = cheerio.load(body);
       const links = await this.findInforBusiness(business, $);
-
       const emails = links?.filter((link) => link?.email);
       const contacts = links?.filter((link) => link?.contact);
       if (emails?.length > 0) email = emails?.[0]?.email;
       else if (contacts?.length > 0) {
         const response = await connectPage(contacts?.[0]?.contact);
-        if (!response) return;
         const body = await response?.text();
-        if (!body) console.log('body:', email, body);
-        const $ = cheerio.load(body);
-        const contactLink = await this.findInforBusiness(business, $);
-        const emailToContact = contactLink?.filter((link) => link?.email);
-        if (emailToContact?.length > 0) email = emailToContact?.[0]?.email;
+        if (response && body) {
+          const $ = cheerio.load(body);
+          const contactLink = await this.findInforBusiness(business, $);
+          const emailToContact = contactLink?.filter((link) => link?.email);
+          if (emailToContact?.length > 0) email = emailToContact?.[0]?.email;
+        }
       }
 
       const result = await this.prisma.business.update({

@@ -1,4 +1,4 @@
-import { PuppeteerLaunchOptions } from 'puppeteer';
+// import { PuppeteerLaunchOptions } from 'puppeteer';
 
 // enum
 export enum OPTION_NODE_ENV {
@@ -250,20 +250,20 @@ export const PRISMA_ERROR_CODE = {
   CONSTRAINT_NOT_FOUND: 'P2025',
 };
 
-export const OPTION_BROWSER: PuppeteerLaunchOptions = {
-  args: [
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--disable-setuid-sandbox',
-    '--no-first-run',
-    '--no-sandbox',
-    '--no-zygote',
-    '--deterministic-fetch',
-    '--disable-features=IsolateOrigins',
-    '--disable-site-isolation-trials',
-  ],
-  ignoreDefaultArgs: ['--disable-extensions'],
-};
+// export const OPTION_BROWSER: PuppeteerLaunchOptions = {
+//   args: [
+//     '--disable-gpu',
+//     '--disable-dev-shm-usage',
+//     '--disable-setuid-sandbox',
+//     '--no-first-run',
+//     '--no-sandbox',
+//     '--no-zygote',
+//     '--deterministic-fetch',
+//     '--disable-features=IsolateOrigins',
+//     '--disable-site-isolation-trials',
+//   ],
+//   ignoreDefaultArgs: ['--disable-extensions'],
+// };
 
 export const MESSAGE_ERROR = {
   //Server
