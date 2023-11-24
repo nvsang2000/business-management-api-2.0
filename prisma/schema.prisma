@@ -111,6 +111,7 @@ model Business {
   @@index([phone])
   @@index([categories])
   @@index([statusMarketing])
+  @@index([statusWebsite])
   @@index([createdAt])
   @@index([website])
   @@index([email])

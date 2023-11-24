@@ -21,9 +21,10 @@ import { CreateUserDto } from './dto';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto';
 import { Response } from 'express';
-import { Roles } from 'src/decorators';
-import { ROLE } from 'src/constants';
+import { CurrentUser, Roles } from 'src/decorators';
+import { ROLE, ROLE_ADMIN } from 'src/constants';
 import { FetchDto } from 'src/dto';
+import { UserEntity } from 'src/entities';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,7 +33,7 @@ export class UsersController {
   constructor(private userService: UsersService) {}
 
   @Get()
-  @Roles([ROLE.admin])
+  @Roles(ROLE_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   paginate(
     @Query() fetchDto: FetchDto,
@@ -42,29 +43,33 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles([ROLE.admin])
+  @Roles(ROLE_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   async findUnique(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
   @Post()
-  @Roles([ROLE.admin])
+  @Roles(ROLE_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   async create(@Body() payload: CreateUserDto) {
     return this.userService.create(payload);
   }
 
   @Put(':id')
-  @Roles([ROLE.admin])
+  @Roles(ROLE_ADMIN)
   @HttpCode(200)
   @UseInterceptors(ClassSerializerInterceptor)
-  async update(@Param('id') id: string, @Body() payload: UpdateUserDto) {
-    return this.userService.update(payload, id);
+  async update(
+    @Param('id') id: string,
+    @Body() payload: UpdateUserDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.userService.update(currentUser, payload, id);
   }
 
   @Delete(':id')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   @HttpCode(204)
   async delete(@Param('id') id: string) {
     return this.userService.delete(id);

@@ -25,9 +25,12 @@ export enum OPTION_NODE_ENV {
 }
 
 export enum ROLE {
+  adminSys = 'adminSys',
   admin = 'admin',
   user = 'user',
 }
+
+export const ROLE_ADMIN = [ROLE.adminSys, ROLE.admin];
 
 export enum TYPE_JOB {
   AUTO = 'AUTO',

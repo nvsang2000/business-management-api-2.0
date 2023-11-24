@@ -76,7 +76,7 @@ export class JobController {
   }
 
   @Get('auto-search')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   createJobAutoSearch(
     @Query() payload: JobAutoDto,
     @CurrentUser() currentUser: UserEntity,
@@ -92,7 +92,7 @@ export class JobController {
   }
 
   @Get('auto-search/:id')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   createJobReAutoSearch(
     @Param('id') id: string,
     @Query() query: SourceScratchDto,
@@ -109,7 +109,7 @@ export class JobController {
   }
 
   @Get('website')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   createJobScreenshot(
     @Query() fetchDto: FetchBusinessDto,
     @CurrentUser() currentUser: UserEntity,

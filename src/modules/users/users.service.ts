@@ -10,11 +10,12 @@ import {
 import { PrismaService } from 'nestjs-prisma';
 import { FetchDto } from '../../dto/fetch.dto';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { MESSAGE_ERROR } from 'src/constants';
+import { MESSAGE_ERROR, ROLE } from 'src/constants';
 import { PaginationMetaParams } from '../../dto/paginationMeta.dto';
 import { isBoolean } from 'lodash';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
+import { UserEntity } from 'src/entities';
 
 @Injectable()
 export class UsersService {
@@ -164,15 +165,21 @@ export class UsersService {
     }
   }
 
-  async update(updateUser: UpdateUserDto, id: string): Promise<any> {
+  async update(
+    currentUser: UserEntity,
+    updateUser: UpdateUserDto,
+    id: string,
+  ): Promise<any> {
     try {
       const user = await this.findById(id);
+      const adminSys = currentUser?.role === ROLE.adminSys;
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
       const { password } = updateUser;
       const result = await this.prisma.user.update({
         data: {
           ...updateUser,
-          ...(password && { password: await bcrypt.hash(password, 10) }),
+          ...(adminSys &&
+            password && { password: await bcrypt.hash(password, 10) }),
         },
         where: { id },
       });

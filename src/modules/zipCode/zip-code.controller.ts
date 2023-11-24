@@ -22,13 +22,13 @@ export class ZipCodeController {
   }
 
   @Get('cover-tree')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   coverZipCodeJson() {
     return this.zipCodeService.coverZipCodeTree();
   }
 
   @Get('cover-city')
-  @Roles([ROLE.admin])
+  @Roles([ROLE.adminSys])
   cover() {
     return this.zipCodeService.coverZipCodeCity();
   }
