@@ -1,6 +1,6 @@
 import { Ability, AbilityBuilder, AbilityClass } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { ACTION, ROLE, TABLES } from 'src/constants';
+import { ACTION, ROLE_ADMIN, TABLES } from 'src/constants';
 import { PrismaService } from 'nestjs-prisma';
 
 type Subjects = keyof typeof TABLES | 'all';
@@ -23,7 +23,7 @@ export class CaslAbilityFactory {
       },
     });
 
-    if (user.role === ROLE.admin) {
+    if (ROLE_ADMIN.includes(user?.role)) {
       can(ACTION.Manage, 'all');
 
       return build({});

@@ -15,6 +15,7 @@ import {
   JOB_EXPORT,
   JOB_EXPORT_CHILD,
   ROLE,
+  ROLE_ADMIN,
 } from 'src/constants';
 import * as XLSX from 'xlsx-js-style';
 import { ExportBusinessDto } from './dto/export-business.dto';
@@ -59,7 +60,7 @@ export class ExportService {
   ) {
     try {
       const { mode } = fetchDto;
-      const isAdmin = currentUser?.role === ROLE.admin;
+      const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
       if (mode === EXPORT_MODE.all && isAdmin) {
         await this.importQueue.add(
           JOB_EXPORT_CHILD.EXPORT_BUSINESS,

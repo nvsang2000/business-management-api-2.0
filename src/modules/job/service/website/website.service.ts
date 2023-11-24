@@ -11,7 +11,7 @@ import {
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
-  ROLE,
+  ROLE_ADMIN,
   STATUS_WEBSITE,
 } from 'src/constants';
 import { BusinessEntity, UserEntity } from 'src/entities';
@@ -74,7 +74,7 @@ export class WebsiteSerivce {
     fetchDto: FetchBusinessDto,
     currentUser: UserEntity = null,
   ) {
-    const isAdmin = currentUser?.role === ROLE.admin;
+    const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
     const allLimit = await this.configService.get(EXPORT_ALL_LIMIT);
     try {
       let businessList = [],
@@ -109,7 +109,7 @@ export class WebsiteSerivce {
       });
 
     try {
-      let email: string, thumbnailUrl: any;
+      let email: string;
       email = business?.email;
       const response = await connectPage(business?.website);
       if (!response)
@@ -134,10 +134,10 @@ export class WebsiteSerivce {
           if (emailToContact?.length > 0) email = emailToContact?.[0]?.email;
         }
       }
-
+      console.log('result: ', email, business?.website);
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.VERIFY },
+        data: { email, statusWebsite: STATUS_WEBSITE.VERIFY },
       });
       return result;
     } catch (e) {

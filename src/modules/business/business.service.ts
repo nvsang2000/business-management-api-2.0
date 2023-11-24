@@ -21,7 +21,7 @@ import {
   EXPORT_MODE,
   GOOOGLE_VERIFY,
   MESSAGE_ERROR,
-  ROLE,
+  ROLE_ADMIN,
   SOURCE_SCRATCH,
   STRING_BOOLEAN,
 } from 'src/constants';
@@ -70,7 +70,7 @@ export class BusinessService {
       email,
     } = fetchDto;
     let { categories, state } = fetchDto;
-    const isAdmin = currentUser?.role === ROLE.admin;
+    const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
     const boolGoogleVerify =
       googleVerify === GOOOGLE_VERIFY.VERIFY ? true : false;
 

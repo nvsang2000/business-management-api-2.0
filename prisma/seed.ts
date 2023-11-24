@@ -33,7 +33,7 @@ async function seedUsers() {
       phone: '0333027681',
       username: 'admin123',
       password: hash,
-      role: ROLE.admin,
+      role: ROLE.adminSys,
     },
   });
 
@@ -44,7 +44,7 @@ async function seedUsers() {
       phone: '0386237067',
       username: 'nvsang2670',
       password: hash,
-      role: ROLE.admin,
+      role: ROLE.adminSys,
     },
   });
 }

@@ -30,7 +30,7 @@ export enum ROLE {
   user = 'user',
 }
 
-export const ROLE_ADMIN = [ROLE.adminSys, ROLE.admin];
+export const ROLE_ADMIN: any[] = [ROLE.adminSys, ROLE.admin];
 
 export enum TYPE_JOB {
   AUTO = 'AUTO',
