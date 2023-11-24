@@ -112,13 +112,12 @@ export class WebsiteSerivce {
       let email: string, thumbnailUrl: any;
       email = business?.email;
       const response = await connectPage(business?.website);
-      if (!response) {
-        console.log('error website: ', business?.website);
+      if (!response)
         return await this.prisma.business.update({
           where: { id: business?.id },
           data: { statusWebsite: STATUS_WEBSITE.FAILD },
         });
-      }
+
       const body = await response?.text();
       const $ = cheerio.load(body);
       const links = await this.findInforBusiness(business, $);
@@ -140,8 +139,6 @@ export class WebsiteSerivce {
         where: { id: business?.id },
         data: { email, thumbnailUrl, statusWebsite: STATUS_WEBSITE.VERIFY },
       });
-
-      console.log('result:', email, business?.website);
       return result;
     } catch (e) {
       console.log(e);
