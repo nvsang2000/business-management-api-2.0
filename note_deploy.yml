@@ -83,3 +83,21 @@ WHERE ARRAY[
   'Animal Health Products'
 ]::varchar[] && categories
 AND NOT 'Health' = ANY(categories);
+
+
+UPDATE business
+SET categories = (
+  SELECT ARRAY_AGG(DISTINCT category)
+  FROM UNNEST(ARRAY_CAT(
+    ARRAY_REMOVE(categories, 'Physicians & Surgeons Equipment-Repairing & Refinishing'),
+    ARRAY['Physicians & Surgeons', 'Equipment-Repairing & Refinishing']
+  )) AS category
+)
+WHERE ARRAY['Physicians & Surgeons Equipment-Repairing & Refinishing']::varchar[] <@ categories;
+
+UPDATE business
+SET categories = (
+  SELECT ARRAY_AGG(DISTINCT category)
+  FROM UNNEST(categories) AS category
+)
+WHERE 'Neuropsychiatry' = ANY(categories);

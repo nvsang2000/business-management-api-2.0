@@ -112,11 +112,13 @@ export class WebsiteSerivce {
       let email: string;
       email = business?.email;
       const response = await connectPage(business?.website);
-      if (!response)
+      if (!response) {
+        console.log('error: ', business?.website);
         return await this.prisma.business.update({
           where: { id: business?.id },
           data: { statusWebsite: STATUS_WEBSITE.FAILD },
         });
+      }
 
       const body = await response?.text();
       const $ = cheerio.load(body);

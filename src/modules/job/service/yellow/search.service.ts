@@ -191,10 +191,11 @@ export class SearchYellowService {
           ?.find('.info-secondary .adr .locality')
           ?.text();
         const name = $(el)?.find('.info-primary h2 .business-name')?.text();
-        const categories = [];
-        $(el)
-          ?.find('.info-primary .categories a')
-          ?.map((i, el) => categories.push($(el)?.text()));
+        const categories = $(el)
+          ?.find('.info-primary .categories')
+          ?.text()
+          ?.split(', ');
+
         const phone = $(el).find('.info-secondary .phone')?.text();
         const thumbnailUrl = $(el)
           ?.find('.media-thumbnail-wrapper img')
