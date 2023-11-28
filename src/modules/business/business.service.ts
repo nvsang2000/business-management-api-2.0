@@ -88,7 +88,10 @@ export class BusinessService {
       ...(email && {
         email: email === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
-      ...(statusWebsite && { statusWebsite: { equals: statusWebsite } }),
+      ...(statusWebsite && {
+        website: { not: null },
+        statusWebsite: { equals: statusWebsite },
+      }),
       ...(keyword && {
         keyword: { contains: keyword, mode: 'insensitive' as any },
       }),

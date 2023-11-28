@@ -165,7 +165,7 @@ export const connectPage = async (url: string) => {
   const timeoutDuration = 5000;
   while (tryCount < 3) {
     try {
-      console.log('tryCount', tryCount, url);
+      tryCount > 0 && console.log('tryCount');
       const responsePromise = fetch(url, {
         method: METHOD.GET,
         headers: DEFAULT_OPTION_HEADER_FETCH,
