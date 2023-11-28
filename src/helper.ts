@@ -162,14 +162,23 @@ export const isAddressStreet = (street: string) => {
 
 export const connectPage = async (url: string) => {
   let tryCount = 0;
+  const timeoutDuration = 5000;
   while (tryCount < 3) {
     try {
-      tryCount > 0 && console.log('tryCount', tryCount);
-      const response = await fetch(url, {
+      console.log('tryCount', tryCount, url);
+      const responsePromise = fetch(url, {
         method: METHOD.GET,
         headers: DEFAULT_OPTION_HEADER_FETCH,
-      }).catch(() => undefined);
-      if (response?.ok) return response;
+      });
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Connection timed out'));
+        }, timeoutDuration);
+      });
+
+      const response = await Promise.race([responsePromise, timeoutPromise]);
+      if (response instanceof Response && response.ok) return response;
       tryCount++;
     } catch {
       tryCount++;
