@@ -13,7 +13,6 @@ import {
   ASSETS_THUMNAIL_DIR,
   FILE_TYPE,
   MESSAGE_ERROR,
-  ROLE_ADMIN,
 } from 'src/constants';
 import { UserEntity } from 'src/entities';
 import * as fs from 'fs';
@@ -93,10 +92,9 @@ export class FilesService {
   ): Promise<any[]> {
     try {
       const { search, limit, page, sortBy, sortDirection } = fetchDto;
-      const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
       const where = {
         ...(search && { name: { search: transformTextSearch(search) } }),
-        ...(!isAdmin && { creatorId: { equals: currentUser?.id } }),
+        ...{ creatorId: { equals: currentUser?.id } },
       };
 
       const result = await this.prisma.file.findMany({

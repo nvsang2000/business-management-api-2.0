@@ -14,7 +14,6 @@ import {
   FILE_TYPE,
   JOB_EXPORT,
   JOB_EXPORT_CHILD,
-  ROLE,
   ROLE_ADMIN,
 } from 'src/constants';
 import * as XLSX from 'xlsx-js-style';
@@ -157,7 +156,7 @@ export class ExportService {
     currentUser: UserEntity = null,
   ) {
     const { mode } = fetchDto;
-    const isAdmin = currentUser?.role === ROLE.admin;
+    const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
     const allLimit = await this.configService.get(EXPORT_ALL_LIMIT);
     try {
       let businessList = [];
