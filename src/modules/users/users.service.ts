@@ -171,9 +171,11 @@ export class UsersService {
     id: string,
   ): Promise<any> {
     try {
-      const user = await this.findById(id);
       const adminSys = currentUser?.role === ROLE.adminSys;
+      const user = await this.findById(id);
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
+      if (user?.role === ROLE.adminSys)
+        throw new BadRequestException(MESSAGE_ERROR.UNABLE_EXCEPTION);
       const { password } = updateUser;
       const result = await this.prisma.user.update({
         data: {
@@ -193,6 +195,8 @@ export class UsersService {
     try {
       const user = await this.findById(id);
       if (!user) throw new BadRequestException(MESSAGE_ERROR.NOT_FUND_DATA);
+      if (user?.role === ROLE.adminSys)
+        throw new BadRequestException(MESSAGE_ERROR.UNABLE_EXCEPTION);
       const result = await this.prisma.user.delete({ where: { id } });
       return result;
     } catch (e) {

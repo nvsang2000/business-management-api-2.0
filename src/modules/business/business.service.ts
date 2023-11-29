@@ -32,7 +32,7 @@ import { isNumberString } from 'class-validator';
 import { FetchBusinessDto } from './dto/fetch-business.dto';
 import { generateSlug } from 'src/helper';
 
-const statusUser = [2, 3, 4, 5];
+const STATUS_MARKETING = [2, 3, 4, 5];
 @Injectable()
 export class BusinessService {
   constructor(private prisma: PrismaService) {}
@@ -106,7 +106,7 @@ export class BusinessService {
       ...(googleVerify && {
         googleVerify: { equals: boolGoogleVerify },
       }),
-      ...(statusUser?.includes(statusMarketing) && {
+      ...(STATUS_MARKETING.includes(statusMarketing) && {
         statusMarketing: { equals: statusMarketing },
         ...(!isAdmin && {
           userMarketingId: { equals: currentUser?.id },

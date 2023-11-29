@@ -288,6 +288,7 @@ export const PRISMA_ERROR_CODE = {
 export const MESSAGE_ERROR = {
   //Server
   NOT_FUND_DATA: 'Not fund data!',
+  UNABLE_EXCEPTION: 'Unable to handle exception',
   //Login
   INCORRECT_USERNAME_OR_PASSWORD: 'Incorrect username or password!',
   HAS_EXPIRED: 'Login session has expired!',

@@ -87,10 +87,11 @@ export class WebsiteSerivce {
           isAdmin,
           cursor,
         );
-        if (businessMore.length === 1) hasMore = false;
+        const length = businessMore?.length;
+        if (length === 1 || length === 0) hasMore = false;
         else {
           businessList = businessList.concat(businessMore);
-          cursor = businessMore[businessMore.length - 1].id;
+          cursor = businessMore[length - 1].id;
         }
         index++;
         console.log('cursor: ', index, cursor);
