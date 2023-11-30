@@ -68,6 +68,8 @@ export class BusinessService {
       thumbnailUrl,
       statusWebsite,
       email,
+      matchPhone,
+      matchAddress,
     } = fetchDto;
     let { categories, state } = fetchDto;
     const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
@@ -85,6 +87,12 @@ export class BusinessService {
       return { id: { in: ids } };
     }
     return {
+      ...(matchPhone && {
+        matchPhone: { equals: matchPhone },
+      }),
+      ...(matchAddress && {
+        matchAddress: { equals: matchAddress },
+      }),
       ...(email && {
         email: email === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
@@ -155,6 +163,8 @@ export class BusinessService {
           source: true,
           createdAt: true,
           statusWebsite: true,
+          matchAddress: true,
+          matchPhone: true,
         },
         take: limit,
         skip: (page - 1) * limit,
