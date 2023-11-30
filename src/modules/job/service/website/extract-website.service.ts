@@ -64,6 +64,8 @@ export class ExtractWebsiteSerivce {
     try {
       const newFetch = {
         ...fetch,
+        matchPhone: 1,
+        matchAddress: 1,
         website: 'true',
       } as FetchBusinessDto;
 
