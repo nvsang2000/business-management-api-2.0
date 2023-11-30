@@ -135,8 +135,6 @@ export class ExtractWebsiteSerivce {
             : MATCH_WEBSITE.NOT_MATCH,
       };
 
-      console.log('result:', newUpdate);
-
       const result = await this.prisma.business.update({
         where: { id: business?.id },
         data: newUpdate,

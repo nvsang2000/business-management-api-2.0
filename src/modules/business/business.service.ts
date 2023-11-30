@@ -87,14 +87,16 @@ export class BusinessService {
       return { id: { in: ids } };
     }
     return {
+      ...(email && {
+        email: email === STRING_BOOLEAN.TRUE ? { not: null } : null,
+      }),
       ...(matchPhone && {
+        website: { not: null },
         matchPhone: { equals: matchPhone },
       }),
       ...(matchAddress && {
+        website: { not: null },
         matchAddress: { equals: matchAddress },
-      }),
-      ...(email && {
-        email: email === STRING_BOOLEAN.TRUE ? { not: null } : null,
       }),
       ...(statusWebsite && {
         website: { not: null },
