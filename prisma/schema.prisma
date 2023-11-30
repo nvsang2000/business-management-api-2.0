@@ -94,6 +94,8 @@ model Business {
   keyword         String?    @db.VarChar(128)
   googleVerify    Boolean?   @default(false)
   statusMarketing Int?       @default(1)
+  matchPhone      Int?       @default(1)
+  matchAddress    Int?       @default(1)
   userMarketingId String?    @db.Uuid
   cityId          String?    @db.Uuid
   creatorId       String?    @db.Uuid
@@ -120,6 +122,8 @@ model Business {
   @@index([zipCode])
   @@index([city])
   @@index([address])
+  @@index([matchPhone])
+  @@index([matchAddress])
   @@map("business")
 }
 

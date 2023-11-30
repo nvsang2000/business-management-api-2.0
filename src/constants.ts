@@ -1,3 +1,5 @@
+import { PuppeteerLaunchOptions } from 'puppeteer';
+
 //job
 export const JOB_EXPORT = `export-queue-${process.env.REDIS_SERVER}`;
 export const JOB_EXPORT_CHILD = {
@@ -9,6 +11,7 @@ export const JOB_IMPORT_CHILD = {
 };
 export const JOB_QUEUE = `job-queue-${process.env.REDIS_SERVER}`;
 export const JOB_QUEUE_CHILD = {
+  EXTRACT_WEBSITE: 'extract-website',
   WEBSITE: 'website',
   SEARCH_YELLOW: 'search-yellow',
   SEARCH_YELP: 'search-yelp',
@@ -85,6 +88,12 @@ export enum STATUS_WEBSITE {
   UN_VERIFY = 1,
   VERIFY = 2,
   FAILD = 3,
+}
+
+export enum MATCH_WEBSITE {
+  UN_CHECK = 1,
+  MATCH = 2,
+  NOT_MATCH = 3,
 }
 
 export enum METHOD {
@@ -270,20 +279,20 @@ export const PRISMA_ERROR_CODE = {
   CONSTRAINT_NOT_FOUND: 'P2025',
 };
 
-// export const OPTION_BROWSER: PuppeteerLaunchOptions = {
-//   args: [
-//     '--disable-gpu',
-//     '--disable-dev-shm-usage',
-//     '--disable-setuid-sandbox',
-//     '--no-first-run',
-//     '--no-sandbox',
-//     '--no-zygote',
-//     '--deterministic-fetch',
-//     '--disable-features=IsolateOrigins',
-//     '--disable-site-isolation-trials',
-//   ],
-//   ignoreDefaultArgs: ['--disable-extensions'],
-// };
+export const OPTION_BROWSER: PuppeteerLaunchOptions = {
+  args: [
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-setuid-sandbox',
+    '--no-first-run',
+    '--no-sandbox',
+    '--no-zygote',
+    '--deterministic-fetch',
+    '--disable-features=IsolateOrigins',
+    '--disable-site-isolation-trials',
+  ],
+  ignoreDefaultArgs: ['--disable-extensions'],
+};
 
 export const MESSAGE_ERROR = {
   //Server

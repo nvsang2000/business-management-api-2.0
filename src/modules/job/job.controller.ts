@@ -32,6 +32,7 @@ import { SearchYelpService } from './service/yelp/search.service';
 import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 import { WebsiteSerivce } from './service/website/website.service';
 import { FetchBusinessDto } from '../business/dto';
+import { ExtractWebsiteSerivce } from './service/website/extract-website.service';
 
 @ApiTags('Job Data')
 @Controller('job')
@@ -40,6 +41,7 @@ export class JobController {
   constructor(
     private jobService: JobService,
     private websiteService: WebsiteSerivce,
+    private extractWebsiteService: ExtractWebsiteSerivce,
     private searchYelp: SearchYelpService,
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
@@ -110,11 +112,20 @@ export class JobController {
 
   @Get('website')
   @Roles([ROLE.adminSys])
-  createJobScreenshot(
+  createJobWebsite(
     @Query() fetchDto: FetchBusinessDto,
     @CurrentUser() currentUser: UserEntity,
   ) {
     return this.websiteService.createJob(fetchDto, currentUser);
+  }
+
+  @Get('extract-website')
+  @Roles([ROLE.adminSys])
+  createJobExtractWebsite(
+    @Query() fetchDto: FetchBusinessDto,
+    @CurrentUser() currentUser: UserEntity,
+  ) {
+    return this.extractWebsiteService.createJob(fetchDto, currentUser);
   }
 
   @Get()

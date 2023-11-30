@@ -60,6 +60,16 @@ export const formatPhoneNumber = (phone: string) => {
   return phone?.replace(/\D/g, '')?.slice(-10);
 };
 
+export const coverPhoneNumber = (phoneNumber: any) => {
+  const cleaned = ('' + phoneNumber).replace(/\D/g, '');
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    const formatted = `(${match[1]}) ${match[2]}-${match[3]}`;
+    return formatted;
+  }
+  return phoneNumber;
+};
+
 export const parseUSAddress = (
   addressLocality: string,
   addressStreet: string,
