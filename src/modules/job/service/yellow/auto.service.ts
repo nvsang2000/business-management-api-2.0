@@ -7,7 +7,6 @@ import { JobService } from '../../job.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { JobAutoDto } from '../../dto';
-import { UserEntity } from 'src/entities';
 import {
   JOB_QUEUE,
   JOB_QUEUE_CHILD,
@@ -47,11 +46,11 @@ export class AutoSearchYellowService {
     private scrapingQueue: Queue,
   ) {}
 
-  async reJobAuto(id: string, currentUser: UserEntity) {
+  async reJobAuto(id: string) {
     try {
       const job = await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.AUTO_SEARCH_YELLOW,
-        { jobId: id, userId: currentUser?.id },
+        { jobId: id },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -65,7 +64,7 @@ export class AutoSearchYellowService {
     }
   }
 
-  async createJobAuto(payload: JobAutoDto, currentUser: UserEntity) {
+  async createJobAuto(payload: JobAutoDto) {
     delete payload.source;
     try {
       const zipCodeList = await this.zipCodeService.readFileZipCode({});
@@ -74,15 +73,15 @@ export class AutoSearchYellowService {
         return acc;
       }, {});
 
-      const userId = currentUser?.id;
-      const result = await this.jobService.create(
-        { ...payload, statusData, type: TYPE_JOB.AUTO },
-        userId,
-      );
+      const result = await this.jobService.create({
+        ...payload,
+        statusData,
+        type: TYPE_JOB.AUTO,
+      });
 
       await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.AUTO_SEARCH_YELLOW,
-        { jobId: result?.id, userId },
+        { jobId: result?.id },
         {
           removeOnComplete: true,
           removeOnFail: true,

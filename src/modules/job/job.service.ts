@@ -114,13 +114,13 @@ export class JobService {
 
   async create(
     createJob: CreateJobSearchBusinessDto | any,
-    userId: string,
+    userId?: string,
   ): Promise<any> {
     try {
       const result = await this.prisma.job.create({
         data: {
           ...createJob,
-          creatorId: userId,
+          ...(userId && { creatorId: userId }),
         },
       });
       return result;

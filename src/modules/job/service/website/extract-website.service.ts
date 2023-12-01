@@ -18,9 +18,8 @@ import {
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
 } from 'src/constants';
-import { BusinessEntity, UserEntity } from 'src/entities';
+import { BusinessEntity } from 'src/entities';
 import { promisesSequentially } from 'src/helper';
-import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
 import { WebsiteSerivce } from './website.service';
 
@@ -29,17 +28,16 @@ export class ExtractWebsiteSerivce {
   constructor(
     private prisma: PrismaService,
     private websiteSerivce: WebsiteSerivce,
-    private businessService: BusinessService,
     private configService: ConfigService,
     @InjectQueue(JOB_QUEUE)
     private scrapingQueue: Queue,
   ) {}
 
-  async createJob(fetch: FetchBusinessDto, currentUser: UserEntity) {
+  async createJob(fetch: FetchBusinessDto) {
     try {
       const result = await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.EXTRACT_WEBSITE,
-        { fetch, currentUser },
+        { fetch },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -53,7 +51,7 @@ export class ExtractWebsiteSerivce {
     }
   }
   async runJob(bull: Job<any>) {
-    const { fetch, currentUser } = bull.data;
+    const { fetch } = bull.data;
     const limit = await this.configService.get(PROMISE_WEBSITE_LIMIT);
     const headless = await this.configService.get(BROWSER_HEADLESS);
     const browser = await puppeteer.use(StealthPlugin()).launch({
@@ -71,7 +69,6 @@ export class ExtractWebsiteSerivce {
 
       const businessList = await this.websiteSerivce.handleFindAllData(
         newFetch,
-        currentUser,
       );
       console.log('businessList', businessList?.length);
       const promiseCreateBrowser = businessList?.map((data) => {
@@ -90,7 +87,13 @@ export class ExtractWebsiteSerivce {
 
   async createBrowser(browser: Browser, business: BusinessEntity) {
     const { city, state, zipCode, website, phone } = business;
-    if (website?.includes(DOMAIN_LINK.facebook)) return;
+    if (website?.includes(DOMAIN_LINK.facebook)) {
+      return await this.prisma.business.update({
+        where: { id: business?.id },
+        select: { id: true },
+        data: { matchPhone: 3, matchAddress: 3 },
+      });
+    }
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1000, height: 800 });
@@ -100,7 +103,14 @@ export class ExtractWebsiteSerivce {
         searchAddress = [];
 
       const response = await this.connectPage(website, page);
-      if (!response) return;
+      if (!response) {
+        console.log('connect faild');
+        return await this.prisma.business.update({
+          where: { id: business?.id },
+          select: { id: true },
+          data: { matchPhone: 3, matchAddress: 3 },
+        });
+      }
       await this.scrollToEndOfPage(page);
 
       if (!email) email = await this.searchEmail(page);
@@ -139,9 +149,10 @@ export class ExtractWebsiteSerivce {
 
       const result = await this.prisma.business.update({
         where: { id: business?.id },
+        select: { id: true },
         data: newUpdate,
       });
-
+      console.log('result', result);
       return result;
     } catch (e) {
       console.log(e);

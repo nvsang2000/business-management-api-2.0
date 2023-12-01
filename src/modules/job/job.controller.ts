@@ -79,18 +79,15 @@ export class JobController {
 
   @Get('auto-search')
   @Roles([ROLE.adminSys])
-  createJobAutoSearch(
-    @Query() payload: JobAutoDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
+  createJobAutoSearch(@Query() payload: JobAutoDto) {
     if (payload?.source === SOURCE_SCRATCH.YELLOW_PAGES)
-      return this.autoSearchYellow.createJobAuto(payload, currentUser);
+      return this.autoSearchYellow.createJobAuto(payload);
 
     if (payload?.source === SOURCE_SCRATCH.YELP)
-      return this.autoSearchYelp.createJobAuto(payload, currentUser);
+      return this.autoSearchYelp.createJobAuto(payload);
 
     if (payload?.source === SOURCE_SCRATCH.MENUFY)
-      return this.autoSearchMenufy.createJobAuto(currentUser);
+      return this.autoSearchMenufy.createJobAuto();
   }
 
   @Get('auto-search/:id')
@@ -98,34 +95,27 @@ export class JobController {
   createJobReAutoSearch(
     @Param('id') id: string,
     @Query() query: SourceScratchDto,
-    @CurrentUser() currentUser: UserEntity,
   ) {
     if (query?.source === SOURCE_SCRATCH.YELLOW_PAGES)
-      return this.autoSearchYellow.reJobAuto(id, currentUser);
+      return this.autoSearchYellow.reJobAuto(id);
 
     if (query?.source === SOURCE_SCRATCH.YELP)
-      return this.autoSearchYelp.reJobAuto(id, currentUser);
+      return this.autoSearchYelp.reJobAuto(id);
 
     if (query?.source === SOURCE_SCRATCH.MENUFY)
-      return this.autoSearchMenufy.reJobAuto(id, currentUser);
+      return this.autoSearchMenufy.reJobAuto(id);
   }
 
   @Get('website')
   @Roles([ROLE.adminSys])
-  createJobWebsite(
-    @Query() fetchDto: FetchBusinessDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.websiteService.createJob(fetchDto, currentUser);
+  createJobWebsite(@Query() fetchDto: FetchBusinessDto) {
+    return this.websiteService.createJob(fetchDto);
   }
 
   @Get('extract-website')
   @Roles([ROLE.adminSys])
-  createJobExtractWebsite(
-    @Query() fetchDto: FetchBusinessDto,
-    @CurrentUser() currentUser: UserEntity,
-  ) {
-    return this.extractWebsiteService.createJob(fetchDto, currentUser);
+  createJobExtractWebsite(@Query() fetchDto: FetchBusinessDto) {
+    return this.extractWebsiteService.createJob(fetchDto);
   }
 
   @Get()

@@ -2,7 +2,7 @@ import { BusinessService } from 'src/modules/business/business.service';
 import { JobService } from '../../job.service';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { BusinessEntity, UserEntity } from 'src/entities';
+import { BusinessEntity } from 'src/entities';
 import {
   JOB_QUEUE,
   JOB_QUEUE_CHILD,
@@ -37,11 +37,11 @@ export class AutoSearchMenufySerivce {
     private scrapingQueue: Queue,
   ) {}
 
-  async reJobAuto(id: string, currentUser: UserEntity) {
+  async reJobAuto(id: string) {
     try {
       const job = await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.AUTO_SEARCH_MENUFY,
-        { jobId: id, userId: currentUser?.id },
+        { jobId: id },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -55,7 +55,7 @@ export class AutoSearchMenufySerivce {
     }
   }
 
-  async createJobAuto(currentUser: UserEntity) {
+  async createJobAuto() {
     try {
       const url = WEBSITE.MENUFY.URL;
       const response = await connectPage(url);
@@ -71,15 +71,14 @@ export class AutoSearchMenufySerivce {
         return acc;
       }, {});
 
-      const userId = currentUser?.id;
-      const result = await this.jobService.create(
-        { statusData, type: TYPE_JOB.AUTO },
-        userId,
-      );
+      const result = await this.jobService.create({
+        statusData,
+        type: TYPE_JOB.AUTO,
+      });
 
       await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.AUTO_SEARCH_MENUFY,
-        { jobId: result?.id, userId },
+        { jobId: result?.id },
         {
           removeOnComplete: true,
           removeOnFail: true,

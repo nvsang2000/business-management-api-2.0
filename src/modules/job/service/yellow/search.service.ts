@@ -83,10 +83,7 @@ export class SearchYellowService {
       }, {});
 
       const userId = currentUser?.id;
-      const result = await this.jobService.create(
-        { ...values, statusData },
-        userId,
-      );
+      const result = await this.jobService.create({ ...values, statusData });
 
       await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.SEARCH_YELLOW,

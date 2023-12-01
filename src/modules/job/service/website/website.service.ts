@@ -11,10 +11,9 @@ import {
   PROMISE_WEBSITE_LIMIT,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
-  ROLE_ADMIN,
   STATUS_WEBSITE,
 } from 'src/constants';
-import { BusinessEntity, UserEntity } from 'src/entities';
+import { BusinessEntity } from 'src/entities';
 import { connectPage, promisesSequentially } from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
@@ -30,11 +29,11 @@ export class WebsiteSerivce {
     private scrapingQueue: Queue,
   ) {}
 
-  async createJob(fetch: FetchBusinessDto, currentUser: UserEntity) {
+  async createJob(fetch: FetchBusinessDto) {
     try {
       const result = await this.scrapingQueue.add(
         JOB_QUEUE_CHILD.WEBSITE,
-        { fetch, currentUser },
+        { fetch },
         {
           removeOnComplete: true,
           removeOnFail: true,
@@ -48,7 +47,7 @@ export class WebsiteSerivce {
     }
   }
   async runJob(bull: Job<any>) {
-    const { fetch, currentUser } = bull.data;
+    const { fetch } = bull.data;
     const limit = await this.configService.get(PROMISE_WEBSITE_LIMIT);
     try {
       const newFetch = {
@@ -56,7 +55,7 @@ export class WebsiteSerivce {
         website: 'true',
       } as FetchBusinessDto;
 
-      const businessList = await this.handleFindAllData(newFetch, currentUser);
+      const businessList = await this.handleFindAllData(newFetch);
       console.log('businessList', businessList?.length);
       const promiseCreateBrowser = businessList?.map((data) => {
         return async () => {
@@ -70,11 +69,7 @@ export class WebsiteSerivce {
     }
   }
 
-  async handleFindAllData(
-    fetchDto: FetchBusinessDto,
-    currentUser: UserEntity = null,
-  ) {
-    const isAdmin = ROLE_ADMIN.includes(currentUser?.role);
+  async handleFindAllData(fetchDto: FetchBusinessDto) {
     const allLimit = await this.configService.get(EXPORT_ALL_LIMIT);
     try {
       let businessList = [],
@@ -82,9 +77,8 @@ export class WebsiteSerivce {
         cursor = null,
         index = 0;
       while (hasMore) {
-        const businessMore = await this.businessService.findAllExport(
+        const businessMore = await this.businessService.findAllScratch(
           { ...fetchDto, limit: +allLimit },
-          isAdmin,
           cursor,
         );
         const length = businessMore?.length;

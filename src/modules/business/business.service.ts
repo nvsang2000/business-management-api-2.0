@@ -162,7 +162,6 @@ export class BusinessService {
           address: true,
           categories: true,
           thumbnailUrl: true,
-          source: true,
           createdAt: true,
           statusWebsite: true,
           matchAddress: true,
@@ -188,6 +187,37 @@ export class BusinessService {
       return result;
     } catch (error) {
       throw new UnprocessableEntityException(error.message);
+    }
+  }
+
+  async findAllScratch(fetchDto: FetchBusinessDto, lastId?: string) {
+    try {
+      const { limit } = fetchDto;
+      const { page, sortBy, sortDirection } = fetchDto;
+      const where = this.createQuery(fetchDto);
+      const result = await this.prisma.business.findMany({
+        where,
+        select: {
+          id: true,
+          website: true,
+          phone: true,
+          email: true,
+          state: true,
+          zipCode: true,
+          city: true,
+          address: true,
+        },
+        take: limit,
+        skip: (page - 1) * limit,
+        ...(lastId && {
+          cursor: { id: lastId },
+        }),
+        orderBy: { [sortBy]: sortDirection },
+      });
+
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
     }
   }
 
