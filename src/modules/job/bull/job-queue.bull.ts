@@ -9,13 +9,11 @@ import { SearchYelpService } from '../service/yelp/search.service';
 import { AutoSearchMenufySerivce } from '../service/menufy/auto.service';
 import { WebsiteSerivce } from '../service/website/website.service';
 import { JOB_QUEUE, JOB_QUEUE_CHILD } from 'src/constants';
-import { ExtractWebsiteSerivce } from '../service/website/extract-website.service';
 
 @Processor(JOB_QUEUE)
 export class BullJobQueue {
   constructor(
     private website: WebsiteSerivce,
-    private extractWebsite: ExtractWebsiteSerivce,
     private searchYelp: SearchYelpService,
     private searchYellow: SearchYellowService,
     private autoSearchYelp: AutoSearchYelpService,
@@ -78,16 +76,6 @@ export class BullJobQueue {
     try {
       console.log('job id: ', bull?.id);
       return await this.website.runJob(bull);
-    } catch (e) {
-      throw new UnprocessableEntityException(e?.message);
-    }
-  }
-
-  @Process(JOB_QUEUE_CHILD.EXTRACT_WEBSITE)
-  async runBullWebsite(bull: Job<BullJob>) {
-    try {
-      console.log('job id: ', bull?.id);
-      return await this.extractWebsite.runJob(bull);
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     }

@@ -13,7 +13,6 @@ import { AutoSearchMenufySerivce } from './service/menufy/auto.service';
 import { WebsiteSerivce } from './service/website/website.service';
 import { FilesModule } from '../files/files.module';
 import { JOB_QUEUE } from 'src/constants';
-import { ExtractWebsiteSerivce } from './service/website/extract-website.service';
 
 @Module({
   imports: [
@@ -32,7 +31,6 @@ import { ExtractWebsiteSerivce } from './service/website/extract-website.service
     AutoSearchYelpService,
     AutoSearchMenufySerivce,
     WebsiteSerivce,
-    ExtractWebsiteSerivce,
   ],
   exports: [JobService],
 })

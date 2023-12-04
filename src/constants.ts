@@ -1,5 +1,3 @@
-import { PuppeteerLaunchOptions } from 'puppeteer';
-
 //job
 export const JOB_EXPORT = `export-queue-${process.env.REDIS_SERVER}`;
 export const JOB_EXPORT_CHILD = {
@@ -277,21 +275,6 @@ export const MAPPING_CATEGORIES = {
 export const PRISMA_ERROR_CODE = {
   DUPLICATE: 'P2002',
   CONSTRAINT_NOT_FOUND: 'P2025',
-};
-
-export const OPTION_BROWSER: PuppeteerLaunchOptions = {
-  args: [
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--disable-setuid-sandbox',
-    '--no-first-run',
-    '--no-sandbox',
-    '--no-zygote',
-    '--deterministic-fetch',
-    '--disable-features=IsolateOrigins',
-    '--disable-site-isolation-trials',
-  ],
-  ignoreDefaultArgs: ['--disable-extensions'],
 };
 
 export const MESSAGE_ERROR = {

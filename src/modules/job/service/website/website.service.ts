@@ -8,13 +8,19 @@ import {
   EXPORT_ALL_LIMIT,
   JOB_QUEUE,
   JOB_QUEUE_CHILD,
+  MATCH_WEBSITE,
   PROMISE_WEBSITE_LIMIT,
+  REGEX_PHONE_NUMBER,
   REG_IS_EMAIL,
   REG_IS_WEBSITE,
   STATUS_WEBSITE,
 } from 'src/constants';
 import { BusinessEntity } from 'src/entities';
-import { connectPage, promisesSequentially } from 'src/helper';
+import {
+  connectPage,
+  coverPhoneNumber,
+  promisesSequentially,
+} from 'src/helper';
 import { BusinessService } from 'src/modules/business/business.service';
 import { FetchBusinessDto } from 'src/modules/business/dto';
 import * as cheerio from 'cheerio';
@@ -98,56 +104,83 @@ export class WebsiteSerivce {
 
   async createBrowser(business: BusinessEntity) {
     if (business?.website?.includes(DOMAIN_LINK.facebook))
-      return await this.prisma.business.update({
-        where: { id: business?.id },
-        data: { statusWebsite: STATUS_WEBSITE.FAILD },
-      });
+      return await this.updateBusinessFaild(business?.id);
 
     try {
-      let email: string;
-      email = business?.email;
       const response = await connectPage(business?.website);
-      if (!response) {
-        console.log('error: ', business?.website);
-        return await this.prisma.business.update({
-          where: { id: business?.id },
-          data: { statusWebsite: STATUS_WEBSITE.FAILD },
-        });
-      }
+      if (!response) return await this.updateBusinessFaild(business?.id);
 
       const body = await response?.text();
-      const $ = cheerio.load(body);
-      const links = await this.findInforBusiness(business, $);
-      const emails = links?.filter((link) => link?.email);
-      const contacts = links?.filter((link) => link?.contact);
-      if (emails?.length > 0) email = emails?.[0]?.email;
-      else if (contacts?.length > 0) {
-        const response = await connectPage(contacts?.[0]?.contact);
+      const $ = cheerio.load(body, { scriptingEnabled: false });
+
+      const inforPageHome = await this.findInforBusiness(business, $);
+      const email = inforPageHome?.email;
+      const matchAddress = inforPageHome?.arrayTextAddress;
+      const matchPhone = inforPageHome?.arrayTextPhone;
+      if (inforPageHome?.contactUrl) {
+        const response = await connectPage(inforPageHome?.contactUrl);
+        if (!response) return;
         const body = await response?.text();
-        if (response && body) {
-          const $ = cheerio.load(body);
-          const contactLink = await this.findInforBusiness(business, $);
-          const emailToContact = contactLink?.filter((link) => link?.email);
-          if (emailToContact?.length > 0) email = emailToContact?.[0]?.email;
+        const $ = cheerio.load(body, { scriptingEnabled: false });
+        const inforContact = await this.findInforBusiness(business, $);
+        if (inforContact) {
+          !email && email === inforContact?.email;
+          matchAddress === inforContact?.arrayTextAddress;
+          matchPhone === inforContact?.arrayTextPhone;
         }
       }
-      console.log('result: ', email, business?.website);
+
+      const newBusiness = {
+        email,
+        matchPhone:
+          matchPhone?.length > 0
+            ? MATCH_WEBSITE.MATCH
+            : MATCH_WEBSITE.NOT_MATCH,
+        matchAddress:
+          matchAddress?.length > 0
+            ? MATCH_WEBSITE.MATCH
+            : MATCH_WEBSITE.NOT_MATCH,
+      };
+      console.log('result: ', newBusiness);
       const result = await this.prisma.business.update({
         where: { id: business?.id },
-        data: { email, statusWebsite: STATUS_WEBSITE.VERIFY },
+        select: { id: true },
+        data: newBusiness,
       });
       return result;
     } catch (e) {
       console.log(e);
-      return await this.prisma.business.update({
-        where: { id: business?.id },
-        data: { statusWebsite: STATUS_WEBSITE.FAILD },
-      });
+      return await this.updateBusinessFaild(business?.id);
     }
   }
 
   async findInforBusiness(business: BusinessEntity, $: any) {
-    const links = [];
+    const { website, city, state, zipCode, phone } = business;
+
+    const coverPhone = coverPhoneNumber(phone);
+    const addressFormat = `${city}, ${state} ${zipCode}`;
+    const arrayTextPhone = [];
+    $(`div:contains(${coverPhone})`)
+      ?.contents()
+      ?.map((i: number, els: Element) => {
+        const textPhone = $(els)?.text()?.toLowerCase()?.trim();
+        const findPhone = textPhone.match(REGEX_PHONE_NUMBER);
+        if (findPhone && findPhone?.includes(coverPhone)) {
+          arrayTextPhone.push(...findPhone);
+        }
+      });
+
+    const arrayTextAddress = [];
+    $(`div:contains(${addressFormat})`)
+      ?.contents()
+      ?.map((i: number, els: Element) => {
+        const textAddress = $(els)?.text()?.toLowerCase()?.trim();
+        if (textAddress?.length < 100 && textAddress?.length > 10) {
+          arrayTextAddress.push(textAddress);
+        }
+      });
+
+    const arrayTextlinks = [];
     $('a')?.map((i: number, els: any) => {
       const link = $(els)?.attr('href')?.toLowerCase()?.trim();
       const text = $(els)?.text()?.toLowerCase()?.trim();
@@ -156,20 +189,41 @@ export class WebsiteSerivce {
         const email = link?.replace('mailto:', '');
         if (email?.match(REG_IS_EMAIL)) {
           const object = { email };
-          return links?.push(object);
+          return arrayTextlinks?.push(object);
         }
       }
-      if (match && text?.includes('contact')) {
+      if (match && match?.length > 4 && text?.includes('contact')) {
         const parsedUrl = url.parse(link);
-        const parsedWebsite = url.parse(business?.website);
+        const parsedWebsite = url.parse(website);
         const object = {
           contact: parsedUrl?.hostname
             ? link
             : `${parsedWebsite?.hostname}${parsedUrl?.pathname}`,
         };
-        return links?.push(object);
+        return arrayTextlinks?.push(object);
       }
     });
-    return links;
+
+    const emails = arrayTextlinks?.filter((link) => link?.email);
+    const contacts = arrayTextlinks?.filter((link) => link?.contact);
+    const newBusiness = {
+      arrayTextPhone,
+      arrayTextAddress,
+      email: emails?.[0]?.email,
+      contactUrl: contacts?.[0]?.contact,
+    };
+    return newBusiness;
+  }
+
+  async updateBusinessFaild(id: string) {
+    return await this.prisma.business.update({
+      where: { id },
+      select: { id: true },
+      data: {
+        statusWebsite: STATUS_WEBSITE.FAILD,
+        matchPhone: 3,
+        matchAddress: 3,
+      },
+    });
   }
 }
